@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vschernoff/solidity-ai-kit/kit.manifest.schema.json",
+  "title": "solidity-ai-kit manifest",
+  "description": "The single source of truth for which components the kit installs (FR-14, FR-15).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifestVersion", "components"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "manifestVersion": { "const": 1 },
+    "components": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/component" }
+    }
+  },
+  "$defs": {
+    "exactVersion": {
+      "description": "An exact semver version. Ranges, tags and 'latest' are rejected (FR-4).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "riskNote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["note", "security", "resolved"],
+      "properties": {
+        "note": { "type": "string", "minLength": 1 },
+        "security": {
+          "description": "True when the note records a security finding.",
+          "type": "boolean"
+        },
+        "resolved": { "type": "boolean" },
+        "ref": {
+          "description": "Link to the evidence: an issue, a scorecard section, a commit.",
+          "type": "string"
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "stage",
+        "version",
+        "transport",
+        "license",
+        "source",
+        "evaluatedAt",
+        "score",
+        "scorecardRef",
+        "enabledByDefault",
+        "experimental",
+        "requiresBinaries",
+        "deniedTools",
+        "riskNotes"
+      ],
+      "properties": {
+        "id": {
+          "description": "Server key written into client configs; also the tool prefix (mcp__<id>__<tool>).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "stage": {
+          "enum": ["build-test", "lint", "static-analysis", "fuzz", "onchain-read", "utilities"]
+        },
+        "package": {
+          "description": "npm package name, launched as npx -y <package>@<version>.",
+          "type": "string",
+          "pattern": "^(@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*$"
+        },
+        "command": {
+          "description": "Executable for components not distributed on npm.",
+          "type": "string",
+          "minLength": 1
+        },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "url": {
+          "description": "Endpoint for the http transport.",
+          "type": "string",
+          "pattern": "^https?://"
+        },
+        "version": { "$ref": "#/$defs/exactVersion" },
+        "transport": { "enum": ["stdio", "http"] },
+        "license": {
+          "description": "SPDX licence expression, or null when the component has none.",
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "source": { "type": "string", "pattern": "^https://" },
+        "evaluatedAt": {
+          "description": "Date of the evaluation recorded in SCORECARD.md; null until evaluated.",
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "score": { "type": ["number", "null"], "minimum": 0 },
+        "scorecardRef": {
+          "description": "Anchor or path into SCORECARD.md; null until evaluated.",
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "enabledByDefault": { "type": "boolean" },
+        "experimental": {
+          "description": "Experimental components are opt-in only and labelled in all output (FR-17).",
+          "type": "boolean"
+        },
+        "requiresBinaries": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "deniedTools": {
+          "description": "Tools that send transactions or sign; denied in every client that supports it (FR-7).",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "riskNotes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/riskNote" }
+        }
+      },
+      "allOf": [
+        {
+          "description": "Exactly one launch method: an npm package or a command.",
+          "oneOf": [{ "required": ["package"] }, { "required": ["command"] }]
+        },
+        {
+          "description": "The http transport needs a url.",
+          "if": { "properties": { "transport": { "const": "http" } } },
+          "then": { "required": ["url"] }
+        },
+        {
+          "description": "FR-16: no default without a licence, an evaluation, and no open security finding. FR-17: experimental is never a default.",
+          "if": {
+            "properties": { "enabledByDefault": { "const": true } }
+          },
+          "then": {
+            "properties": {
+              "license": { "type": "string" },
+              "evaluatedAt": { "type": "string" },
+              "score": { "type": "number" },
+              "scorecardRef": { "type": "string" },
+              "experimental": { "const": false },
+              "riskNotes": {
+                "not": {
+                  "type": "array",
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "security": { "const": true },
+                      "resolved": { "const": false }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

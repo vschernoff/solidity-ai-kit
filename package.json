@@ -1,0 +1,58 @@
+{
+  "name": "solidity-ai-kit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "One command to set up a curated, pinned set of Solidity MCP servers and workflow rules for any AI coding agent",
+  "type": "module",
+  "bin": {
+    "solidity-ai-kit": "src/bin.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "solidity",
+    "smart-contracts",
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "foundry",
+    "hardhat",
+    "codex",
+    "cursor",
+    "claude"
+  ],
+  "author": "Vitaliy Chernov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vschernoff/solidity-ai-kit.git"
+  },
+  "homepage": "https://github.com/vschernoff/solidity-ai-kit#readme",
+  "bugs": {
+    "url": "https://github.com/vschernoff/solidity-ai-kit/issues"
+  },
+  "files": [
+    "src/",
+    "kit.manifest.json",
+    "kit.manifest.schema.json",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "ajv": "8.20.0",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "spdx-expression-parse": "5.0.0",
+    "yaml": "2.9.1"
+  }
+}
