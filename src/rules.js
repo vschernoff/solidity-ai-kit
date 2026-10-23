@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { label } from './components.js'
 import { readText } from './clients/json.js'
 
@@ -73,8 +75,14 @@ export function withBlock(file, text, block) {
   if (text === null || text === '') return `${blockText}${eol}`
 
   const lines = text.split(/\r?\n/)
-  const starts = lines.flatMap((line, index) => (line.trim() === START ? [index] : []))
-  const ends = lines.flatMap((line, index) => (line.trim() === END ? [index] : []))
+  // Markers quoted inside a fenced code block are examples, not the kit's block.
+  let fenced = false
+  const markerAt = lines.map((line) => {
+    if (/^ {0,3}(```|~~~)/.test(line)) fenced = !fenced
+    return fenced ? null : line.trim()
+  })
+  const starts = markerAt.flatMap((marker, index) => (marker === START ? [index] : []))
+  const ends = markerAt.flatMap((marker, index) => (marker === END ? [index] : []))
   if (starts.length === 0 && ends.length === 0) {
     const body = text.replace(/(\r?\n)*$/, '')
     return `${body}${eol}${eol}${blockText}${eol}`
@@ -88,11 +96,41 @@ export function withBlock(file, text, block) {
   return [...lines.slice(0, starts[0]), ...block, ...lines.slice(ends[0] + 1)].join(eol)
 }
 
+// A common layout makes CLAUDE.md a symlink to AGENTS.md (or the other way round). When a
+// rules file is a symlink to a file inside the project, the block is written once, to the
+// target. A symlink that leads outside the project is left for resolveInside to refuse.
+function linkTarget(root, file) {
+  const absolute = path.join(root, file)
+  let stat
+  try {
+    stat = fs.lstatSync(absolute)
+  } catch (error) {
+    if (error.code === 'ENOENT') return file
+    throw error
+  }
+  if (!stat.isSymbolicLink()) return file
+  const target = path.resolve(fs.realpathSync(path.dirname(absolute)), fs.readlinkSync(absolute))
+  const fromRoot = path.relative(fs.realpathSync(root), target)
+  const outside =
+    fromRoot === '' ||
+    fromRoot === '..' ||
+    fromRoot.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(fromRoot)
+  return outside ? file : fromRoot
+}
+
 export function rulesGenerator(clients) {
   const files = [...new Set(clients.map((client) => RULES_FILES[client]))]
-  return function rules(project, { components }) {
+  return function rules(project, { components, notes }) {
     const block = rulesBlock(project, components)
-    return files.map((file) => ({
+    const targets = new Map()
+    for (const file of files) {
+      const target = linkTarget(project.root, file)
+      if (target !== file)
+        notes.push(`${file} is a symlink to ${target}; the rules are written there.`)
+      if (!targets.has(target)) targets.set(target, file)
+    }
+    return [...targets.keys()].map((file) => ({
       file,
       after: withBlock(file, readText(project.root, file), block),
     }))

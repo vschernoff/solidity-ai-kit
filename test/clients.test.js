@@ -241,7 +241,11 @@ describe('reading existing configs safely', () => {
     const dir = project({ [MCP_FILE]: '{ "token": "s3cr3t-value" ' })
     const result = await cli(dir, 'init', '--write', ...withAll)
     assert.equal(result.code, 1)
-    assert.match(result.stderr, /\.mcp\.json is not valid JSON/)
+    // Pinned exactly, so the parser's message (which quotes the input) cannot creep back in.
+    assert.equal(
+      result.stderr.trim(),
+      'solidity-ai-kit init: .mcp.json is not valid JSON; fix it or move it aside.'
+    )
     assert.doesNotMatch(result.stderr + result.stdout, /s3cr3t|token/)
   })
 })

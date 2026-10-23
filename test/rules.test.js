@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict'
+import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { after, describe, it } from 'node:test'
+import { promisify } from 'node:util'
 import { END, RULES_FILES, START, rulesBlock, rulesGenerator, withBlock } from '../src/rules.js'
 import { runInit } from '../src/init.js'
-import { loadManifest } from '../src/manifest.js'
+import { PACKAGE_ROOT, loadManifest, readPackageJson } from '../src/manifest.js'
 
 const manifest = loadManifest()
 const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-rules-')))
@@ -207,5 +209,88 @@ describe('the delimited block in AGENTS.md and CLAUDE.md (FR-6)', () => {
     const block = [START, 'x', END]
     assert.equal(withBlock('A.md', null, block), `${START}\nx\n${END}\n`)
     assert.equal(withBlock('A.md', '', block), `${START}\nx\n${END}\n`)
+  })
+})
+
+const packageJson = readPackageJson()
+const bin = path.join(PACKAGE_ROOT, packageJson.bin[packageJson.name])
+const withAll = manifest.components.flatMap(({ id }) => ['--with', id])
+const symlinkTest = process.platform === 'win32' ? it.skip : it
+
+async function cli(cwd, ...args) {
+  try {
+    const { stdout, stderr } = await promisify(execFile)(process.execPath, [bin, ...args], { cwd })
+    return { code: 0, stdout, stderr }
+  } catch (error) {
+    if (typeof error.code !== 'number') throw error
+    return { code: error.code, stdout: error.stdout, stderr: error.stderr }
+  }
+}
+
+const blocks = (content) => content.split(START).length - 1
+
+describe('init writes the rules through the real CLI (FR-6)', () => {
+  it('puts exactly one block in AGENTS.md and CLAUDE.md', async () => {
+    const dir = project()
+    const result = await cli(dir, 'init', '--write', ...withAll)
+    assert.equal(result.code, 0, result.stderr)
+    for (const file of ['AGENTS.md', 'CLAUDE.md']) {
+      assert.equal(blocks(read(dir, file)), 1, file)
+      assert.equal(read(dir, file).split(END).length - 1, 1, file)
+    }
+  })
+
+  for (const [link, target] of [
+    ['CLAUDE.md', 'AGENTS.md'],
+    ['AGENTS.md', 'CLAUDE.md'],
+  ]) {
+    symlinkTest(`writes once to ${target} when ${link} is a symlink to it`, async () => {
+      const dir = project({ [target]: '# Shared instructions\n' })
+      fs.symlinkSync(target, path.join(dir, link))
+      const preview = await cli(dir, 'init', ...withAll)
+      assert.match(preview.stdout, new RegExp(`${link} is a symlink to ${target}`))
+      const result = await cli(dir, 'init', '--write', ...withAll)
+      assert.equal(result.code, 0, result.stderr)
+      assert.ok(fs.lstatSync(path.join(dir, link)).isSymbolicLink(), `${link} stays a symlink`)
+      assert.equal(blocks(read(dir, target)), 1)
+      assert.ok(read(dir, target).startsWith('# Shared instructions\n'))
+    })
+  }
+
+  symlinkTest('creates the target of a dangling in-project symlink', async () => {
+    const dir = project()
+    fs.symlinkSync('AGENTS.md', path.join(dir, 'CLAUDE.md'))
+    const result = await cli(dir, 'init', '--write', ...withAll)
+    assert.equal(result.code, 0, result.stderr)
+    assert.equal(blocks(read(dir, 'AGENTS.md')), 1)
+  })
+
+  symlinkTest('refuses a rules file symlinked outside the project, writing nothing', async () => {
+    const dir = project()
+    const outside = path.join(project(), 'elsewhere.md')
+    fs.writeFileSync(outside, '# not ours\n')
+    fs.symlinkSync(outside, path.join(dir, 'CLAUDE.md'))
+    const result = await cli(dir, 'init', '--write', ...withAll)
+    assert.equal(result.code, 1)
+    assert.match(result.stderr, /symlink: CLAUDE\.md/)
+    assert.equal(fs.readFileSync(outside, 'utf8'), '# not ours\n')
+    assert.ok(!fs.existsSync(path.join(dir, 'AGENTS.md')))
+  })
+})
+
+describe('marker edge cases (FR-6)', () => {
+  it('ignores markers quoted inside a fenced code block', () => {
+    const quoted = ['# Docs', '', '```markdown', START, 'example', END, '```', ''].join('\n')
+    const result = withBlock('AGENTS.md', quoted, [START, 'rules', END])
+    assert.ok(result.startsWith(quoted.trimEnd()))
+    assert.ok(result.endsWith(`${START}\nrules\n${END}\n`))
+  })
+
+  it('recognises markers indented by up to three spaces', () => {
+    const indented = `intro\n  ${START}\n  old\n  ${END}\noutro\n`
+    assert.equal(
+      withBlock('AGENTS.md', indented, [START, 'new', END]),
+      `intro\n${START}\nnew\n${END}\noutro\n`
+    )
   })
 })
