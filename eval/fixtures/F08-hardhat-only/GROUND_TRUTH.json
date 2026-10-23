@@ -1,0 +1,56 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F08",
+  "name": "hardhat-only",
+  "solc": "0.8.37",
+  "layout": "hardhat",
+  "purpose": "Hardhat 2 project with no foundry.toml. Forge-based tools must say so explicitly; lint works.",
+  "planted": [
+    {
+      "id": "tx-origin",
+      "file": "contracts/Wallet.sol",
+      "line": 15,
+      "description": "Authorisation via tx.origin."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "not-a-foundry-project",
+      "label": "planted",
+      "note": "Forge-based tools must return an explicit error naming the missing foundry.toml, never an empty success."
+    },
+    "test": {
+      "outcome": "not-a-foundry-project",
+      "label": "planted"
+    },
+    "lint": {
+      "outcome": "findings",
+      "mustFind": [
+        {
+          "planted": "tx-origin",
+          "rule": "avoid-tx-origin",
+          "label": "to-confirm"
+        }
+      ],
+      "label": "to-confirm"
+    },
+    "static": {
+      "outcome": "findings",
+      "mustFind": [
+        {
+          "planted": "tx-origin",
+          "detector": "tx-origin",
+          "contract": "Wallet",
+          "function": "sendTo",
+          "label": "planted"
+        }
+      ],
+      "label": "planted",
+      "note": "Needs `npm install` (hardhat 2.29.1) inside the egress-logged network job. Also check that no tool writes into Hardhat's artifacts/ directory."
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

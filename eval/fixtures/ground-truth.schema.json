@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vschernoff/solidity-ai-kit/eval/fixtures/ground-truth.schema.json",
+  "title": "Evaluation fixture ground truth",
+  "description": "What each workflow stage must report for one fixture project (SRS \u00a78.3). Every expectation carries a label saying how it is known.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "solc", "layout", "purpose", "planted", "expect"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^F[0-9]{2}$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "solc": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "layout": {
+      "enum": ["foundry", "hardhat", "both"]
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planted": {
+      "description": "Defects put in on purpose. Each is marked in the source with a `// @gt:<id>` comment on the given line.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "file", "line", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "file": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "expect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["build", "test", "lint", "static", "fuzz"],
+      "properties": {
+        "build": {
+          "$ref": "#/$defs/stage"
+        },
+        "test": {
+          "$ref": "#/$defs/testStage"
+        },
+        "lint": {
+          "$ref": "#/$defs/stage"
+        },
+        "static": {
+          "$ref": "#/$defs/stage"
+        },
+        "fuzz": {
+          "$ref": "#/$defs/stage"
+        },
+        "storageLayout": {
+          "type": "object",
+          "required": ["label"],
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/label"
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "label": {
+      "description": "planted = true by construction; confirmed-by:<tool>@<version> = checked by running that tool; known-miss:<tool> = the tool is expected NOT to report it (C5); to-confirm = not yet established, never scored.",
+      "type": "string",
+      "pattern": "^(planted|to-confirm|confirmed-by:[A-Za-z0-9._-]+@[A-Za-z0-9._-]+|known-miss:[A-Za-z0-9._-]+)$"
+    },
+    "finding": {
+      "type": "object",
+      "required": ["label"],
+      "properties": {
+        "planted": {
+          "type": "string"
+        },
+        "detector": {
+          "type": ["string", "null"]
+        },
+        "rule": {
+          "type": "string"
+        },
+        "contract": {
+          "type": "string"
+        },
+        "function": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "severity": {
+          "enum": ["error", "warning"]
+        },
+        "messageContains": {
+          "type": "string"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["containsInOrder"],
+      "properties": {
+        "containsInOrder": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "required": ["outcome", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "success",
+            "error",
+            "findings",
+            "findings-or-error",
+            "not-a-foundry-project",
+            "not-applicable",
+            "property-holds",
+            "property-fails"
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "note": {
+          "type": "string"
+        },
+        "errors": {
+          "description": "Integer: expected error count (lint). Array: the exact errors expected (build).",
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/finding"
+              },
+              "minItems": 1
+            }
+          ]
+        },
+        "messageContains": {
+          "type": "string"
+        },
+        "mustFind": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "mustNotFind": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "impact": {
+              "type": "array",
+              "items": {
+                "enum": ["High", "Medium", "Low"]
+              }
+            }
+          }
+        },
+        "mustNotClaim": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "harness": {
+          "type": "string"
+        },
+        "contract": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string",
+          "pattern": "^echidna_"
+        },
+        "sequence": {
+          "$ref": "#/$defs/sequence"
+        }
+      }
+    },
+    "testStage": {
+      "type": "object",
+      "required": ["outcome", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": ["pass", "fail", "error", "not-a-foundry-project"]
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "note": {
+          "type": "string"
+        },
+        "passing": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_]+\\.[A-Za-z0-9_]+\\(.*\\)$"
+          }
+        },
+        "failing": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["contract", "test", "kind", "reasonContains", "label"],
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "test": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_]+\\(.*\\)$"
+              },
+              "kind": {
+                "enum": ["unit", "fuzz", "invariant"]
+              },
+              "reasonContains": {
+                "type": "string",
+                "minLength": 1
+              },
+              "counterexample": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["arg"],
+                "properties": {
+                  "arg": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "gte": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  },
+                  "lte": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  }
+                }
+              },
+              "sequence": {
+                "$ref": "#/$defs/sequence"
+              },
+              "label": {
+                "$ref": "#/$defs/label"
+              }
+            }
+          }
+        },
+        "mustNotCreate": {
+          "description": "Files (relative to the project root) that must not exist after the tests ran, e.g. an FFI marker (NFR-11, FR-38a).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": ["pass", "fail"]
+              }
+            }
+          },
+          "then": {
+            "required": ["passing", "failing"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "failing": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "failing": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
