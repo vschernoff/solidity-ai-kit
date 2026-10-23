@@ -1,0 +1,61 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F02",
+  "name": "vault-reentrancy",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Staking vault that pays out before zeroing the balance; an exploit test shows the drain.",
+  "planted": [
+    {
+      "id": "reentrancy",
+      "file": "src/Vault.sol",
+      "line": 21,
+      "description": "External call before the balance is zeroed in Vault.withdraw()."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["VaultTest.test_depositAndWithdraw()"],
+      "failing": [
+        {
+          "contract": "VaultTest",
+          "test": "test_attackerCannotDrain()",
+          "kind": "unit",
+          "reasonContains": "vault drained",
+          "label": "planted"
+        }
+      ],
+      "label": "planted"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "mustNotClaim": ["reentrancy"],
+      "label": "known-miss:solhint",
+      "note": "Solhint is not expected to see the reentrancy (SRS C5); recorded so no output implies coverage."
+    },
+    "static": {
+      "outcome": "findings",
+      "mustFind": [
+        {
+          "planted": "reentrancy",
+          "detector": "reentrancy-eth",
+          "contract": "Vault",
+          "function": "withdraw",
+          "label": "planted"
+        }
+      ],
+      "label": "planted"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted",
+      "note": "No Echidna harness: reentrancy needs an attacker contract, which is the forge test's job."
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F09",
+  "name": "mixed-foundry-hardhat",
+  "solc": "0.8.37",
+  "layout": "both",
+  "purpose": "Foundry and Hardhat side by side, imports through a remapping to a local library (no network).",
+  "planted": [
+    {
+      "id": "wrong-fee-unit",
+      "file": "src/Market.sol",
+      "line": 11,
+      "description": "Fee computed with FEE_BPS / 10 instead of FEE_BPS."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["MarketTest.test_quoteOfZero()"],
+      "failing": [
+        {
+          "contract": "MarketTest",
+          "test": "test_quoteIsOnePercent()",
+          "kind": "unit",
+          "reasonContains": "fee mismatch",
+          "label": "planted"
+        }
+      ],
+      "label": "planted"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F10",
+  "name": "broken-solhint-config",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Valid project with an invalid .solhint.json. A lint tool must return an error naming the config; 'no violations' is the historic solhint-mcp bug (C4).",
+  "planted": [],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "pass",
+      "passing": ["CounterTest.test_increment()"],
+      "failing": [],
+      "label": "planted"
+    },
+    "lint": {
+      "outcome": "error",
+      "messageContains": ".solhint.json",
+      "label": "planted"
+    },
+    "static": {
+      "outcome": "findings",
+      "mustNotFind": {
+        "impact": ["High", "Medium"]
+      },
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

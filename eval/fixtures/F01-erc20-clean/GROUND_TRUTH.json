@@ -1,0 +1,46 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F01",
+  "name": "erc20-clean",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Clean ERC-20: the true-clean and false-positive baseline. No tool may invent a failure or a High/Medium finding.",
+  "planted": [],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "pass",
+      "passing": [
+        "TokenTest.test_transfer()",
+        "TokenTest.test_transferFromUsesAllowance()",
+        "TokenTest.test_RevertWhen_mintByNonOwner()",
+        "TokenTest.testFuzz_transferKeepsSupply(uint256)"
+      ],
+      "failing": [],
+      "label": "planted"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "mustNotFind": {
+        "impact": ["High", "Medium"]
+      },
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "property-holds",
+      "harness": "test/echidna/TokenProperties.sol",
+      "contract": "TokenProperties",
+      "property": "echidna_supply_equals_balances",
+      "label": "planted"
+    }
+  }
+}

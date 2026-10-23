@@ -1,0 +1,73 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F03",
+  "name": "upgradeable-proxy",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Proxy whose V2 inserts a variable (storage collision) and whose upgradeTo has no access control. All tests pass: passing tests are not safety (C5).",
+  "planted": [
+    {
+      "id": "unprotected-upgrade",
+      "file": "src/ImplV1.sol",
+      "line": 25,
+      "description": "upgradeTo() callable by anyone."
+    },
+    {
+      "id": "storage-collision",
+      "file": "src/ImplV2.sol",
+      "line": 11,
+      "description": "New variable inserted before `value`; later variables move one slot."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "pass",
+      "passing": ["ProxyTest.test_ownerCanSetValue()", "ProxyTest.test_upgradeKeepsOwner()"],
+      "failing": [],
+      "label": "planted"
+    },
+    "storageLayout": {
+      "ImplV1": [
+        ["owner", 0],
+        ["value", 1],
+        ["initialized", 2]
+      ],
+      "ImplV2": [
+        ["owner", 0],
+        ["fee", 1],
+        ["value", 2],
+        ["initialized", 3]
+      ],
+      "label": "planted",
+      "note": "Checked against `forge inspect <contract> storageLayout`."
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "mustFind": [
+        {
+          "planted": "unprotected-upgrade",
+          "detector": null,
+          "contract": "ImplV1",
+          "function": "upgradeTo",
+          "label": "to-confirm"
+        }
+      ],
+      "label": "to-confirm",
+      "note": "Which Slither detector (if any) reports the missing access control is recorded on the first pinned Slither run; not assumed."
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

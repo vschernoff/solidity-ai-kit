@@ -1,0 +1,59 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F07",
+  "name": "failing-invariant",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Handler-based invariant broken by mint then burnFrom; an Echidna property on the same bug.",
+  "planted": [
+    {
+      "id": "missing-supply-update",
+      "file": "src/Supply.sol",
+      "line": 16,
+      "description": "burnFrom() does not lower totalSupply."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["SupplyInvariantTest.test_mintUpdatesSupply()"],
+      "failing": [
+        {
+          "contract": "SupplyInvariantTest",
+          "test": "invariant_supplyMatches()",
+          "kind": "invariant",
+          "reasonContains": "supply mismatch",
+          "sequence": {
+            "containsInOrder": ["mint(uint256)", "burnFrom(uint256)"]
+          },
+          "label": "planted"
+        }
+      ],
+      "label": "planted"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "property-fails",
+      "harness": "test/echidna/SupplyProperties.sol",
+      "contract": "SupplyProperties",
+      "property": "echidna_supply_matches",
+      "sequence": {
+        "containsInOrder": ["mint(uint128)", "burnFrom(uint128)"]
+      },
+      "label": "planted"
+    }
+  }
+}

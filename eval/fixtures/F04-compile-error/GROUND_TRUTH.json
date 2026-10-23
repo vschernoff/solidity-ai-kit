@@ -1,0 +1,50 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F04",
+  "name": "compile-error",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "One type error at a known line. Every stage must report an error; a clean result from any tool is a run-health failure (C4).",
+  "planted": [
+    {
+      "id": "compile-error",
+      "file": "src/Broken.sol",
+      "line": 13,
+      "description": "string literal assigned to uint256 (TypeError)."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "error",
+      "errors": [
+        {
+          "planted": "compile-error",
+          "file": "src/Broken.sol",
+          "line": 13,
+          "severity": "error",
+          "messageContains": "TypeError",
+          "label": "planted"
+        }
+      ],
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "error",
+      "note": "The build fails, so no test may be reported as passed or failed.",
+      "label": "planted"
+    },
+    "lint": {
+      "outcome": "findings-or-error",
+      "label": "to-confirm",
+      "note": "Solhint parses syntax, not types, so it may lint normally; it must not report the file as clean if it cannot parse it."
+    },
+    "static": {
+      "outcome": "error",
+      "label": "planted"
+    },
+    "fuzz": {
+      "outcome": "error",
+      "label": "planted"
+    }
+  }
+}
