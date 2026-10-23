@@ -16,7 +16,11 @@ function assertApplies(before, after) {
   if (before !== null) fs.writeFileSync(file, before)
   const patch = path.join(dir, 'change.patch')
   fs.writeFileSync(patch, unifiedDiff('f.txt', before, after))
-  execFileSync('git', ['apply', patch], { cwd: dir, stdio: 'pipe' })
+  // Windows runners set core.autocrlf=true, which would make git write CRLF on apply.
+  execFileSync('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'apply', patch], {
+    cwd: dir,
+    stdio: 'pipe',
+  })
   assert.equal(fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null, after)
 }
 
