@@ -18,7 +18,12 @@ describe('EVAL.yml', () => {
   })
 
   it('cancels superseded PR runs but never runs on main (D25)', () => {
-    assert.match(workflow.concurrency.group, /github\.event\.pull_request\.number/)
+    assert.match(
+      workflow.concurrency.group,
+      /github\.event\.pull_request\.number \|\| github\.sha \}\}$/
+    )
+    // A ref-wide key would let a newer push to main replace the pending run of an earlier one.
+    assert.doesNotMatch(workflow.concurrency.group, /github\.ref/)
     assert.equal(
       workflow.concurrency['cancel-in-progress'],
       "${{ github.event_name == 'pull_request' }}"

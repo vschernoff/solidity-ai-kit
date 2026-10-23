@@ -13,9 +13,11 @@ on:
 permissions:
   contents: read
 
-# D25: a newer push to the same PR cancels the older run; runs on main are never cancelled.
+# D25: a newer push to the same PR cancels the older run. Other runs are keyed by commit: a
+# group holds one pending run and a newer one replaces it whatever cancel-in-progress says, so a
+# ref-wide key would drop queued runs of earlier commits on main.
 concurrency:
-  group: eval-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  group: eval-${{ github.event_name }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
