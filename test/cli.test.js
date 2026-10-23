@@ -44,7 +44,7 @@ describe('cli', () => {
   })
 
   it('fails loudly for commands that are not implemented yet', async () => {
-    const result = await cli('init')
+    const result = await cli('doctor')
     assert.equal(result.code, 1)
     assert.match(result.stderr, /not implemented yet/)
     assert.equal(result.stdout, '')
