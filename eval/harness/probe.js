@@ -83,11 +83,15 @@ export function findSecrets(outputs, secrets) {
   return found
 }
 
-async function oneHandshake(spec, cwd, timeouts, secrets) {
-  const session =
-    spec.transport === 'http'
-      ? connectHttp({ url: spec.url, headers: spec.headers })
-      : startStdio({ command: spec.command, args: spec.args, cwd, env: spec.env })
+/** How the probe opens a session; tests can pass their own `connect` to probeServer. */
+function defaultConnect(spec, cwd) {
+  return spec.transport === 'http'
+    ? connectHttp({ url: spec.url, headers: spec.headers })
+    : startStdio({ command: spec.command, args: spec.args, cwd, env: spec.env })
+}
+
+async function oneHandshake(spec, cwd, timeouts, secrets, connect) {
+  const session = connect(spec, cwd)
   const record = { cwd, errors: [] }
   try {
     const init = await initialize(session, timeouts.initializeMs)
@@ -135,7 +139,7 @@ async function oneHandshake(spec, cwd, timeouts, secrets) {
  */
 export async function probeServer(
   spec,
-  { timeouts = DEFAULT_TIMEOUTS, workRoot, secrets = {} } = {}
+  { timeouts = DEFAULT_TIMEOUTS, workRoot, secrets = {}, connect = defaultConnect } = {}
 ) {
   const root = workRoot ?? fs.mkdtempSync(path.join(os.tmpdir(), 'sak-probe-'))
   const shallow = path.join(root, 'p')
@@ -144,7 +148,8 @@ export async function probeServer(
   try {
     const cwds = spec.transport === 'http' ? [shallow] : [shallow, deep]
     const handshakes = []
-    for (const cwd of cwds) handshakes.push(await oneHandshake(spec, cwd, timeouts, secrets))
+    for (const cwd of cwds)
+      handshakes.push(await oneHandshake(spec, cwd, timeouts, secrets, connect))
 
     const lengths = handshakes.map((h) => h.instructionsChars ?? null)
     const firstTools = handshakes.find((h) => h.tools)?.tools ?? null
