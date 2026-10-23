@@ -5,6 +5,8 @@
 //
 //   node eval/scripts/fetch-deps.mjs && node eval/scripts/confirm-ground-truth.mjs [--out file]
 //        [--forge /abs/path/to/forge]   use that binary instead of `forge` on PATH
+//        [--home /abs/dir]              HOME (and XDG dirs) for forge, so the solc it downloads
+//                                       lands there instead of the user's ~/.svm
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
@@ -23,11 +25,15 @@ const deps = readDeps()
 const args = process.argv.slice(2)
 const outFile = args.includes('--out') ? args[args.indexOf('--out') + 1] : null
 const forgeBin = args.includes('--forge') ? args[args.indexOf('--forge') + 1] : 'forge'
+const home = args.includes('--home') ? args[args.indexOf('--home') + 1] : process.env.HOME
 
 // Allow-list, not deny-list: no keys, RPC URLs or tokens reach forge (eval-design §2).
 const env = {
   PATH: process.env.PATH,
-  HOME: process.env.HOME,
+  HOME: home,
+  XDG_DATA_HOME: `${home}/.local/share`,
+  XDG_CACHE_HOME: `${home}/.cache`,
+  XDG_CONFIG_HOME: `${home}/.config`,
   LANG: 'C.UTF-8',
   TZ: 'UTC',
   NO_COLOR: '1',
