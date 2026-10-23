@@ -193,7 +193,6 @@ export function compareBuild(expect, run) {
   })
 }
 
-/** Compare `forge inspect <contract> storageLayout --json` outputs with `expect.storageLayout`. */
 /**
  * Compare `forge inspect <contract> storageLayout --json` runs ({ exitCode, stdout, stderr }
  * per contract) with `expect.storageLayout`. A failed inspect is a mismatch even if it printed.
@@ -228,9 +227,11 @@ export function compareCreatedFiles(expect, projectDir) {
   )
 }
 
-/** True when `forge --version` output names exactly `wanted` (1.8.5 must not match 1.8.50). */
+/** True when `forge --version` names exactly `wanted` (not 1.8.50, not 1.8.5-nightly). */
 export function forgeVersionMatches(versionOutput, wanted) {
   const found = String(versionOutput).match(/^forge Version:\s*v?(\S+)/m)?.[1]
   if (!found) return false
-  return found === wanted || found.startsWith(`${wanted}-`) || found.startsWith(`${wanted}+`)
+  // Release builds print the bare version; `-stable` is the only suffix accepted. Nightlies and
+  // release candidates of the same number are different binaries.
+  return found === wanted || found === `${wanted}-stable`
 }

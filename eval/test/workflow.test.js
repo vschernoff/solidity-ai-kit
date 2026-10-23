@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it } from 'node:test'
 import { parseDocument } from 'yaml'
+import { listCandidates } from '../lib/candidates.js'
 import { EVAL_ROOT, readDeps } from '../lib/fixtures.js'
 
 const workflowFile = path.join(EVAL_ROOT, '..', '.github', 'workflows', 'EVAL.yml')
@@ -14,6 +15,14 @@ const deps = readDeps()
 describe('EVAL.yml', () => {
   it('parses as YAML (NFR-3)', () => {
     assert.deepEqual(document.errors, [])
+  })
+
+  it('cancels superseded PR runs but never runs on main (D25)', () => {
+    assert.match(workflow.concurrency.group, /github\.event\.pull_request\.number/)
+    assert.equal(
+      workflow.concurrency['cancel-in-progress'],
+      "${{ github.event_name == 'pull_request' }}"
+    )
   })
 
   it('runs on Linux only (D16)', () => {
@@ -33,6 +42,33 @@ describe('EVAL.yml', () => {
     const confirmAt = runs.findIndex((r) => r.includes('eval/scripts/confirm-ground-truth.mjs'))
     assert.ok(fetchAt >= 0 && confirmAt > fetchAt)
     assert.ok(runs.some((r) => r.startsWith('actions/upload-artifact@')))
+  })
+
+  it('probes every npm candidate, offline, in the image pinned in deps.json', () => {
+    const probe = workflow.jobs.probe
+    const npmIds = listCandidates()
+      .filter((c) => c.install.type === 'npm')
+      .map((c) => c.id)
+    assert.deepEqual([...probe.strategy.matrix.candidate].sort(), npmIds.sort())
+    const { image, digest } = deps.probeImage
+    assert.equal(probe.env.PROBE_IMAGE, `${image}@${digest}`)
+    const script = probe.steps.map((s) => s.run ?? '').join('\n')
+    // Only the docker run command itself counts (comments may mention the flags).
+    const dockerRun = script
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('#'))
+      .join('\n')
+      .match(/docker run[\s\S]*?probe\.mjs/)?.[0]
+    assert.ok(dockerRun, 'no docker run … probe.mjs command')
+    for (const flag of [
+      '--init',
+      '--network none',
+      '--read-only',
+      '--user 1001:1001',
+      '/candidate:ro',
+    ]) {
+      assert.ok(dockerRun.includes(flag), `docker run lacks ${flag}`)
+    }
   })
 
   it('has read-only permissions', () => {

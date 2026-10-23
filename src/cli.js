@@ -5,6 +5,7 @@ import { cursor } from './clients/cursor.js'
 import { label, selectComponents } from './components.js'
 import { DEFAULT_LIMITS, formatReport, runDoctor } from './doctor.js'
 import { runInit } from './init.js'
+import { rulesGenerator } from './rules.js'
 import { loadManifest, readPackageJson } from './manifest.js'
 
 // Clients init writes project-scoped config for.
@@ -71,7 +72,7 @@ function init(values, { cwd, stdout, stderr }) {
     root: cwd,
     write: values.write === true,
     components,
-    generators: clients.map((client) => CLIENTS[client]),
+    generators: [...clients.map((client) => CLIENTS[client]), rulesGenerator(clients)],
     stdout,
     stderr,
   })
