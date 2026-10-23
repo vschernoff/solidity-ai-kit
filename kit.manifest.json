@@ -1,0 +1,23 @@
+{
+  "$schema": "./kit.manifest.schema.json",
+  "manifestVersion": 1,
+  "components": [
+    {
+      "id": "solhint",
+      "stage": "lint",
+      "package": "solhint-mcp",
+      "version": "0.1.3",
+      "transport": "stdio",
+      "license": "MIT",
+      "source": "https://github.com/vschernoff/solhint-mcp",
+      "evaluatedAt": null,
+      "score": null,
+      "scorecardRef": null,
+      "enabledByDefault": false,
+      "experimental": false,
+      "requiresBinaries": [],
+      "deniedTools": [],
+      "riskNotes": []
+    }
+  ]
+}

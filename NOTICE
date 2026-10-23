@@ -1,0 +1,18 @@
+solidity-ai-kit
+===============
+
+Copyright (c) 2026 Vitaliy Chernov. Licensed under the MIT licence in LICENSE.
+
+Referenced third-party components
+---------------------------------
+
+The kit writes configuration that tells an MCP client to launch the components
+below. They are separate programs, run as separate processes and fetched by
+the client at the pinned version. None of their code is included in this
+package. Each is under its own licence.
+
+Every component in kit.manifest.json must be listed here; a test enforces it.
+
+solhint-mcp
+  Licence: MIT
+  Source:  https://github.com/vschernoff/solhint-mcp

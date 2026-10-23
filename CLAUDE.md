@@ -38,8 +38,13 @@ them together. Works with any MCP client. Never Claude-first in copy.
 
 ## Conventions
 
-- Node 22 and 24 (CI also covers macOS, Linux, Windows). ESM or CJS — decided in the
-  first PR and recorded here.
+- Node 22 and 24 (CI also covers macOS, Linux, Windows).
+- **ESM** (`"type": "module"`), decided in the scaffold PR: both supported Node lines run
+  ESM natively, and the kit is a CLI with no CJS consumer to stay compatible with. Use
+  `node:` specifiers for built-ins and `import.meta.dirname` for paths; read JSON with
+  `fs.readFileSync` + `JSON.parse` rather than import attributes.
+- Tests use the built-in `node:test` runner (`npm test`); no test framework dependency.
+- Runtime dependencies: none so far. Every new one is justified in its PR (NFR-9).
 - ESLint flat config + Prettier: single quotes, 2-space indent, ~100-char lines, no empty
   `catch` without a comment, no nested ternaries.
 - Tests derive tool names, counts and versions from the source of truth (`package.json`,
