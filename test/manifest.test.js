@@ -205,6 +205,17 @@ describe('schema: launch method and transport', () => {
   })
 })
 
+describe('schema: denied tools (FR-7)', () => {
+  it('requires denyFallback once a component lists denied tools', () => {
+    const denying = evaluatedComponent({ deniedTools: ['send_transaction'] })
+    assert.notDeepEqual(errorsOf(manifestWith(denying)), [])
+    for (const denyFallback of ['exclude', 'warn']) {
+      assert.deepEqual(errorsOf(manifestWith({ ...denying, denyFallback })), [], denyFallback)
+    }
+    assert.notDeepEqual(errorsOf(manifestWith({ ...denying, denyFallback: 'ignore' })), [])
+  })
+})
+
 describe('schema: who may be enabled by default (FR-16, FR-17)', () => {
   it('accepts a licensed, evaluated component with no open security finding', () => {
     const resolved = { note: 'fixed upstream', security: true, resolved: true }

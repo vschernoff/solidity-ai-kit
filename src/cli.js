@@ -1,6 +1,12 @@
 import { parseArgs } from 'node:util'
+import { claudeCode } from './clients/claude-code.js'
+import { cursor } from './clients/cursor.js'
+import { label, selectComponents } from './components.js'
 import { runInit } from './init.js'
-import { readPackageJson } from './manifest.js'
+import { loadManifest, readPackageJson } from './manifest.js'
+
+// Clients init writes project-scoped config for. Codex joins when its writer lands.
+export const CLIENTS = { 'claude-code': claudeCode, cursor }
 
 const COMMANDS = {
   init: 'Preview (or with --write, apply) MCP configs and workflow rules for this project',
@@ -21,10 +27,50 @@ function usage() {
     ...lines,
     '',
     'Options:',
-    '  --write        Apply the changes (init, remove). Without it, only preview them',
-    '  -h, --help     Show this help',
-    '  -v, --version  Show the version',
+    '  --write          Apply the changes (init, remove). Without it, only preview them',
+    `  --client <name>  ${Object.keys(CLIENTS).join(', ')} or all (default: all); repeatable`,
+    '  --with <id>      Also install an opt-in component from the manifest; repeatable',
+    '  -h, --help       Show this help',
+    '  -v, --version    Show the version',
   ].join('\n')
+}
+
+// Accepts both `--client a --client b` and `--client a,b`.
+function listOption(values) {
+  return (values ?? []).flatMap((value) => value.split(',')).map((value) => value.trim())
+}
+
+function init(values, { cwd, stdout, stderr }) {
+  const requestedClients = listOption(values.client)
+  const clients =
+    requestedClients.length === 0 || requestedClients.includes('all')
+      ? Object.keys(CLIENTS)
+      : requestedClients
+  const unknown = clients.filter((client) => !Object.hasOwn(CLIENTS, client))
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unknown client: ${unknown.join(', ')}. Known: ${Object.keys(CLIENTS).join(', ')}`
+    )
+  }
+
+  const manifest = loadManifest()
+  const components = selectComponents(manifest, listOption(values.with))
+  if (components.length === 0) {
+    const optIn = manifest.components.map(label).join(', ')
+    stderr.write(
+      `No components are enabled by default yet. Opt in with --with <id> (available: ${optIn}).\n`
+    )
+  } else {
+    stdout.write(`Components: ${components.map(label).join(', ')}\n`)
+  }
+  return runInit({
+    root: cwd,
+    write: values.write === true,
+    components,
+    generators: clients.map((client) => CLIENTS[client]),
+    stdout,
+    stderr,
+  })
 }
 
 export function main(
@@ -41,6 +87,8 @@ export function main(
         help: { type: 'boolean', short: 'h' },
         version: { type: 'boolean', short: 'v' },
         write: { type: 'boolean' },
+        client: { type: 'string', multiple: true },
+        with: { type: 'string', multiple: true },
       },
     })
   } catch (error) {
@@ -64,7 +112,7 @@ export function main(
   }
   if (command === 'init') {
     try {
-      return runInit({ root: cwd, write: values.write === true, stdout, stderr })
+      return init(values, { cwd, stdout, stderr })
     } catch (error) {
       stderr.write(`solidity-ai-kit init: ${error.message}\n`)
       return 1
