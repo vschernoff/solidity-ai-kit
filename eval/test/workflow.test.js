@@ -17,6 +17,14 @@ describe('EVAL.yml', () => {
     assert.deepEqual(document.errors, [])
   })
 
+  it('cancels superseded PR runs but never runs on main (D25)', () => {
+    assert.match(workflow.concurrency.group, /github\.event\.pull_request\.number/)
+    assert.equal(
+      workflow.concurrency['cancel-in-progress'],
+      "${{ github.event_name == 'pull_request' }}"
+    )
+  })
+
   it('runs on Linux only (D16)', () => {
     for (const job of Object.values(workflow.jobs)) assert.equal(job['runs-on'], 'ubuntu-latest')
   })
