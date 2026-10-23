@@ -66,3 +66,17 @@ export function setServer(servers, id, spec) {
       : {}
   servers[id] = { ...spec, ...kept }
 }
+
+// FR-9: the file without the kit's servers, `null` when nothing else is left in it (init
+// created it), or `undefined` when there is nothing to remove.
+export function withoutServers(file, text, ids) {
+  if (text === null) return undefined
+  const config = parseJsonObject(file, text)
+  const servers = config.mcpServers
+  if (servers === null || typeof servers !== 'object' || Array.isArray(servers)) return undefined
+  const present = ids.filter((id) => Object.hasOwn(servers, id))
+  if (present.length === 0) return undefined
+  for (const id of present) delete servers[id]
+  if (Object.keys(servers).length === 0 && Object.keys(config).length === 1) return null
+  return stringifyLike(text, config)
+}
