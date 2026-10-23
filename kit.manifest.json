@@ -6,7 +6,7 @@
       "id": "solhint",
       "stage": "lint",
       "package": "solhint-mcp",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "transport": "stdio",
       "license": "MIT",
       "source": "https://github.com/vschernoff/solhint-mcp",
@@ -17,7 +17,28 @@
       "experimental": false,
       "requiresBinaries": [],
       "deniedTools": [],
-      "riskNotes": []
+      "riskNotes": [
+        {
+          "note": "Agent-supplied `config` with an absolute-path `extends` executed arbitrary JS in 0.1.3; fixed in 0.1.4. Verified by execution (lint_solidity, absolute path) and at source (array, solhint:../, plugins, fix_solidity).",
+          "security": true,
+          "resolved": true
+        },
+        {
+          "note": "Linting a repository runs that repository's own Solhint plugins and JS config (.solhint.json plugins, .solhintrc.js, solhint.config.js, a project-installed Solhint): the same trust as running `npx solhint` there. No version of this component changes that; it is not safe for untrusted repositories.",
+          "security": false,
+          "resolved": false
+        },
+        {
+          "note": "C4: a Solhint plugin that fails to load is only warned about, so a lint can look clean while that plugin's rules never ran (documented by the owner).",
+          "security": false,
+          "resolved": false
+        },
+        {
+          "note": "instructions ≈700–820 chars depending on path, path-interpolated, over Codex's ~512-char guidance",
+          "security": false,
+          "resolved": false
+        }
+      ]
     }
   ]
 }
