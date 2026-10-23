@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+// Stub stdio MCP server for harness tests. Each flag switches on one misbehaviour a real
+// candidate has shown (or could show), so the probe's handling of it is tested by execution.
+//
+//   --pollute             print a banner to stdout before answering (C3)
+//   --interpolate-cwd     put process.cwd() into instructions (C2: varies by machine)
+//   --hang-tools-list     answer initialize, never answer tools/list (slither-mcp #35 pattern)
+//   --exit-on-initialize  exit(3) when initialize arrives
+//   --paged               split tools/list into two pages with a cursor
+//   --tool-error          tools/call returns isError: true
+const flags = new Set(process.argv.slice(2))
+const tools = [
+  { name: 'lint', description: 'Lint a file', inputSchema: { type: 'object' } },
+  { name: 'fix', description: 'Fix a file', inputSchema: { type: 'object' } },
+]
+
+if (flags.has('--pollute')) process.stdout.write('stub-server v0 starting\n')
+
+function reply(id, result) {
+  process.stdout.write(`${JSON.stringify({ jsonrpc: '2.0', id, result })}\n`)
+}
+
+let buffer = ''
+process.stdin.setEncoding('utf8')
+process.stdin.on('data', (chunk) => {
+  buffer += chunk
+  let newline
+  while ((newline = buffer.indexOf('\n')) >= 0) {
+    const message = JSON.parse(buffer.slice(0, newline))
+    buffer = buffer.slice(newline + 1)
+    handle(message)
+  }
+})
+process.stdin.on('end', () => process.exit(0))
+
+function handle({ id, method, params }) {
+  if (method === 'initialize') {
+    if (flags.has('--exit-on-initialize')) process.exit(3)
+    const where = flags.has('--interpolate-cwd') ? ` Project root: ${process.cwd()}.` : ''
+    reply(id, {
+      protocolVersion: params.protocolVersion,
+      capabilities: { tools: {} },
+      serverInfo: { name: 'stub', version: '0.0.0' },
+      instructions: `Lint before you finish.${where}`,
+    })
+  } else if (method === 'tools/list') {
+    if (flags.has('--hang-tools-list')) return
+    if (flags.has('--paged') && !params?.cursor) reply(id, { tools: [tools[0]], nextCursor: 'p2' })
+    else if (flags.has('--paged')) reply(id, { tools: [tools[1]] })
+    else reply(id, { tools })
+  } else if (method === 'tools/call') {
+    const isError = flags.has('--tool-error')
+    reply(id, { content: [{ type: 'text', text: isError ? 'linter crashed' : 'ok' }], isError })
+  }
+}
