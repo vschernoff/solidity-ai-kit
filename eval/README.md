@@ -9,22 +9,26 @@ the security probes and the scoring land in later PRs.
 
 ## Fixtures
 
-Ten small projects with defects planted on purpose (SRS §8.3). Each has a
+Small projects with defects planted on purpose: the ten of SRS §8.3 (F01–F10), plus
+F11–F13 written with the forge-test-mcp interpreter work, which shares this set. Each has a
 `GROUND_TRUTH.json` (schema: `fixtures/ground-truth.schema.json`) saying what each workflow
 stage — build, test, lint, static analysis, fuzzing — must report.
 
-| ID  | Fixture                 | Layout    | Planted                                                              |
-| --- | ----------------------- | --------- | -------------------------------------------------------------------- |
-| F01 | `erc20-clean`           | Foundry   | nothing: the false-positive and true-clean baseline                  |
-| F02 | `vault-reentrancy`      | Foundry   | pays out before zeroing the balance; an exploit test fails           |
-| F03 | `upgradeable-proxy`     | Foundry   | unprotected `upgradeTo`; V2 storage collision. All tests pass        |
-| F04 | `compile-error`         | Foundry   | one type error at a known line: every stage must error               |
-| F05 | `failing-assertion`     | Foundry   | `assertEq` failure with a message                                    |
-| F06 | `failing-fuzz`          | Foundry   | overflow for `x >= 2**128`; counterexample checked by predicate      |
-| F07 | `failing-invariant`     | Foundry   | `burnFrom` skips `totalSupply`; handler invariant + Echidna property |
-| F08 | `hardhat-only`          | Hardhat 2 | `tx.origin` auth; forge tools must say "not a Foundry project"       |
-| F09 | `mixed-foundry-hardhat` | both      | wrong fee unit, imported through a remapping                         |
-| F10 | `broken-solhint-config` | Foundry   | invalid `.solhint.json`: lint must error, never "no violations"      |
+| ID  | Fixture                 | Layout    | Planted                                                                                       |
+| --- | ----------------------- | --------- | --------------------------------------------------------------------------------------------- |
+| F01 | `erc20-clean`           | Foundry   | nothing: the false-positive and true-clean baseline                                           |
+| F02 | `vault-reentrancy`      | Foundry   | pays out before zeroing the balance; an exploit test fails                                    |
+| F03 | `upgradeable-proxy`     | Foundry   | unprotected `upgradeTo`; V2 storage collision. All tests pass                                 |
+| F04 | `compile-error`         | Foundry   | one type error at a known line: every stage must error                                        |
+| F05 | `failing-assertion`     | Foundry   | `assertEq` failure with a message                                                             |
+| F06 | `failing-fuzz`          | Foundry   | overflow for `x >= 2**128`; counterexample checked by predicate                               |
+| F07 | `failing-invariant`     | Foundry   | `burnFrom` skips `totalSupply`; handler invariant + Echidna property                          |
+| F08 | `hardhat-only`          | Hardhat 2 | `tx.origin` auth; forge tools must say "not a Foundry project"                                |
+| F09 | `mixed-foundry-hardhat` | both      | wrong fee unit, imported through a remapping                                                  |
+| F10 | `broken-solhint-config` | Foundry   | invalid `.solhint.json`: lint must error, never "no violations"                               |
+| F11 | `custom-error`          | Foundry   | custom errors with and without args, expectRevert mismatches, panics, an undecodable selector |
+| F12 | `ffi-disabled`          | Foundry   | `vm.ffi` under `ffi = false`: the test fails and `ffi-marker.txt` must not exist              |
+| F13 | `many-failures`         | Foundry   | 200 failing tests across 4 suites: response size budgets and truncation                       |
 
 Every planted defect carries a `// @gt:<id>` comment on the line `GROUND_TRUTH.json` names;
 a test checks the two agree both ways.

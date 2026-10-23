@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { describe, it } from 'node:test'
 import { FIXTURES_DIR, readJson } from '../lib/fixtures.js'
 import {
   calldataWord,
   compareBuild,
+  compareCreatedFiles,
   compareStorageLayout,
   compareTests,
   flattenTestResults,
@@ -193,5 +196,13 @@ describe('forge result comparison', () => {
   it('decodes ABI words after the selector', () => {
     assert.equal(calldataWord(`0xdeadbeef${word(7)}${word(9)}`, 1), 9n)
     assert.equal(calldataWord('0xdeadbeef', 0), null)
+  })
+
+  it('fails F12 when the FFI marker exists after the run (NFR-11)', () => {
+    const expect = gt('F12-ffi-disabled').test
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sak-f12-'))
+    assert.deepEqual(statuses(compareCreatedFiles(expect, dir)), ['confirmed'])
+    fs.writeFileSync(path.join(dir, 'ffi-marker.txt'), '')
+    assert.deepEqual(statuses(compareCreatedFiles(expect, dir)), ['mismatch'])
   })
 })

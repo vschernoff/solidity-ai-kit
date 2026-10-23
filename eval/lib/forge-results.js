@@ -3,6 +3,9 @@
 //
 // Rule (SRS C4): output we cannot parse is a mismatch with the reason attached, never a pass.
 
+import fs from 'node:fs'
+import path from 'node:path'
+
 const KINDS = { Unit: 'unit', Fuzz: 'fuzz', Invariant: 'invariant' }
 
 export function confirmed(check, detail = '') {
@@ -195,4 +198,13 @@ export function compareStorageLayout(expected, layoutsByContract) {
         ? confirmed(`storage ${contract}`, JSON.stringify(actual))
         : mismatch(`storage ${contract}`, `got ${JSON.stringify(actual)}`)
     })
+}
+
+/** Files the tests must not have created, e.g. an FFI marker while FFI is off (NFR-11). */
+export function compareCreatedFiles(expect, projectDir) {
+  return (expect.mustNotCreate ?? []).map((file) =>
+    fs.existsSync(path.join(projectDir, file))
+      ? mismatch(`not created: ${file}`, 'the file exists after the test run')
+      : confirmed(`not created: ${file}`, 'absent after the test run')
+  )
 }

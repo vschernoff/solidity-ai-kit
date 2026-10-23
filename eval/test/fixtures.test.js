@@ -60,10 +60,11 @@ function solidityFunctions(dir) {
 }
 
 describe('evaluation fixtures (SRS §8.3)', () => {
-  it('has the ten fixtures the SRS asks for, numbered F01–F10', () => {
+  it('has at least the ten fixtures the SRS asks for, numbered from F01 without gaps', () => {
+    assert.ok(fixtures.length >= 10, `only ${fixtures.length} fixtures`)
     assert.deepEqual(
       fixtures.map(({ groundTruth }) => groundTruth.id),
-      Array.from({ length: 10 }, (_, i) => `F${String(i + 1).padStart(2, '0')}`)
+      Array.from({ length: fixtures.length }, (_, i) => `F${String(i + 1).padStart(2, '0')}`)
     )
   })
 

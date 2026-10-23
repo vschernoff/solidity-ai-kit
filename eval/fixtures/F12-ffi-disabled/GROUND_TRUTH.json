@@ -1,0 +1,51 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F12",
+  "name": "ffi-disabled",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "A test that writes ffi-marker.txt through vm.ffi, under the shared ffi = false config. The test must fail and ffi-marker.txt must not exist after any tool runs (FR-38a, NFR-11).",
+  "planted": [
+    {
+      "id": "ffi-call",
+      "file": "test/Ffi.t.sol",
+      "line": 14,
+      "description": "vm.ffi runs sh -c 'touch ffi-marker.txt'."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "planted"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["FfiTest.test_noFfi()"],
+      "failing": [
+        {
+          "contract": "FfiTest",
+          "test": "test_ffiWritesMarker()",
+          "kind": "unit",
+          "reasonContains": "FFI",
+          "label": "to-confirm"
+        }
+      ],
+      "label": "planted",
+      "mustNotCreate": ["ffi-marker.txt"]
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

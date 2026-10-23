@@ -10,7 +10,13 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { foundryFixtures, readDeps } from '../lib/fixtures.js'
-import { compareBuild, compareStorageLayout, compareTests, mismatch } from '../lib/forge-results.js'
+import {
+  compareBuild,
+  compareCreatedFiles,
+  compareStorageLayout,
+  compareTests,
+  mismatch,
+} from '../lib/forge-results.js'
 
 const TIMEOUT_MS = 300_000
 const deps = readDeps()
@@ -71,6 +77,7 @@ for (const { name, dir, groundTruth } of foundryFixtures()) {
     results.push(...compareBuild(expect.build, build))
     const test = await forge(['test', '--json'], project)
     results.push(...compareTests(expect.test, test))
+    results.push(...compareCreatedFiles(expect.test, project))
     if (expect.storageLayout) {
       const layouts = {}
       for (const contract of Object.keys(expect.storageLayout)) {

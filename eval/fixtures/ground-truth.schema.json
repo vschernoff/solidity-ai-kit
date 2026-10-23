@@ -316,6 +316,14 @@
               }
             }
           }
+        },
+        "mustNotCreate": {
+          "description": "Files (relative to the project root) that must not exist after the tests ran, e.g. an FFI marker (NFR-11, FR-38a).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
         }
       },
       "allOf": [
