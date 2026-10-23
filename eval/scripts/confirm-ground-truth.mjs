@@ -4,6 +4,7 @@
 // version (use --allow-drift to look anyway; such a run is never evidence).
 //
 //   node eval/scripts/fetch-deps.mjs && node eval/scripts/confirm-ground-truth.mjs [--out file]
+//        [--forge /abs/path/to/forge]   use that binary instead of `forge` on PATH
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
@@ -15,6 +16,7 @@ const TIMEOUT_MS = 300_000
 const deps = readDeps()
 const args = process.argv.slice(2)
 const outFile = args.includes('--out') ? args[args.indexOf('--out') + 1] : null
+const forgeBin = args.includes('--forge') ? args[args.indexOf('--forge') + 1] : 'forge'
 
 // Allow-list, not deny-list: no keys, RPC URLs or tokens reach forge (eval-design §2).
 const env = {
@@ -29,14 +31,14 @@ const env = {
 function forge(argv, cwd) {
   return new Promise((resolve) => {
     execFile(
-      'forge',
+      forgeBin,
       argv,
       { cwd, env, timeout: TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024 },
       (error, stdout, stderr) => {
         let exitCode = 0
         if (error) exitCode = typeof error.code === 'number' ? error.code : -1
         if (error?.killed) stderr += `\n[killed after ${TIMEOUT_MS} ms]`
-        if (error?.code === 'ENOENT') stderr += '\n[forge not found on PATH]'
+        if (error?.code === 'ENOENT') stderr += `\n[${forgeBin} not found]`
         resolve({ exitCode, stdout, stderr })
       }
     )
