@@ -29,7 +29,11 @@ function parseToml(text) {
   try {
     return parse(text)
   } catch (error) {
-    throw new Error(`${CONFIG_FILE} is not valid TOML (${error.message.split('\n')[0]}).`, {
+    // Only the position: smol-toml's message quotes the source, which could hold secrets.
+    const where = Number.isInteger(error.line)
+      ? ` (line ${error.line}, column ${error.column})`
+      : ''
+    throw new Error(`${CONFIG_FILE} is not valid TOML${where}; fix it or move it aside.`, {
       cause: error,
     })
   }
@@ -155,8 +159,9 @@ export function codex(project, { components, notes }) {
   }
   if (result === undefined || !isDeepStrictEqual(normalize(result), normalize(expected))) {
     throw new Error(
-      `${CONFIG_FILE} defines these servers in a form the kit cannot edit safely ` +
-        `(inline table or dotted keys). Nothing was written. Replace those entries with:\n\n` +
+      `${CONFIG_FILE} defines these servers in a way the kit cannot edit safely ` +
+        `(for example an inline table, dotted keys, or a multi-line value next to them). ` +
+        `Nothing was written. Replace those entries with:\n\n` +
         `${snippet(entries)}\n`
     )
   }

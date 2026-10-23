@@ -132,8 +132,13 @@ describe('Codex merge keeps the user’s file (FR-5)', () => {
   ].join('\n')
 
   it('rewrites only the kit’s own table; comments, other keys and tables stay', () => {
-    const { text } = run(project(handWritten))
+    const { text, error } = run(project(handWritten))
+    // The write must have happened: an untouched file would pass the checks below too.
+    assert.equal(error, undefined)
     const config = parse(text)
+    assert.deepEqual(config.mcp_servers[first.id].args, ['-y', `${first.package}@${first.version}`])
+    // The env sub-table was the kit's to rewrite, so exactly one copy remains.
+    assert.equal(text.split(`[mcp_servers.${first.id}.env]`).length - 1, 1)
     assert.equal(config.model, 'gpt-x')
     assert.deepEqual({ ...config.mcp_servers.other }, { command: 'other' })
     assert.deepEqual({ ...config.mcp_servers[first.id].env }, { DEBUG: '1' })
@@ -179,6 +184,12 @@ describe('Codex merge keeps the user’s file (FR-5)', () => {
   it('shows the exact table to paste when it cannot edit safely', () => {
     const { error } = run(project(unsafe['an inline table']))
     assert.match(error.message, new RegExp(`\\[mcp_servers\\.${first.id}\\]`))
+  })
+
+  it('never quotes file contents when the TOML is invalid', () => {
+    const { error } = run(project('token = "s3cr3t-value"\nbad = [\n'))
+    assert.match(error.message, /not valid TOML \(line \d+, column \d+\)/)
+    assert.doesNotMatch(error.message, /s3cr3t|token/)
   })
 
   it('writes no env values or credentials of its own (FR-8)', () => {
