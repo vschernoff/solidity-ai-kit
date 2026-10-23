@@ -5,9 +5,9 @@ name: Eval
 on:
   push:
     branches: [main]
-    paths: ['eval/**', '.github/workflows/EVAL.yml']
+    paths: ['eval/**', 'kit.manifest.json', '.github/workflows/EVAL.yml']
   pull_request:
-    paths: ['eval/**', '.github/workflows/EVAL.yml']
+    paths: ['eval/**', 'kit.manifest.json', '.github/workflows/EVAL.yml']
   workflow_dispatch:
 
 permissions:
