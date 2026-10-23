@@ -6,8 +6,10 @@ import os from 'node:os'
 import path from 'node:path'
 import { after, describe, it } from 'node:test'
 import { promisify } from 'node:util'
+import { parse as parseToml } from 'smol-toml'
 import { claudeCode, MCP_FILE, SETTINGS_FILE } from '../src/clients/claude-code.js'
 import { cursor, MCP_FILE as CURSOR_FILE } from '../src/clients/cursor.js'
+import { CONFIG_FILE as CODEX_FILE } from '../src/clients/codex.js'
 import { readText } from '../src/clients/json.js'
 import { label } from '../src/components.js'
 import { runInit } from '../src/init.js'
@@ -93,6 +95,8 @@ describe('client configs from the real manifest (FR-3, FR-4)', () => {
       const servers = readJson(dir, file).mcpServers
       assert.deepEqual(Object.keys(servers).sort(), [...allIds].sort(), file)
     }
+    const codexServers = parseToml(fs.readFileSync(path.join(dir, CODEX_FILE), 'utf8')).mcp_servers
+    assert.deepEqual(Object.keys(codexServers).sort(), [...allIds].sort(), CODEX_FILE)
   })
 
   it('pins every npm component to its exact manifest version', async () => {
