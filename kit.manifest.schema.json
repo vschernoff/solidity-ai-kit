@@ -150,6 +150,10 @@
             "minLength": 1
           }
         },
+        "denyFallback": {
+          "description": "FR-7: what a client that cannot deny individual tools does with this component: leave it out, or install it with a warning.",
+          "enum": ["exclude", "warn"]
+        },
         "riskNotes": {
           "type": "array",
           "items": {
@@ -168,6 +172,11 @@
               "required": ["command"]
             }
           ]
+        },
+        {
+          "description": "A component with denied tools says what clients without a deny-list do (FR-7).",
+          "if": { "properties": { "deniedTools": { "type": "array", "minItems": 1 } } },
+          "then": { "required": ["denyFallback"] }
         },
         {
           "description": "The http transport needs a url.",
