@@ -62,7 +62,28 @@ function errorRecord(step, error) {
   }
 }
 
-async function oneHandshake(spec, cwd, timeouts) {
+/** Every place a secret could surface, by name, with the raw text the server produced there. */
+function rawOutputs(record, session) {
+  return {
+    initialize: record.initializeRaw ?? '',
+    'tools/list': record.tools ? JSON.stringify(record.tools) : '',
+    stderr: session.stats.stderr ?? '',
+    stdout: (session.stats.pollutionSamples ?? []).join('\n'),
+  }
+}
+
+/** [{ name, where }] for every secret value found in any raw output. */
+export function findSecrets(outputs, secrets) {
+  const found = []
+  for (const [where, text] of Object.entries(outputs)) {
+    for (const [name, value] of Object.entries(secrets)) {
+      if (value && String(text).includes(value)) found.push({ name, where })
+    }
+  }
+  return found
+}
+
+async function oneHandshake(spec, cwd, timeouts, secrets) {
   const session =
     spec.transport === 'http'
       ? connectHttp({ url: spec.url, headers: spec.headers })
@@ -70,6 +91,7 @@ async function oneHandshake(spec, cwd, timeouts) {
   const record = { cwd, errors: [] }
   try {
     const init = await initialize(session, timeouts.initializeMs)
+    record.initializeRaw = JSON.stringify(init.result ?? null)
     record.serverInfo = init.result?.serverInfo ?? null
     record.protocolVersion = init.result?.protocolVersion ?? null
     record.instructions = init.result?.instructions ?? null
@@ -91,15 +113,23 @@ async function oneHandshake(spec, cwd, timeouts) {
   record.stdoutPollutionBytes = session.stats.pollutionBytes
   record.stdoutPollutionSamples = session.stats.pollutionSamples
   record.stderrTail = (session.stats.stderr ?? '').slice(-2000)
+  // Scanned here, against the full raw text, not against the summarised result.
+  record.leaks = findSecrets(rawOutputs(record, session), secrets).map((l) => ({ ...l, cwd }))
+  delete record.initializeRaw
   return record
 }
 
 /**
  * Probe one candidate. `spec`: { transport: 'stdio', command, args, env } or
  * { transport: 'http', url }. Stdio servers start once in a shallow and once in a deep
- * temporary directory, so path-interpolated instructions show up as `variable`.
+ * temporary directory, so path-interpolated instructions show up as `variable`. `secrets`
+ * ({ NAME: value }) are searched for in every raw output: initialize, tools/list (descriptions
+ * and schemas included), all of stderr, and stray stdout.
  */
-export async function probeServer(spec, { timeouts = DEFAULT_TIMEOUTS, workRoot } = {}) {
+export async function probeServer(
+  spec,
+  { timeouts = DEFAULT_TIMEOUTS, workRoot, secrets = {} } = {}
+) {
   const root = workRoot ?? fs.mkdtempSync(path.join(os.tmpdir(), 'sak-probe-'))
   const shallow = path.join(root, 'p')
   const deep = path.join(shallow, 'nested', 'deeper', 'project', 'dir')
@@ -107,7 +137,7 @@ export async function probeServer(spec, { timeouts = DEFAULT_TIMEOUTS, workRoot 
   try {
     const cwds = spec.transport === 'http' ? [shallow] : [shallow, deep]
     const handshakes = []
-    for (const cwd of cwds) handshakes.push(await oneHandshake(spec, cwd, timeouts))
+    for (const cwd of cwds) handshakes.push(await oneHandshake(spec, cwd, timeouts, secrets))
 
     const lengths = handshakes.map((h) => h.instructionsChars ?? null)
     const firstTools = handshakes.find((h) => h.tools)?.tools ?? null
@@ -129,6 +159,7 @@ export async function probeServer(spec, { timeouts = DEFAULT_TIMEOUTS, workRoot 
       // server produced, not only the hashed snapshot.
       toolsRaw: firstTools,
       stderrTails: handshakes.map((h) => h.stderrTail),
+      leaks: handshakes.flatMap((h) => h.leaks),
       stdoutPollutionBytes: handshakes.reduce((sum, h) => sum + h.stdoutPollutionBytes, 0),
       stdoutPollutionSamples: handshakes.flatMap((h) => h.stdoutPollutionSamples),
       errors: handshakes.flatMap((h) => h.errors.map((e) => ({ ...e, cwd: h.cwd }))),
