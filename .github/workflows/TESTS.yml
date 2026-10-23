@@ -1,21 +1,51 @@
+# D25: GitHub Actions minutes are limited (macOS counts 10×, Windows 2×). Pull requests
+# run lint and Linux only; the full matrix runs on main, nightly and on demand. A macOS or
+# Windows failure found after merge is fixed forward with priority.
 name: Tests
 
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Nightly, 03:00 UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# A new push to a pull request cancels its older run. Runs on main are never cancelled,
+# so every merged commit gets a complete result.
+concurrency:
+  group: tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  test:
+  linux:
+    name: ubuntu-latest / Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  other-platforms:
     name: ${{ matrix.os }} / Node ${{ matrix.node }}
+    if: github.event_name != 'pull_request'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest]
         node: [22, 24]
     steps:
       - uses: actions/checkout@v7
