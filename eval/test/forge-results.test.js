@@ -11,7 +11,9 @@ import {
   compareStorageLayout,
   compareTests,
   flattenTestResults,
+  forgeVersionMatches,
 } from '../lib/forge-results.js'
+import { flagValue } from '../lib/fixtures.js'
 
 // Unit and fuzz samples follow the shape of `forge test --json`; the invariant sample is copied
 // from a real forge 1.8.5 run. confirm-ground-truth.mjs against real forge is the final check.
@@ -221,10 +223,18 @@ describe('forge result comparison', () => {
     const expected = gt('F03-upgradeable-proxy').storageLayout
     const layout = (pairs) =>
       JSON.stringify({ storage: pairs.map(([label, slot]) => ({ label, slot: String(slot) })) })
-    const good = { ImplV1: layout(expected.ImplV1), ImplV2: layout(expected.ImplV2) }
+    const ran = (stdout, exitCode = 0) => ({ exitCode, stdout, stderr: exitCode ? 'boom' : '' })
+    const good = { ImplV1: ran(layout(expected.ImplV1)), ImplV2: ran(layout(expected.ImplV2)) }
     assert.deepEqual(statuses(compareStorageLayout(expected, good)), ['confirmed', 'confirmed'])
-    const bad = { ...good, ImplV2: layout(expected.ImplV1) }
+    const bad = { ...good, ImplV2: ran(layout(expected.ImplV1)) }
     assert.deepEqual(statuses(compareStorageLayout(expected, bad)), ['confirmed', 'mismatch'])
+    // Right output but a failed inspect still does not count (Reviewer, PR #6).
+    const failed = { ...good, ImplV2: ran(layout(expected.ImplV2), 1) }
+    assert.deepEqual(statuses(compareStorageLayout(expected, failed)), ['confirmed', 'mismatch'])
+    assert.deepEqual(statuses(compareStorageLayout(expected, { ImplV1: good.ImplV1 })), [
+      'confirmed',
+      'mismatch',
+    ])
   })
 
   it('decodes ABI words after the selector', () => {
@@ -238,5 +248,74 @@ describe('forge result comparison', () => {
     assert.deepEqual(statuses(compareCreatedFiles(expect, dir)), ['confirmed'])
     fs.writeFileSync(path.join(dir, 'ffi-marker.txt'), '')
     assert.deepEqual(statuses(compareCreatedFiles(expect, dir)), ['mismatch'])
+  })
+
+  // The four tests below close mutation gaps the Reviewer found on PR #6.
+  it('flags a failing expectation when forge test exits 0, and a passing one when it exits 1', () => {
+    const failing = compareTests(gt('F05-failing-assertion').test, {
+      exitCode: 0,
+      stdout: JSON.stringify(bankReport()),
+    })
+    assert.ok(failing.some((r) => r.check === 'exit code' && r.status === 'mismatch'))
+    const passing = {
+      'test/Token.t.sol:TokenTest': {
+        test_results: Object.fromEntries(
+          gt('F01-erc20-clean').test.passing.map((id) => [id.split('.')[1], unit('Success')])
+        ),
+      },
+    }
+    const exitOne = compareTests(gt('F01-erc20-clean').test, {
+      exitCode: 1,
+      stdout: JSON.stringify(passing),
+    })
+    assert.ok(exitOne.some((r) => r.check === 'exit code' && r.status === 'mismatch'))
+  })
+
+  it('flags a build expected to succeed that exits non-zero', () => {
+    const results = compareBuild(gt('F01-erc20-clean').build, {
+      exitCode: 1,
+      stdout: '{}',
+      stderr: 'Error: something broke',
+    })
+    assert.deepEqual(statuses(results), ['mismatch'])
+  })
+
+  it('flags tests reported as passing on a build that must fail, even with a non-zero exit', () => {
+    const results = compareTests(gt('F04-compile-error').test, {
+      exitCode: 1,
+      stdout: JSON.stringify({
+        'test/Counter.t.sol:CounterTest': { test_results: { 'test_increment()': unit('Success') } },
+      }),
+    })
+    assert.deepEqual(statuses(results), ['mismatch'])
+    assert.match(results[0].detail, /CounterTest\.test_increment\(\)/)
+  })
+
+  it('flags a failure of the wrong kind', () => {
+    const report = bankReport()
+    report['test/Bank.t.sol:BankTest'].test_results['test_transfer()'].kind = { Fuzz: { runs: 1 } }
+    const results = compareTests(gt('F05-failing-assertion').test, {
+      exitCode: 1,
+      stdout: JSON.stringify(report),
+    })
+    assert.ok(
+      results.some((r) => r.status === 'mismatch' && /kind fuzz, expected unit/.test(r.detail))
+    )
+  })
+
+  it('matches the forge version exactly', () => {
+    const out = (v) => `forge Version: ${v}\nCommit SHA: 51a52c59\n`
+    assert.equal(forgeVersionMatches(out('1.8.5'), '1.8.5'), true)
+    assert.equal(forgeVersionMatches(out('1.8.5-stable'), '1.8.5'), true)
+    assert.equal(forgeVersionMatches(out('1.8.50'), '1.8.5'), false)
+    assert.equal(forgeVersionMatches(out('1.8.6'), '1.8.5'), false)
+    assert.equal(forgeVersionMatches('nothing useful', '1.8.5'), false)
+  })
+
+  it('rejects a flag given without a value', () => {
+    assert.equal(flagValue(['--out', 'r.json'], '--out'), 'r.json')
+    assert.equal(flagValue([], '--home', '/h'), '/h')
+    assert.throws(() => flagValue(['--out'], '--out'), /--out needs a value/)
+    assert.throws(() => flagValue(['--forge', '--home', '/x'], '--forge'), /--forge needs a value/)
   })
 })

@@ -49,3 +49,15 @@ export function fixtureFiles(dir) {
   walk(dir)
   return files.sort()
 }
+
+/**
+ * Value of `--name <value>` in argv, `fallback` when the flag is absent. A flag given without a
+ * value (end of argv, or followed by another --flag) is an error, never silently ignored.
+ */
+export function flagValue(argv, name, fallback = null) {
+  const at = argv.indexOf(name)
+  if (at < 0) return fallback
+  const value = argv[at + 1]
+  if (value === undefined || value.startsWith('--')) throw new Error(`${name} needs a value`)
+  return value
+}

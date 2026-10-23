@@ -194,11 +194,23 @@ export function compareBuild(expect, run) {
 }
 
 /** Compare `forge inspect <contract> storageLayout --json` outputs with `expect.storageLayout`. */
-export function compareStorageLayout(expected, layoutsByContract) {
+/**
+ * Compare `forge inspect <contract> storageLayout --json` runs ({ exitCode, stdout, stderr }
+ * per contract) with `expect.storageLayout`. A failed inspect is a mismatch even if it printed.
+ */
+export function compareStorageLayout(expected, runsByContract) {
   return Object.entries(expected)
     .filter(([key]) => !['label', 'note'].includes(key))
     .map(([contract, slots]) => {
-      const parsed = parseJson(layoutsByContract[contract] ?? '')
+      const run = runsByContract[contract]
+      if (!run) return mismatch(`storage ${contract}`, 'forge inspect was not run')
+      if (run.exitCode !== 0) {
+        return mismatch(
+          `storage ${contract}`,
+          `forge inspect exited ${run.exitCode}: ${run.stderr}`
+        )
+      }
+      const parsed = parseJson(run.stdout)
       if (!parsed.ok) return mismatch(`storage ${contract}`, parsed.error)
       const actual = (parsed.value?.storage ?? []).map((s) => [s.label, Number(s.slot)])
       return JSON.stringify(actual) === JSON.stringify(slots)
@@ -214,4 +226,11 @@ export function compareCreatedFiles(expect, projectDir) {
       ? mismatch(`not created: ${file}`, 'the file exists after the test run')
       : confirmed(`not created: ${file}`, 'absent after the test run')
   )
+}
+
+/** True when `forge --version` output names exactly `wanted` (1.8.5 must not match 1.8.50). */
+export function forgeVersionMatches(versionOutput, wanted) {
+  const found = String(versionOutput).match(/^forge Version:\s*v?(\S+)/m)?.[1]
+  if (!found) return false
+  return found === wanted || found.startsWith(`${wanted}-`) || found.startsWith(`${wanted}+`)
 }

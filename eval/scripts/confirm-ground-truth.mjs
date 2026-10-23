@@ -11,21 +11,28 @@ import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { foundryFixtures, readDeps } from '../lib/fixtures.js'
+import { flagValue, foundryFixtures, readDeps } from '../lib/fixtures.js'
 import {
   compareBuild,
   compareCreatedFiles,
   compareStorageLayout,
   compareTests,
+  forgeVersionMatches,
   mismatch,
 } from '../lib/forge-results.js'
 
 const TIMEOUT_MS = 300_000
 const deps = readDeps()
 const args = process.argv.slice(2)
-const outFile = args.includes('--out') ? args[args.indexOf('--out') + 1] : null
-const forgeBin = args.includes('--forge') ? args[args.indexOf('--forge') + 1] : 'forge'
-const home = args.includes('--home') ? args[args.indexOf('--home') + 1] : process.env.HOME
+let outFile, forgeBin, home
+try {
+  outFile = flagValue(args, '--out')
+  forgeBin = flagValue(args, '--forge', 'forge')
+  home = flagValue(args, '--home', process.env.HOME)
+} catch (error) {
+  console.error(`confirm: ${error.message}`)
+  process.exit(2)
+}
 
 // Allow-list, not deny-list: no keys, RPC URLs or tokens reach forge (eval-design §2).
 const env = {
@@ -63,7 +70,7 @@ if (version.exitCode !== 0) {
   console.error(`confirm: cannot run forge: ${version.stderr.trim()}`)
   process.exit(1)
 }
-const drift = !version.stdout.includes(wanted)
+const drift = !forgeVersionMatches(version.stdout, wanted)
 if (drift && !args.includes('--allow-drift')) {
   console.error(`confirm: forge is not ${deps.foundry.version}:\n${version.stdout}`)
   process.exit(1)
@@ -90,9 +97,7 @@ for (const { name, dir, groundTruth } of foundryFixtures()) {
       const layouts = {}
       for (const contract of Object.keys(expect.storageLayout)) {
         if (['label', 'note'].includes(contract)) continue
-        layouts[contract] = (
-          await forge(['inspect', contract, 'storageLayout', '--json'], project)
-        ).stdout
+        layouts[contract] = await forge(['inspect', contract, 'storageLayout', '--json'], project)
       }
       results.push(...compareStorageLayout(expect.storageLayout, layouts))
     }
