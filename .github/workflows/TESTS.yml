@@ -66,3 +66,22 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+
+  # NFR-2: the packed tarball, installed into a fresh project; init and doctor run from it,
+  # and doctor starts every manifest component through the real npx. Linux on pull
+  # requests (D25); all three platforms on main, nightly and on demand.
+  packed:
+    name: packed / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(github.event_name == 'pull_request' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:packed
