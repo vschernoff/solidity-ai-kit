@@ -1,4 +1,5 @@
 import { parseArgs } from 'node:util'
+import { runInit } from './init.js'
 import { readPackageJson } from './manifest.js'
 
 const COMMANDS = {
@@ -20,12 +21,16 @@ function usage() {
     ...lines,
     '',
     'Options:',
+    '  --write        Apply the changes (init, remove). Without it, only preview them',
     '  -h, --help     Show this help',
     '  -v, --version  Show the version',
   ].join('\n')
 }
 
-export function main(argv, { stdout = process.stdout, stderr = process.stderr } = {}) {
+export function main(
+  argv,
+  { stdout = process.stdout, stderr = process.stderr, cwd = process.cwd() } = {}
+) {
   let parsed
   try {
     parsed = parseArgs({
@@ -35,6 +40,7 @@ export function main(argv, { stdout = process.stdout, stderr = process.stderr } 
       options: {
         help: { type: 'boolean', short: 'h' },
         version: { type: 'boolean', short: 'v' },
+        write: { type: 'boolean' },
       },
     })
   } catch (error) {
@@ -55,6 +61,14 @@ export function main(argv, { stdout = process.stdout, stderr = process.stderr } 
   if (!Object.hasOwn(COMMANDS, command)) {
     stderr.write(`Unknown command: ${command}\n\n${usage()}\n`)
     return 2
+  }
+  if (command === 'init') {
+    try {
+      return runInit({ root: cwd, write: values.write === true, stdout, stderr })
+    } catch (error) {
+      stderr.write(`solidity-ai-kit init: ${error.message}\n`)
+      return 1
+    }
   }
   // Commands land in their own pull requests. Until then, say so plainly and fail, so
   // nothing can mistake a no-op for a successful run.
