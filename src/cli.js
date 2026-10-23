@@ -1,12 +1,13 @@
 import { parseArgs } from 'node:util'
 import { claudeCode } from './clients/claude-code.js'
+import { codex } from './clients/codex.js'
 import { cursor } from './clients/cursor.js'
 import { label, selectComponents } from './components.js'
 import { runInit } from './init.js'
 import { loadManifest, readPackageJson } from './manifest.js'
 
-// Clients init writes project-scoped config for. Codex joins when its writer lands.
-export const CLIENTS = { 'claude-code': claudeCode, cursor }
+// Clients init writes project-scoped config for.
+export const CLIENTS = { 'claude-code': claudeCode, codex, cursor }
 
 const COMMANDS = {
   init: 'Preview (or with --write, apply) MCP configs and workflow rules for this project',

@@ -16,3 +16,12 @@ Every component in kit.manifest.json must be listed here; a test enforces it.
 solhint-mcp
   Licence: MIT
   Source:  https://github.com/vschernoff/solhint-mcp
+
+Runtime dependencies
+--------------------
+
+Installed by npm alongside the kit, not copied into it.
+
+smol-toml (parses .codex/config.toml)
+  Licence: BSD-3-Clause
+  Source:  https://github.com/squirrelchat/smol-toml
