@@ -125,6 +125,10 @@ export async function probeServer(spec, { timeouts = DEFAULT_TIMEOUTS, workRoot 
       tools: firstTools ? toolSnapshot(firstTools) : null,
       toolCount: firstTools?.length ?? null,
       toolsListBytes: handshakes.find((h) => h.tools)?.toolsListBytes ?? null,
+      // Raw answers and stderr, kept so later checks (canary scan, G7) see every byte the
+      // server produced, not only the hashed snapshot.
+      toolsRaw: firstTools,
+      stderrTails: handshakes.map((h) => h.stderrTail),
       stdoutPollutionBytes: handshakes.reduce((sum, h) => sum + h.stdoutPollutionBytes, 0),
       stdoutPollutionSamples: handshakes.flatMap((h) => h.stdoutPollutionSamples),
       errors: handshakes.flatMap((h) => h.errors.map((e) => ({ ...e, cwd: h.cwd }))),

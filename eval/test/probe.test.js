@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
 import http from 'node:http'
 import path from 'node:path'
 import { after, before, describe, it } from 'node:test'
@@ -77,6 +79,57 @@ describe('handshake probe (eval-design §3)', () => {
     assert.equal(result.errors[0].kind, 'exited')
   })
 
+  // The four tests below close mutation gaps the Reviewer found on PR #7.
+  it('reports a JSON-RPC error from tools/list as an error, never as zero healthy tools (C4)', async () => {
+    const result = await probeServer(stub('--tools-list-error'), fast)
+    assert.equal(result.healthy, false)
+    assert.equal(result.toolCount, null)
+    assert.deepEqual(
+      result.errors.map((e) => [e.step, e.kind]),
+      [
+        ['tools/list', 'rpc'],
+        ['tools/list', 'rpc'],
+      ]
+    )
+  })
+
+  it('leaves no orphans: kills the process group, with SIGKILL when SIGTERM is ignored', async () => {
+    const pidfile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sak-pid-')), 'pid')
+    const session = startStdio({
+      command: process.execPath,
+      args: [STUB, '--grandchild', '--ignore-sigterm'],
+      env: { PATH: process.env.PATH, SAK_PIDFILE: pidfile },
+    })
+    const pids = () => fs.readFileSync(pidfile, 'utf8').split(' ').map(Number)
+    const alive = (pid) => {
+      try {
+        process.kill(pid, 0)
+        return true
+      } catch {
+        return false
+      }
+    }
+    let deadline
+    try {
+      await initialize(session, 5_000)
+      assert.deepEqual(pids().filter(alive).length, 2, 'stub and grandchild should be running')
+      // Bounded: a close() that never kills must fail this test, not hang the runner.
+      await Promise.race([
+        session.close(300),
+        new Promise((_, reject) => {
+          deadline = setTimeout(() => reject(new Error('close() did not finish in 10 s')), 10_000)
+        }),
+      ])
+      assert.deepEqual(session.stats.exit, { code: null, signal: 'SIGKILL' })
+      assert.deepEqual(pids().filter(alive), [], 'server or grandchild survived close()')
+    } finally {
+      clearTimeout(deadline)
+      for (const pid of fs.existsSync(pidfile) ? pids() : []) {
+        if (alive(pid)) process.kill(pid, 'SIGKILL')
+      }
+    }
+  })
+
   it('follows tools/list cursors', async () => {
     const result = await probeServer(stub('--paged'), fast)
     assert.equal(result.toolCount, 2)
@@ -119,14 +172,24 @@ describe('tool snapshots', () => {
     })
   })
 
+  it('treats a changed input schema as a changed tool', () => {
+    const before = toolSnapshot([{ name: 'lint', inputSchema: { type: 'object' } }])
+    const after = toolSnapshot([
+      { name: 'lint', inputSchema: { type: 'object', properties: { config: { type: 'object' } } } },
+    ])
+    assert.deepEqual(diffSnapshots(before, after), { added: [], removed: [], changed: ['lint'] })
+  })
+
   it('finds deny-list entries the server no longer exposes (FR-7)', () => {
     assert.deepEqual(staleDenials(['a', 'cast_send'], ['cast_send', 'forge_script']), [
       'forge_script',
     ])
   })
 
-  it('counts characters as code points', () => {
+  it('counts characters as code points, astral ones included', () => {
     assert.equal(charLength('a—b'), 3)
+    assert.equal(charLength('𝔘𝔫𝔦'), 3)
+    assert.equal('𝔘𝔫𝔦'.length, 6)
     assert.equal(charLength(null), 0)
   })
 })

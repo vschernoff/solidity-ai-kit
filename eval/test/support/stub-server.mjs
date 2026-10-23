@@ -8,11 +8,38 @@
 //   --exit-on-initialize  exit(3) when initialize arrives
 //   --paged               split tools/list into two pages with a cursor
 //   --tool-error          tools/call returns isError: true
+//   --tools-list-error    tools/list answers with a JSON-RPC error
+//   --grandchild          start a child that ignores SIGTERM; "<own pid> <child pid>" go to
+//                         $SAK_PIDFILE
+//   --ignore-sigterm      ignore SIGTERM and stdin EOF (only SIGKILL stops it)
+import { spawn } from 'node:child_process'
+import fs from 'node:fs'
+
 const flags = new Set(process.argv.slice(2))
 const tools = [
   { name: 'lint', description: 'Lint a file', inputSchema: { type: 'object' } },
   { name: 'fix', description: 'Fix a file', inputSchema: { type: 'object' } },
 ]
+
+if (flags.has('--ignore-sigterm')) {
+  process.on('SIGTERM', () => {})
+  setInterval(() => {}, 1e9) // stay alive with stdin closed: only SIGKILL ends this process
+}
+// With --grandchild, answer nothing until the grandchild has its SIGTERM handler installed,
+// so a fast close() really meets a process that ignores SIGTERM.
+let ready = Promise.resolve()
+if (flags.has('--grandchild')) {
+  const child = spawn(
+    process.execPath,
+    [
+      '-e',
+      "process.on('SIGTERM', () => {}); process.stdout.write('ready\\n'); setInterval(() => {}, 1e9)",
+    ],
+    { stdio: ['ignore', 'pipe', 'ignore'] }
+  )
+  ready = new Promise((resolve) => child.stdout.once('data', resolve))
+  fs.writeFileSync(process.env.SAK_PIDFILE, `${process.pid} ${child.pid}`)
+}
 
 if (flags.has('--pollute')) process.stdout.write('stub-server v0 starting\n')
 
@@ -22,7 +49,8 @@ function reply(id, result) {
 
 let buffer = ''
 process.stdin.setEncoding('utf8')
-process.stdin.on('data', (chunk) => {
+process.stdin.on('data', async (chunk) => {
+  await ready
   buffer += chunk
   let newline
   while ((newline = buffer.indexOf('\n')) >= 0) {
@@ -31,7 +59,9 @@ process.stdin.on('data', (chunk) => {
     handle(message)
   }
 })
-process.stdin.on('end', () => process.exit(0))
+process.stdin.on('end', () => {
+  if (!flags.has('--ignore-sigterm')) process.exit(0)
+})
 
 function handle({ id, method, params }) {
   if (method === 'initialize') {
@@ -45,6 +75,12 @@ function handle({ id, method, params }) {
     })
   } else if (method === 'tools/list') {
     if (flags.has('--hang-tools-list')) return
+    if (flags.has('--tools-list-error')) {
+      process.stdout.write(
+        `${JSON.stringify({ jsonrpc: '2.0', id, error: { code: -32603, message: 'internal' } })}\n`
+      )
+      return
+    }
     if (flags.has('--paged') && !params?.cursor) reply(id, { tools: [tools[0]], nextCursor: 'p2' })
     else if (flags.has('--paged')) reply(id, { tools: [tools[1]] })
     else reply(id, { tools })
