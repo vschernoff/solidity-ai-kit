@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { unifiedDiff } from './diff.js'
@@ -64,11 +65,16 @@ export function resolveInside(root, relative) {
  */
 export function planChanges(root, edits) {
   const changes = []
+  const seen = new Set()
   for (const { file, after } of edits) {
     const absolute = resolveInside(root, file)
+    // Two edits to one file would preview both but write only the last; refuse instead.
+    if (seen.has(absolute))
+      throw new Error(`Two changes were planned for ${file}; nothing was written.`)
+    seen.add(absolute)
     const before = readOrNull(absolute)
     if (before === after) continue
-    changes.push({ file: toPosix(path.relative(root, absolute)), absolute, before, after })
+    changes.push({ root, file: toPosix(path.relative(root, absolute)), absolute, before, after })
   }
   return changes
 }
@@ -82,7 +88,9 @@ export function renderChanges(changes) {
  * since the plan was made, so a concurrent edit is never silently overwritten.
  */
 export function applyChanges(changes) {
-  for (const { file, absolute, before } of changes) {
+  for (const { root, file, absolute, before } of changes) {
+    // Checked again at write time: a symlink may have appeared since the preview.
+    resolveInside(root, file)
     if (readOrNull(absolute) !== before) {
       throw new Error(`${file} changed since the preview; nothing was written. Run again.`)
     }
@@ -94,8 +102,15 @@ export function applyChanges(changes) {
     }
     fs.mkdirSync(path.dirname(absolute), { recursive: true })
     // Write beside the target, then rename over it, so a crash never leaves half a file.
-    const temporary = `${absolute}.solidity-ai-kit-${process.pid}.tmp`
-    fs.writeFileSync(temporary, after)
-    fs.renameSync(temporary, absolute)
+    // The name is unguessable and `wx` refuses anything already there, so a planted file
+    // or symlink at the temp path can never be written through.
+    const temporary = `${absolute}.solidity-ai-kit-${crypto.randomBytes(8).toString('hex')}.tmp`
+    try {
+      fs.writeFileSync(temporary, after, { flag: 'wx' })
+      fs.renameSync(temporary, absolute)
+    } catch (error) {
+      fs.rmSync(temporary, { force: true })
+      throw error
+    }
   }
 }

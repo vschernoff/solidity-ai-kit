@@ -54,6 +54,41 @@ describe('resolveInside (NFR-4)', () => {
 })
 
 describe('planChanges / applyChanges (FR-2)', () => {
+  it('refuses two edits to the same file', () => {
+    const dir = project()
+    assert.throws(
+      () =>
+        planChanges(dir, [
+          { file: 'a.json', after: '1\n' },
+          { file: path.join('.', 'a.json'), after: '2\n' },
+        ]),
+      /Two changes were planned for/
+    )
+  })
+
+  symlinkTest('never writes through a symlink planted at the old temp-file name', () => {
+    const dir = project({ '.mcp.json': '{}\n' })
+    const outside = path.join(project(), 'outside.txt')
+    fs.writeFileSync(outside, 'untouched\n')
+    const changes = planChanges(dir, [{ file: '.mcp.json', after: '{ "x": 1 }\n' }])
+    fs.symlinkSync(outside, `${path.join(dir, '.mcp.json')}.solidity-ai-kit-${process.pid}.tmp`)
+    applyChanges(changes)
+    assert.equal(fs.readFileSync(outside, 'utf8'), 'untouched\n')
+    assert.equal(fs.lstatSync(path.join(dir, '.mcp.json')).isSymbolicLink(), false)
+    assert.equal(read(dir, '.mcp.json'), '{ "x": 1 }\n')
+  })
+
+  symlinkTest('re-checks the target at write time, after the preview', () => {
+    const dir = project({ '.mcp.json': '{}\n' })
+    const outside = path.join(project(), 'outside.json')
+    fs.writeFileSync(outside, '{}\n')
+    const changes = planChanges(dir, [{ file: '.mcp.json', after: '{ "x": 1 }\n' }])
+    fs.rmSync(path.join(dir, '.mcp.json'))
+    fs.symlinkSync(outside, path.join(dir, '.mcp.json'))
+    assert.throws(() => applyChanges(changes), /symlink/)
+    assert.equal(fs.readFileSync(outside, 'utf8'), '{}\n')
+  })
+
   it('drops edits that change nothing', () => {
     const dir = project({ 'same.txt': 'x\n' })
     assert.deepEqual(planChanges(dir, [{ file: 'same.txt', after: 'x\n' }]), [])
