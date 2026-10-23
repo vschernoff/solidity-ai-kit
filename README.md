@@ -1,10 +1,12 @@
 # solidity-ai-kit
 
 > **Pre-release. Nothing here works yet.** The commands below are being built in the open;
-> until a version is published on npm, `solidity-ai-kit` only prints its usage.
+> until a version is published on npm, commands that are not built yet say so and exit with
+> an error.
 
 One command to set up a curated, pinned set of Solidity MCP servers, plus the workflow rules
-that tell your AI coding agent how to use them together. It works with any MCP client.
+that tell your AI coding agent how to use them together. It is meant to work with any MCP
+client; each client counts as supported only once that has been verified, and how.
 
 ```sh
 npx solidity-ai-kit init           # preview what would be written

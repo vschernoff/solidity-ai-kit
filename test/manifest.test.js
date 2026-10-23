@@ -89,6 +89,86 @@ describe('kit.manifest.json (FR-14, FR-15)', () => {
   })
 })
 
+describe('schema: required fields (FR-15)', () => {
+  // Written out, not read from the schema, so dropping one from `required` fails here.
+  const FR15_FIELDS = [
+    'id',
+    'stage',
+    'version',
+    'transport',
+    'license',
+    'source',
+    'evaluatedAt',
+    'score',
+    'scorecardRef',
+    'enabledByDefault',
+    'experimental',
+    'requiresBinaries',
+    'deniedTools',
+    'riskNotes',
+  ]
+
+  for (const field of FR15_FIELDS) {
+    for (const enabledByDefault of [true, false]) {
+      it(`rejects a component without ${field} (enabledByDefault: ${enabledByDefault})`, () => {
+        const component = evaluatedComponent({ enabledByDefault })
+        delete component[field]
+        // Rejected for the right reason: the field itself is reported missing.
+        const missing = errorsOf(manifestWith(component))
+          .filter((error) => error.keyword === 'required')
+          .map((error) => error.params.missingProperty)
+        assert.ok(missing.includes(field), `${field} not reported missing: ${missing}`)
+      })
+    }
+  }
+
+  // Defence in depth: the FR-16 rule must hold on its own, even if the component's
+  // `required` list were loosened, so a missing key can never satisfy "no licence" etc.
+  it('keeps the FR-16 rule when the base required list is loosened', () => {
+    const loose = structuredClone(schema)
+    loose.$defs.component.required = ['id']
+    const validateLoose = new Ajv2020({
+      strict: true,
+      strictRequired: false,
+      allErrors: true,
+      allowUnionTypes: true,
+    }).compile(loose)
+    for (const field of [
+      'license',
+      'evaluatedAt',
+      'score',
+      'scorecardRef',
+      'experimental',
+      'riskNotes',
+    ]) {
+      const component = evaluatedComponent()
+      delete component[field]
+      assert.equal(validateLoose(manifestWith(component)), false, field)
+    }
+  })
+})
+
+describe('schema: launch fields cannot be read as flags', () => {
+  it('rejects a package or command starting with -', () => {
+    for (const name of ['--yes', '-y', '@-scope/pkg']) {
+      assert.notDeepEqual(errorsOf(manifestWith(evaluatedComponent({ package: name }))), [], name)
+    }
+    const command = evaluatedComponent({ command: '--eval' })
+    delete command.package
+    assert.notDeepEqual(errorsOf(manifestWith(command)), [])
+  })
+
+  it('rejects impossible evaluation dates', () => {
+    for (const evaluatedAt of ['2026-99-99', '2026-13-01', '2026-00-10', '2026-10-32']) {
+      assert.notDeepEqual(
+        errorsOf(manifestWith(evaluatedComponent({ evaluatedAt }))),
+        [],
+        evaluatedAt
+      )
+    }
+  })
+})
+
 describe('schema: pinned versions (FR-4)', () => {
   it('accepts exact versions, including pre-releases', () => {
     for (const version of ['0.1.3', '10.0.0', '2.3.2-agents-preview-1', '1.0.0+build.5']) {

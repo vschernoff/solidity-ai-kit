@@ -33,6 +33,8 @@ describe('GitHub YAML (NFR-3)', () => {
     const floor = Number(readPackageJson().engines.node.match(/^>=(\d+)/)[1])
     assert.ok(matrix.node.includes(floor), `matrix misses the engines floor, Node ${floor}`)
     assert.ok(matrix.node.every((major) => major >= floor))
+    // Both supported LTS lines (C11), written out so dropping one fails here.
+    assert.deepEqual([...matrix.node].sort(), [22, 24])
     assert.deepEqual([...matrix.os].sort(), ['macos-latest', 'ubuntu-latest', 'windows-latest'])
   })
 })
