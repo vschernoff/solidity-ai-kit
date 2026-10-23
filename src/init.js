@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import { detectProject } from './detect.js'
 import { applyChanges, planChanges, renderChanges } from './changes.js'
 
@@ -18,6 +19,10 @@ export function runInit({
   stdout = process.stdout,
   stderr = process.stderr,
 }) {
+  if (!fs.statSync(root, { throwIfNoEntry: false })?.isDirectory()) {
+    stderr.write(`Not a directory: ${root}\n`)
+    return 1
+  }
   const project = detectProject(root)
   if (project.kind === 'none' && project.parentProject !== null) {
     stderr.write(

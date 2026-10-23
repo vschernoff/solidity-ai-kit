@@ -126,6 +126,15 @@ describe('init preview and --write (FR-2)', () => {
     assert.match(again.text, /Nothing to change/)
   })
 
+  it('refuses a target that is missing or not a directory', () => {
+    const dir = project(FIXTURE)
+    for (const root of [path.join(dir, 'missing'), path.join(dir, 'foundry.toml')]) {
+      const stderr = capture()
+      assert.equal(runInit({ root, generators: [fakeGenerator], stdout: capture(), stderr }), 1)
+      assert.match(stderr.text, /Not a directory/)
+    }
+  })
+
   it('refuses to run from a subdirectory of a project, and writes nothing', async () => {
     const dir = project(FIXTURE)
     const before = hashTree(dir)
