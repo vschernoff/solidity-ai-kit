@@ -23,6 +23,17 @@ function fixture(files = [], { git = true } = {}) {
 }
 
 describe('detectProject (FR-1)', () => {
+  // Written out, so dropping or renaming a marker in src/detect.js fails here.
+  it('uses exactly the marker files Foundry and Hardhat 2/3 load', () => {
+    assert.deepEqual(FOUNDRY_MARKERS, ['foundry.toml'])
+    assert.deepEqual([...HARDHAT_MARKERS].sort(), [
+      'hardhat.config.cjs',
+      'hardhat.config.cts',
+      'hardhat.config.js',
+      'hardhat.config.ts',
+    ])
+  })
+
   const cases = {
     foundry: ['foundry.toml', 'src/Counter.sol'],
     hardhat: ['hardhat.config.ts', 'contracts/Counter.sol'],
