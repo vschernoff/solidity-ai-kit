@@ -148,6 +148,38 @@ describe('handshake probe (eval-design §3)', () => {
   it('uses SIGKILL when both the server and its grandchild ignore SIGTERM', () =>
     closeAndCheck(['--ignore-sigterm'], 'SIGKILL'))
 
+  it('reports processes that outlive close() as a C4 error (orphans)', async () => {
+    // Nothing survives SIGKILL in a real test, so a fake session stands in for one whose
+    // close() could not empty the process group (review of #18).
+    const fakeSession = () => ({
+      transport: 'stdio',
+      stats: { pollutionBytes: 0, pollutionSamples: [], stderr: '', orphans: false },
+      async request(method) {
+        const result =
+          method === 'initialize'
+            ? { protocolVersion: '2025-06-18', serverInfo: { name: 'fake' }, instructions: 'x' }
+            : { tools: [] }
+        return { result, bytes: 10 }
+      },
+      notify() {},
+      async close() {
+        this.stats.orphans = true
+      },
+    })
+    const result = await probeServer(
+      { id: 'fake', transport: 'stdio' },
+      { ...fast, connect: fakeSession }
+    )
+    assert.equal(result.healthy, false)
+    assert.deepEqual(
+      result.errors.map((e) => [e.step, e.kind]),
+      [
+        ['close', 'orphans'],
+        ['close', 'orphans'],
+      ]
+    )
+  })
+
   it('follows tools/list cursors', async () => {
     const result = await probeServer(stub('--paged'), fast)
     assert.equal(result.toolCount, 2)
