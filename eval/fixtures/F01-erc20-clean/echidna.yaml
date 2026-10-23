@@ -1,0 +1,7 @@
+# Shared Echidna config; deterministic by seed. FFI stays off (SRS NFR-11).
+testMode: property
+seed: 1
+testLimit: 50000
+seqLen: 10
+workers: 1
+allowFFI: false

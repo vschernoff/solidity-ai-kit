@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
+import { describe, it } from 'node:test'
+import { parseDocument } from 'yaml'
+import { listCandidates } from '../lib/candidates.js'
+import { EVAL_ROOT, readDeps } from '../lib/fixtures.js'
+
+const workflowFile = path.join(EVAL_ROOT, '..', '.github', 'workflows', 'EVAL.yml')
+const document = parseDocument(fs.readFileSync(workflowFile, 'utf8'), { uniqueKeys: true })
+const workflow = document.toJS()
+const steps = workflow.jobs.fixtures.steps
+const deps = readDeps()
+
+describe('EVAL.yml', () => {
+  it('parses as YAML (NFR-3)', () => {
+    assert.deepEqual(document.errors, [])
+  })
+
+  it('cancels superseded PR runs but never runs on main (D25)', () => {
+    assert.match(workflow.concurrency.group, /github\.event\.pull_request\.number/)
+    assert.equal(
+      workflow.concurrency['cancel-in-progress'],
+      "${{ github.event_name == 'pull_request' }}"
+    )
+  })
+
+  it('runs on Linux only (D16)', () => {
+    for (const job of Object.values(workflow.jobs)) assert.equal(job['runs-on'], 'ubuntu-latest')
+  })
+
+  it('installs exactly the Foundry pinned in deps.json, by action commit', () => {
+    const { toolchainAction, version } = deps.foundry
+    const step = steps.find((s) => s.uses?.startsWith(`${toolchainAction.repo}@`))
+    assert.equal(step.uses, `${toolchainAction.repo}@${toolchainAction.commit}`)
+    assert.equal(step.with.version, version)
+  })
+
+  it('fetches dependencies before confirming ground truth, and keeps the report', () => {
+    const runs = steps.map((s) => s.run ?? s.uses ?? '')
+    const fetchAt = runs.findIndex((r) => r.includes('eval/scripts/fetch-deps.mjs'))
+    const confirmAt = runs.findIndex((r) => r.includes('eval/scripts/confirm-ground-truth.mjs'))
+    assert.ok(fetchAt >= 0 && confirmAt > fetchAt)
+    assert.ok(runs.some((r) => r.startsWith('actions/upload-artifact@')))
+  })
+
+  it('probes every npm candidate, offline, in the image pinned in deps.json', () => {
+    const probe = workflow.jobs.probe
+    const npmIds = listCandidates()
+      .filter((c) => c.install.type === 'npm')
+      .map((c) => c.id)
+    assert.deepEqual([...probe.strategy.matrix.candidate].sort(), npmIds.sort())
+    const { image, digest } = deps.probeImage
+    assert.equal(probe.env.PROBE_IMAGE, `${image}@${digest}`)
+    const script = probe.steps.map((s) => s.run ?? '').join('\n')
+    for (const flag of ['--network none', '--read-only', '--user 1001:1001', '/candidate:ro']) {
+      assert.ok(script.includes(flag), `docker run lacks ${flag}`)
+    }
+  })
+
+  it('has read-only permissions', () => {
+    assert.deepEqual(workflow.permissions, { contents: 'read' })
+  })
+})
