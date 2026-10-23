@@ -1251,5 +1251,5 @@
   "runs": 3,
   "identicalAcrossRuns": true,
   "date": "2026-10-23",
-  "note": "forge 1.8.5 by absolute path (verified per D18), HOME sandboxed; fixtures copied to temp dirs. Three runs, identical after JSON comparison."
+  "note": "forge 1.8.5 by absolute path (verified per D18), HOME sandboxed; fixtures copied to temp dirs. Three runs, identical after JSON comparison. Re-run three more times with `forge test --offline` (no selector lookups): identical."
 }

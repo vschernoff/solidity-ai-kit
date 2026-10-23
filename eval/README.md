@@ -59,6 +59,20 @@ never as a pass. A forge version other than the one in `deps.json` fails the run
 CI runs all three on Linux only (`.github/workflows/EVAL.yml`, decision D16). Pinned
 versions live in `deps.json`; a test keeps the workflow in step with it.
 
+### Forge behaviour the comparer depends on (checked by execution)
+
+- forge 1.8.x puts an invariant failure's reason and call sequence in `invariant_failures[]`,
+  with the sequence as `[originalLength, [calls]]`; the top-level fields are null.
+- forge 1.7.1 differs: `forge build --json` exits 0 on a compile error, and a test filter
+  matching nothing prints plain text. The comparer is written for the pinned version; a run on
+  any other version fails before comparing (`deps.json`).
+- Without `--offline`, forge may look up unknown selectors at `api.4byte.sourcify.dev`; the
+  test run uses `--offline` (the build before it fetches solc).
+- `FOUNDRY_FFI=false` in the environment does not override `ffi = true` in `foundry.toml`.
+  Fixtures keep `ffi = false` in the file itself.
+
+(Versions 1.8.6 and 1.7.1 were run by the forge-test-mcp work on the same fixtures.)
+
 ## Rules
 
 - Fixtures are self-contained: no git submodules, no `forge install`, no npm packages at

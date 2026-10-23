@@ -81,7 +81,9 @@ for (const { name, dir, groundTruth } of foundryFixtures()) {
     const { expect } = groundTruth
     const build = await forge(['build', '--json'], project)
     results.push(...compareBuild(expect.build, build))
-    const test = await forge(['test', '--json'], project)
+    // --offline: without it forge may look selectors up at api.4byte.sourcify.dev while decoding
+    // traces. The build above already fetched solc, so the test run needs no network.
+    const test = await forge(['test', '--json', '--offline'], project)
     results.push(...compareTests(expect.test, test))
     results.push(...compareCreatedFiles(expect.test, project))
     if (expect.storageLayout) {
