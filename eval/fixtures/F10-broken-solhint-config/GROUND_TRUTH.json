@@ -9,13 +9,13 @@
   "expect": {
     "build": {
       "outcome": "success",
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "test": {
       "outcome": "pass",
       "passing": ["CounterTest.test_increment()"],
       "failing": [],
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "lint": {
       "outcome": "error",

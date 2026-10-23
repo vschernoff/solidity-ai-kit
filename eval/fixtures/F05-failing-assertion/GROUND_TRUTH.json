@@ -16,7 +16,7 @@
   "expect": {
     "build": {
       "outcome": "success",
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "test": {
       "outcome": "fail",
@@ -27,10 +27,10 @@
           "test": "test_transfer()",
           "kind": "unit",
           "reasonContains": "balance mismatch",
-          "label": "planted"
+          "label": "confirmed-by:forge@1.8.5"
         }
       ],
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "lint": {
       "outcome": "findings",

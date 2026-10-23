@@ -32,14 +32,19 @@ export function flattenTestResults(report) {
     const contract = suite.split(':').pop()
     for (const [test, outcome] of Object.entries(result?.test_results ?? {})) {
       const kindKey = Object.keys(outcome?.kind ?? {})[0]
+      // forge 1.8.5: an invariant failure leaves `reason` and `counterexample` null and puts
+      // both in `invariant_failures[]`, keyed by the invariant's name without parentheses.
+      const invariant = (outcome?.invariant_failures ?? []).find(
+        (failure) => failure?.name === test.replace(/\(.*\)$/, '')
+      )
       rows.push({
         id: `${contract}.${test}`,
         contract,
         test,
         status: outcome?.status,
-        reason: outcome?.reason ?? '',
+        reason: outcome?.reason ?? invariant?.reason ?? '',
         kind: KINDS[kindKey] ?? `unknown(${kindKey})`,
-        counterexample: outcome?.counterexample ?? null,
+        counterexample: outcome?.counterexample ?? invariant?.counterexample ?? null,
       })
     }
   }
@@ -55,7 +60,9 @@ export function calldataWord(calldata, index) {
 }
 
 function sequenceSignatures(counterexample) {
-  const calls = counterexample?.Sequence
+  let calls = counterexample?.Sequence
+  // forge 1.8.5 serialises a sequence as [originalLength, [calls…]].
+  if (Array.isArray(calls) && calls.length === 2 && Array.isArray(calls[1])) calls = calls[1]
   if (!Array.isArray(calls)) return null
   return calls.map((call) => call?.signature ?? call?.func_name ?? '')
 }

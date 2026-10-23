@@ -22,13 +22,13 @@
   "expect": {
     "build": {
       "outcome": "success",
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "test": {
       "outcome": "pass",
       "passing": ["ProxyTest.test_ownerCanSetValue()", "ProxyTest.test_upgradeKeepsOwner()"],
       "failing": [],
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "storageLayout": {
       "ImplV1": [
@@ -42,7 +42,7 @@
         ["value", 2],
         ["initialized", 3]
       ],
-      "label": "planted",
+      "label": "confirmed-by:forge@1.8.5",
       "note": "Checked against `forge inspect <contract> storageLayout`."
     },
     "lint": {

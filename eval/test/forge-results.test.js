@@ -13,8 +13,8 @@ import {
   flattenTestResults,
 } from '../lib/forge-results.js'
 
-// The samples below follow the shape of `forge test --json` as this harness expects it.
-// They are written by hand; the CI job (EVAL.yml) is where the real shape is confirmed.
+// Unit and fuzz samples follow the shape of `forge test --json`; the invariant sample is copied
+// from a real forge 1.8.5 run. confirm-ground-truth.mjs against real forge is the final check.
 const gt = (name) => readJson(path.join(FIXTURES_DIR, name, 'GROUND_TRUTH.json')).expect
 
 const word = (value) => BigInt(value).toString(16).padStart(64, '0')
@@ -114,16 +114,29 @@ describe('forge result comparison', () => {
     )
   })
 
-  it('checks an invariant call sequence in order', () => {
-    const invariantReport = (calls) => ({
+  it('checks an invariant failure in the shape forge 1.8.5 prints', () => {
+    // Shape copied from a real `forge test --json` run of F07 with forge 1.8.5 (2026-10-23):
+    // reason and counterexample are null on the test; both live in invariant_failures[], and
+    // Sequence is [originalLength, [calls…]].
+    const invariantReport = (signatures) => ({
       'test/Supply.t.sol:SupplyInvariantTest': {
         test_results: {
           'test_mintUpdatesSupply()': unit('Success'),
           'invariant_supplyMatches()': {
             status: 'Failure',
-            reason: 'supply mismatch: 10 != 7',
-            kind: { Invariant: { runs: 1, calls: 2 } },
-            counterexample: { Sequence: calls.map((signature) => ({ signature })) },
+            reason: null,
+            counterexample: null,
+            kind: { Invariant: { runs: 1, calls: 4, reverts: 0 } },
+            invariant_failures: [
+              {
+                kind: 'predicate',
+                name: 'invariant_supplyMatches',
+                reason: 'supply mismatch: 6683 != 6355',
+                counterexample: {
+                  Sequence: [signatures.length, signatures.map((signature) => ({ signature }))],
+                },
+              },
+            ],
           },
         },
       },
@@ -131,16 +144,37 @@ describe('forge result comparison', () => {
     const expect = gt('F07-failing-invariant').test
     const ok = compareTests(expect, {
       exitCode: 1,
-      stdout: JSON.stringify(
-        invariantReport(['mint(uint256)', 'mint(uint256)', 'burnFrom(uint256)'])
-      ),
+      stdout: JSON.stringify(invariantReport(['mint(uint256)', 'burnFrom(uint256)'])),
     })
     assert.deepEqual(statuses(ok), ['confirmed', 'confirmed'])
     const reversed = compareTests(expect, {
       exitCode: 1,
       stdout: JSON.stringify(invariantReport(['burnFrom(uint256)', 'mint(uint256)'])),
     })
-    assert.ok(reversed.some((r) => r.status === 'mismatch'))
+    assert.ok(reversed.some((r) => r.status === 'mismatch' && /sequence/.test(r.detail)))
+  })
+
+  it('still reads a plain Sequence list', () => {
+    const report = {
+      'test/Supply.t.sol:SupplyInvariantTest': {
+        test_results: {
+          'test_mintUpdatesSupply()': unit('Success'),
+          'invariant_supplyMatches()': {
+            status: 'Failure',
+            reason: 'supply mismatch: 1 != 0',
+            kind: { Invariant: {} },
+            counterexample: {
+              Sequence: [{ signature: 'mint(uint256)' }, { signature: 'burnFrom(uint256)' }],
+            },
+          },
+        },
+      },
+    }
+    const results = compareTests(gt('F07-failing-invariant').test, {
+      exitCode: 1,
+      stdout: JSON.stringify(report),
+    })
+    assert.deepEqual(statuses(results), ['confirmed', 'confirmed'])
   })
 
   it('treats a test run on a broken build as confirmed only if nothing is reported as passed', () => {

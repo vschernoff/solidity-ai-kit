@@ -23,15 +23,15 @@
           "line": 13,
           "severity": "error",
           "messageContains": "TypeError",
-          "label": "planted"
+          "label": "confirmed-by:forge@1.8.5"
         }
       ],
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "test": {
       "outcome": "error",
       "note": "The build fails, so no test may be reported as passed or failed.",
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "lint": {
       "outcome": "findings-or-error",

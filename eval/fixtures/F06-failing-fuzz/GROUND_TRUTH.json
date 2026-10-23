@@ -16,7 +16,7 @@
   "expect": {
     "build": {
       "outcome": "success",
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "test": {
       "outcome": "fail",
@@ -31,10 +31,10 @@
             "arg": 0,
             "gte": "340282366920938463463374607431768211456"
           },
-          "label": "planted"
+          "label": "confirmed-by:forge@1.8.5"
         }
       ],
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "lint": {
       "outcome": "findings",

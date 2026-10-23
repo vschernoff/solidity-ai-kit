@@ -16,7 +16,7 @@
   "expect": {
     "build": {
       "outcome": "success",
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "test": {
       "outcome": "fail",
@@ -30,10 +30,10 @@
           "sequence": {
             "containsInOrder": ["mint(uint256)", "burnFrom(uint256)"]
           },
-          "label": "planted"
+          "label": "confirmed-by:forge@1.8.5"
         }
       ],
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "lint": {
       "outcome": "findings",

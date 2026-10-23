@@ -9,7 +9,7 @@
   "expect": {
     "build": {
       "outcome": "success",
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "test": {
       "outcome": "pass",
@@ -20,7 +20,7 @@
         "TokenTest.testFuzz_transferKeepsSupply(uint256)"
       ],
       "failing": [],
-      "label": "planted"
+      "label": "confirmed-by:forge@1.8.5"
     },
     "lint": {
       "outcome": "findings",

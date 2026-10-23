@@ -188,4 +188,27 @@ describe('evaluation fixtures (SRS §8.3)', () => {
       assert.ok(!fixtureFiles(dir).some((file) => file.startsWith(path.join('lib', 'forge-std'))))
     }
   })
+
+  it('backs every confirmed-by:forge label with a committed zero-mismatch report', () => {
+    const resultsDir = path.join(FIXTURES_DIR, '..', 'results', 'ground-truth')
+    const reports = fs.existsSync(resultsDir)
+      ? fs.readdirSync(resultsDir).map((file) => readJson(path.join(resultsDir, file)))
+      : []
+    for (const { name, groundTruth } of fixtures) {
+      const versions = new Set(
+        [...JSON.stringify(groundTruth).matchAll(/confirmed-by:forge@([0-9.]+)/g)].map((m) => m[1])
+      )
+      for (const version of versions) {
+        const backing = reports.find(
+          (r) =>
+            r.forge.includes(`Version: ${version}`) &&
+            r.mismatches === 0 &&
+            !r.drift &&
+            r.fixtures[name]?.length > 0 &&
+            r.fixtures[name].every((result) => result.status === 'confirmed')
+        )
+        assert.ok(backing, `${name}: no clean forge ${version} report in eval/results/ground-truth`)
+      }
+    }
+  })
 })
