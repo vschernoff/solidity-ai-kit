@@ -3,6 +3,7 @@ import { claudeCode } from './clients/claude-code.js'
 import { codex } from './clients/codex.js'
 import { cursor } from './clients/cursor.js'
 import { label, selectComponents } from './components.js'
+import { DEFAULT_LIMITS, formatReport, runDoctor } from './doctor.js'
 import { runInit } from './init.js'
 import { loadManifest, readPackageJson } from './manifest.js'
 
@@ -30,7 +31,9 @@ function usage() {
     'Options:',
     '  --write          Apply the changes (init, remove). Without it, only preview them',
     `  --client <name>  ${Object.keys(CLIENTS).join(', ')} or all (default: all); repeatable`,
-    '  --with <id>      Also install an opt-in component from the manifest; repeatable',
+    '  --with <id>      Also install (init) or check (doctor) an opt-in component; repeatable',
+    '  --limit c=n      doctor: warn when instructions exceed n chars for client c (default codex=512)',
+    '  --timeout <s>    doctor: seconds to wait for each server to answer (default 30)',
     '  -h, --help       Show this help',
     '  -v, --version    Show the version',
   ].join('\n')
@@ -74,6 +77,43 @@ function init(values, { cwd, stdout, stderr }) {
   })
 }
 
+function parseLimits(values) {
+  const limits = { ...DEFAULT_LIMITS }
+  for (const entry of listOption(values)) {
+    const match = entry.match(/^([a-z-]+)=(\d+)$/)
+    if (!match || !Object.hasOwn(CLIENTS, match[1])) {
+      throw new Error(`Bad --limit "${entry}"; use <client>=<chars>, e.g. codex=512`)
+    }
+    limits[match[1]] = Number(match[2])
+  }
+  return limits
+}
+
+async function doctor(values, { cwd, stdout, stderr }) {
+  try {
+    const seconds = values.timeout === undefined ? 30 : Number(values.timeout)
+    if (!Number.isFinite(seconds) || seconds <= 0)
+      throw new Error('--timeout must be a positive number')
+    const manifest = loadManifest()
+    const requested = listOption(values.with)
+    selectComponents(manifest, requested)
+    const report = await runDoctor({
+      root: cwd,
+      manifest,
+      engines: readPackageJson().engines.node,
+      requested,
+      limits: parseLimits(values.limit),
+      timeoutMs: seconds * 1000,
+    })
+    const { text, ok } = formatReport(report)
+    stdout.write(text)
+    return ok ? 0 : 1
+  } catch (error) {
+    stderr.write(`solidity-ai-kit doctor: ${error.message}\n`)
+    return 1
+  }
+}
+
 export function main(
   argv,
   { stdout = process.stdout, stderr = process.stderr, cwd = process.cwd() } = {}
@@ -90,6 +130,8 @@ export function main(
         write: { type: 'boolean' },
         client: { type: 'string', multiple: true },
         with: { type: 'string', multiple: true },
+        limit: { type: 'string', multiple: true },
+        timeout: { type: 'string' },
       },
     })
   } catch (error) {
@@ -118,6 +160,9 @@ export function main(
       stderr.write(`solidity-ai-kit init: ${error.message}\n`)
       return 1
     }
+  }
+  if (command === 'doctor') {
+    return doctor(values, { cwd, stdout, stderr })
   }
   // Commands land in their own pull requests. Until then, say so plainly and fail, so
   // nothing can mistake a no-op for a successful run.
