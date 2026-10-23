@@ -1,0 +1,8 @@
+{
+  "name": "fixture-f09-mixed",
+  "private": true,
+  "license": "MIT",
+  "devDependencies": {
+    "hardhat": "2.29.1"
+  }
+}

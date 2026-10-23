@@ -1,0 +1,128 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F11",
+  "name": "custom-error",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Revert decoding: a custom error with arguments, one without, an expectRevert mismatch, an expectRevert that never fires, two panics, and a selector no ABI declares (the undecodable case).",
+  "planted": [
+    {
+      "id": "custom-error-args",
+      "file": "test/Vault.t.sol",
+      "line": 15,
+      "description": "Unexpected revert InsufficientBalance(address,uint256,uint256) two frames deep."
+    },
+    {
+      "id": "custom-error-no-args",
+      "file": "test/Vault.t.sol",
+      "line": 20,
+      "description": "Unexpected revert Paused()."
+    },
+    {
+      "id": "expect-revert-mismatch",
+      "file": "test/Vault.t.sol",
+      "line": 25,
+      "description": "expectRevert wants InsufficientBalance(...) but the call reverts with Paused()."
+    },
+    {
+      "id": "expect-revert-none",
+      "file": "test/Vault.t.sol",
+      "line": 30,
+      "description": "expectRevert, but the call succeeds."
+    },
+    {
+      "id": "panic-div-zero",
+      "file": "test/Vault.t.sol",
+      "line": 35,
+      "description": "Panic 0x12 (division by zero)."
+    },
+    {
+      "id": "panic-underflow",
+      "file": "test/Vault.t.sol",
+      "line": 39,
+      "description": "Panic 0x11 (arithmetic underflow)."
+    },
+    {
+      "id": "undeclared-selector",
+      "file": "test/Vault.t.sol",
+      "line": 43,
+      "description": "Revert data 0xdeadbeef matches no error in any project ABI."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["VaultTest.test_expectRevertMatches()"],
+      "failing": [
+        {
+          "contract": "VaultTest",
+          "test": "test_withdrawMoreThanBalance()",
+          "kind": "unit",
+          "reasonContains": "InsufficientBalance(",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "VaultTest",
+          "test": "test_withdrawWhenPaused()",
+          "kind": "unit",
+          "reasonContains": "Paused()",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "VaultTest",
+          "test": "test_expectRevertMismatch()",
+          "kind": "unit",
+          "reasonContains": "Paused()",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "VaultTest",
+          "test": "test_expectRevertButNone()",
+          "kind": "unit",
+          "reasonContains": "did not revert",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "VaultTest",
+          "test": "test_panicDivZero()",
+          "kind": "unit",
+          "reasonContains": "0x12",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "VaultTest",
+          "test": "test_panicUnderflow()",
+          "kind": "unit",
+          "reasonContains": "0x11",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "VaultTest",
+          "test": "test_undeclaredSelector()",
+          "kind": "unit",
+          "reasonContains": "0xdeadbeef",
+          "label": "confirmed-by:forge@1.8.5"
+        }
+      ],
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

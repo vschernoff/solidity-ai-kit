@@ -1,0 +1,3 @@
+# Deliberately invalid JSON: evaluation fixture F10 tests that lint tools report a broken
+# config as an error (eval/fixtures/F10-broken-solhint-config/GROUND_TRUTH.json).
+eval/fixtures/F10-broken-solhint-config/.solhint.json
