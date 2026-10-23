@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { staleDenials } from '../harness/probe.js'
 import { EVAL_ROOT, readJson } from './fixtures.js'
 
 export const CANDIDATES_DIR = path.join(EVAL_ROOT, 'candidates')
@@ -62,11 +63,53 @@ export function launchCommand(candidate, installDir) {
   throw new Error(`unknown install type ${install.type}`)
 }
 
-/** Every canary that appears in `text`, by name. */
-export function leakedCanaries(text) {
-  return Object.entries(CANARIES)
-    .filter(([, value]) => String(text).includes(value))
-    .map(([name]) => name)
+/**
+ * How many characters of `instructions` each client keeps (SRS C2, FR-12). A client behaviour,
+ * not an MCP limit; other clients keep more.
+ */
+export const INSTRUCTION_LIMITS = { Codex: 512 }
+
+/** Findings from a probe result, one per gate problem. Warnings are labelled as such. */
+export function probeFindings(result, candidate) {
+  const findings = []
+  const seen = new Set()
+  for (const { name, where } of result.leaks ?? []) {
+    if (seen.has(`${name}@${where}`)) continue
+    seen.add(`${name}@${where}`)
+    findings.push({ gate: 'G7', finding: `canary ${name} found in ${where}` })
+  }
+  if (result.stdoutPollutionBytes) {
+    findings.push({
+      gate: 'C3',
+      finding: `${result.stdoutPollutionBytes} non-protocol bytes on stdout`,
+    })
+  }
+  for (const error of result.errors ?? []) {
+    findings.push({ gate: 'C4', finding: `${error.step} failed (${error.kind}): ${error.message}` })
+  }
+  const chars = (result.instructions?.chars ?? []).filter((n) => n !== null)
+  if (result.instructions?.variable) {
+    findings.push({
+      gate: 'C2',
+      severity: 'warning',
+      finding: `instructions vary with the working directory: ${chars.join(' / ')} chars`,
+    })
+  }
+  const longest = Math.max(0, ...chars)
+  for (const [client, limit] of Object.entries(INSTRUCTION_LIMITS)) {
+    if (longest > limit) {
+      findings.push({
+        gate: 'C2',
+        severity: 'warning',
+        finding: `instructions are ${longest} chars: exceeds the ~${limit} chars ${client} retains`,
+      })
+    }
+  }
+  if (result.tools) {
+    const stale = staleDenials(Object.keys(result.tools), candidate.deniedTools)
+    if (stale.length) findings.push({ gate: 'FR-7', finding: `deniedTools not exposed: ${stale}` })
+  }
+  return findings
 }
 
 // Hooks npm runs when a package is installed from the registry. `prepare` is not one of them

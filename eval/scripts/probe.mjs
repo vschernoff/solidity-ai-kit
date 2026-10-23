@@ -10,63 +10,46 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
+  CANARIES,
   candidateEnv,
   candidateVersion,
   launchCommand,
-  leakedCanaries,
+  probeFindings,
   readCandidate,
 } from '../lib/candidates.js'
-import { probeServer, staleDenials } from '../harness/probe.js'
+import { flagValue } from '../lib/fixtures.js'
+import { probeServer } from '../harness/probe.js'
 
 const args = process.argv.slice(2)
 const [id, installDir] = args
-const outFile = args.includes('--out') ? args[args.indexOf('--out') + 1] : null
-if (!id || !installDir) {
-  console.error('usage: probe.mjs <id> <install-dir> [--out file]')
+let outFile, timeoutMs, candidateFile
+try {
+  if (!id || id.startsWith('--') || !installDir || installDir.startsWith('--')) {
+    throw new Error(
+      'usage: probe.mjs <id> <install-dir> [--out file] [--candidate-file file] [--timeout-ms n]'
+    )
+  }
+  outFile = flagValue(args, '--out')
+  candidateFile = flagValue(args, '--candidate-file')
+  timeoutMs = Number(flagValue(args, '--timeout-ms', '20000'))
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 100) {
+    throw new Error('--timeout-ms must be an integer of at least 100')
+  }
+} catch (error) {
+  console.error(`probe: ${error.message}`)
   process.exit(2)
 }
 
-const timeoutMs = args.includes('--timeout-ms')
-  ? Number(args[args.indexOf('--timeout-ms') + 1])
-  : 20_000
-const candidateFile = args.includes('--candidate-file')
-  ? args[args.indexOf('--candidate-file') + 1]
-  : null
 const candidate = candidateFile
   ? JSON.parse(fs.readFileSync(candidateFile, 'utf8'))
   : readCandidate(id)
 const home = fs.mkdtempSync(path.join(os.tmpdir(), `sak-home-${id}-`))
 const { command, args: argv } = launchCommand(candidate, path.resolve(installDir))
 const result = await probeServer(
-  {
-    id,
-    transport: candidate.transport,
-    command,
-    args: argv,
-    env: candidateEnv(home),
-  },
-  { timeouts: { initializeMs: timeoutMs, toolsListMs: timeoutMs } }
+  { id, transport: candidate.transport, command, args: argv, env: candidateEnv(home) },
+  { timeouts: { initializeMs: timeoutMs, toolsListMs: timeoutMs }, secrets: CANARIES }
 )
-
-const findings = []
-const leaks = leakedCanaries(JSON.stringify(result))
-if (leaks.length) findings.push({ gate: 'G7', finding: `canary leaked: ${leaks.join(', ')}` })
-if (result.stdoutPollutionBytes) {
-  findings.push({
-    gate: 'C3',
-    finding: `${result.stdoutPollutionBytes} non-protocol bytes on stdout`,
-  })
-}
-for (const error of result.errors) {
-  findings.push({ gate: 'C4', finding: `${error.step} failed (${error.kind}): ${error.message}` })
-}
-if (result.instructions.variable) {
-  findings.push({ gate: 'C2', finding: `instructions vary with cwd: ${result.instructions.chars}` })
-}
-if (result.tools) {
-  const stale = staleDenials(Object.keys(result.tools), candidate.deniedTools)
-  if (stale.length) findings.push({ gate: 'FR-7', finding: `deniedTools not exposed: ${stale}` })
-}
+const findings = probeFindings(result, candidate)
 const homeWrites = fs.readdirSync(home, { recursive: true })
 fs.rmSync(home, { recursive: true, force: true })
 

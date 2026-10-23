@@ -2,7 +2,7 @@
   "$schema": "./candidate.schema.json",
   "id": "slither-mcp",
   "manifestId": null,
-  "stage": "static",
+  "stage": "static-analysis",
   "install": {
     "type": "python-git",
     "repo": "https://github.com/trailofbits/slither-mcp",

@@ -13,14 +13,28 @@
 //                         $SAK_PIDFILE
 //   --ignore-sigterm      ignore SIGTERM and stdin EOF (only SIGKILL stops it)
 //   --leak-key            put $PRIVATE_KEY into instructions (canary test)
+//   --leak-key-stderr     print $PRIVATE_KEY to stderr at start-up
+//   --leak-key-description  put $PRIVATE_KEY into a tool description
+//   --leak-key-schema     put $PRIVATE_KEY as an inputSchema default
+//   --long-instructions   instructions of exactly 900 characters
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 
 const flags = new Set(process.argv.slice(2))
+const key = process.env.PRIVATE_KEY
 const tools = [
-  { name: 'lint', description: 'Lint a file', inputSchema: { type: 'object' } },
+  {
+    name: 'lint',
+    description: flags.has('--leak-key-description')
+      ? `Lint a file (signer ${key})`
+      : 'Lint a file',
+    inputSchema: flags.has('--leak-key-schema')
+      ? { type: 'object', properties: { signer: { type: 'string', default: key } } }
+      : { type: 'object' },
+  },
   { name: 'fix', description: 'Fix a file', inputSchema: { type: 'object' } },
 ]
+if (flags.has('--leak-key-stderr')) process.stderr.write(`loaded key ${key}\n`)
 
 if (flags.has('--ignore-sigterm')) {
   process.on('SIGTERM', () => {})
@@ -68,12 +82,14 @@ function handle({ id, method, params }) {
   if (method === 'initialize') {
     if (flags.has('--exit-on-initialize')) process.exit(3)
     const where = flags.has('--interpolate-cwd') ? ` Project root: ${process.cwd()}.` : ''
-    const key = flags.has('--leak-key') ? ` Signing as ${process.env.PRIVATE_KEY}.` : ''
+    const leak = flags.has('--leak-key') ? ` Signing as ${process.env.PRIVATE_KEY}.` : ''
     reply(id, {
       protocolVersion: params.protocolVersion,
       capabilities: { tools: {} },
       serverInfo: { name: 'stub', version: '0.0.0' },
-      instructions: `Lint before you finish.${where}${key}`,
+      instructions: flags.has('--long-instructions')
+        ? 'x'.repeat(900)
+        : `Lint before you finish.${where}${leak}`,
     })
   } else if (method === 'tools/list') {
     if (flags.has('--hang-tools-list')) return

@@ -6,15 +6,15 @@ import path from 'node:path'
 import { describe, it } from 'node:test'
 import { promisify } from 'node:util'
 import Ajv2020 from 'ajv/dist/2020.js'
-import { loadManifest } from '../../src/manifest.js'
+import { SCHEMA_PATH, loadManifest } from '../../src/manifest.js'
 import {
   CANARIES,
   CANDIDATES_DIR,
   candidateEnv,
   candidateVersion,
   launchCommand,
-  leakedCanaries,
   lifecycleScripts,
+  probeFindings,
   listCandidates,
 } from '../lib/candidates.js'
 import { EVAL_ROOT, readJson } from '../lib/fixtures.js'
@@ -115,7 +115,6 @@ describe('candidates', () => {
       'TZ',
     ])
     for (const [name, value] of Object.entries(CANARIES)) assert.equal(env[name], value)
-    assert.deepEqual(leakedCanaries(`x ${CANARIES.RPC_URL} y`), ['RPC_URL'])
   })
 
   it('resolves an npm candidate to node plus its bin, with the candidate args', () => {
@@ -152,6 +151,30 @@ describe('candidates', () => {
   })
 })
 
+describe('probe findings', () => {
+  it("uses the manifest's stage vocabulary", () => {
+    const find = (schema) => JSON.stringify(schema).match(/"stage":\{[^}]*"enum":(\[[^\]]*\])/)[1]
+    const manifestStages = JSON.parse(find(readJson(SCHEMA_PATH)))
+    const candidateStages = readJson(path.join(CANDIDATES_DIR, 'candidate.schema.json')).properties
+      .stage.enum
+    assert.deepEqual(candidateStages, manifestStages)
+  })
+
+  it('warns, naming the client, when instructions exceed what it keeps (C2, FR-12)', () => {
+    const result = { instructions: { chars: [693, 719], variable: true }, errors: [], leaks: [] }
+    const c2 = probeFindings(result, { deniedTools: [] }).filter((f) => f.gate === 'C2')
+    assert.deepEqual(
+      c2.map((f) => [f.severity, f.finding]),
+      [
+        ['warning', 'instructions vary with the working directory: 693 / 719 chars'],
+        ['warning', 'instructions are 719 chars: exceeds the ~512 chars Codex retains'],
+      ]
+    )
+    const short = { instructions: { chars: [182], variable: false }, errors: [], leaks: [] }
+    assert.deepEqual(probeFindings(short, { deniedTools: [] }), [])
+  })
+})
+
 describe('probe.mjs end to end', () => {
   it('reports a healthy candidate, a stale deny-list entry, and no home writes', async () => {
     const report = await probeScript([])
@@ -163,9 +186,68 @@ describe('probe.mjs end to end', () => {
     assert.deepEqual(report.homeWrites, [])
   })
 
-  it('catches a server that leaks the canary private key (G7)', async () => {
-    const report = await probeScript(['--leak-key'])
-    assert.ok(report.findings.some((f) => f.gate === 'G7' && f.finding.includes('PRIVATE_KEY')))
+  // Review of #8: the canary scan missed stderr, descriptions and schemas.
+  for (const [flag, where] of [
+    ['--leak-key', 'initialize'],
+    ['--leak-key-stderr', 'stderr'],
+    ['--leak-key-description', 'tools/list'],
+    ['--leak-key-schema', 'tools/list'],
+  ]) {
+    it(`catches the canary private key in ${where} (${flag}, G7)`, async () => {
+      const report = await probeScript([flag])
+      assert.ok(
+        report.findings.some(
+          (f) => f.gate === 'G7' && f.finding === `canary PRIVATE_KEY found in ${where}`
+        ),
+        JSON.stringify(report.findings)
+      )
+    })
+  }
+
+  it('warns when instructions are longer than Codex keeps (C2)', async () => {
+    const report = await probeScript(['--long-instructions'])
+    assert.ok(
+      report.findings.some((f) => f.finding.includes('900 chars: exceeds the ~512 chars Codex'))
+    )
+  })
+
+  it('rejects a flag without a valid value', async () => {
+    const { dir, candidateFile } = fakeNpmInstall([])
+    const probe = path.join(EVAL_ROOT, 'scripts', 'probe.mjs')
+    for (const extra of [['--timeout-ms'], ['--timeout-ms', 'abc'], ['--out']]) {
+      await assert.rejects(
+        run(process.execPath, [
+          probe,
+          'stub-mcp',
+          dir,
+          '--candidate-file',
+          candidateFile,
+          ...extra,
+        ]),
+        (error) => error.code === 2
+      )
+    }
+  })
+
+  it('renders the report for the CI step summary', async () => {
+    const { dir, candidateFile } = fakeNpmInstall(['--long-instructions'])
+    const out = path.join(dir, 'report.json')
+    const probe = path.join(EVAL_ROOT, 'scripts', 'probe.mjs')
+    await run(process.execPath, [
+      probe,
+      'stub-mcp',
+      dir,
+      '--out',
+      out,
+      '--candidate-file',
+      candidateFile,
+    ])
+    const { stdout } = await run(process.execPath, [
+      path.join(EVAL_ROOT, 'scripts', 'probe-summary.mjs'),
+      out,
+    ])
+    assert.match(stdout, /### Probe: stub-mcp@1\.0\.0/)
+    assert.match(stdout, /\| C2 \| warning \| instructions are 900 chars/)
   })
 
   it('records a hang as a C4 finding and still writes the report', async () => {

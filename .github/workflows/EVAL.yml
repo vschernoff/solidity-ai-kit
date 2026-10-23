@@ -74,6 +74,9 @@ jobs:
             "$PROBE_IMAGE" \
             node /repo/eval/scripts/probe.mjs "$CANDIDATE" /candidate --out /out/probe.json
           cp "$RUNNER_TEMP/candidate/install-report.json" "$RUNNER_TEMP/out/"
+      - name: Findings in the step summary
+        if: always()
+        run: node eval/scripts/probe-summary.mjs "$RUNNER_TEMP/out/probe.json" >> "$GITHUB_STEP_SUMMARY"
       - name: Keep the probe report as evidence
         if: always()
         uses: actions/upload-artifact@v7
