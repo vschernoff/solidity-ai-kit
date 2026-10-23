@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+# D25: a newer push to the same PR cancels the older run; runs on main are never cancelled.
+concurrency:
+  group: eval-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   fixtures:
     name: Fixtures and ground truth
@@ -67,7 +72,9 @@ jobs:
       - name: Probe with no network
         run: |
           mkdir -p "$RUNNER_TEMP/out" && chmod 777 "$RUNNER_TEMP/out"
-          docker run --rm --network none --read-only --tmpfs /tmp --user 1001:1001 \
+          # --init: a real PID 1 that reaps orphaned children, so close() never mistakes a
+          # zombie for a surviving process (review of #18).
+          docker run --rm --init --network none --read-only --tmpfs /tmp --user 1001:1001 \
             -v "$GITHUB_WORKSPACE:/repo:ro" \
             -v "$RUNNER_TEMP/candidate:/candidate:ro" \
             -v "$RUNNER_TEMP/out:/out" \
