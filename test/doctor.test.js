@@ -102,12 +102,29 @@ describe('probe: the MCP initialize handshake (FR-10, C3, C4)', () => {
     })
   }
 
-  it('times out a server that never answers and leaves no process behind', async () => {
+  it('returns only after the server has exited', async () => {
+    const result = await probe(launch('fixed', 5))
+    assert.throws(() => process.kill(result.pid, 0), /ESRCH/)
+  })
+
+  it('times out a server that never answers and has gone when it returns', async () => {
     const result = await probe({ ...launch('hang'), timeoutMs: 500 })
     assert.equal(result.status, 'failed')
     assert.match(result.reason, /no initialize response within 0.5 s/)
-    await new Promise((resolve) => setTimeout(resolve, 3000))
     assert.throws(() => process.kill(result.pid, 0), /ESRCH/)
+  })
+
+  it('kills a server that ignores end of input', async () => {
+    const result = await probe({ ...launch('stubborn'), timeoutMs: 500 })
+    assert.equal(result.status, 'failed')
+    assert.throws(() => process.kill(result.pid, 0), /ESRCH/)
+  })
+
+  it('leaves its working directory free to delete (Windows refuses while in use)', async () => {
+    const cwd = fs.mkdtempSync(path.join(tempRoot, 'cwd-'))
+    await probe({ ...launch('fixed', 5), cwd })
+    fs.rmSync(cwd, { recursive: true })
+    assert.ok(!fs.existsSync(cwd))
   })
 
   it('reports a missing executable as missing', async () => {

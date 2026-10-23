@@ -223,6 +223,7 @@ export async function runDoctor({
     }
   }
 
+  const leftovers = []
   const deepDir = fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-doctor-'))
   const nested = path.join(deepDir, 'a', 'deeper', 'working', 'directory')
   fs.mkdirSync(nested, { recursive: true })
@@ -234,13 +235,24 @@ export async function runDoctor({
       )
     )
   } finally {
-    fs.rmSync(deepDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
+    try {
+      fs.rmSync(deepDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
+    } catch {
+      leftovers.push(deepDir)
+    }
   }
   for (const check of checks) {
     if (check.instructions) check.warnings = instructionWarnings(check, clients, limits)
   }
 
-  return { project, toolchain, components: checks, clients: [...clients].sort(), unreadable }
+  return {
+    project,
+    toolchain,
+    components: checks,
+    clients: [...clients].sort(),
+    unreadable,
+    leftovers,
+  }
 }
 
 export function formatReport(report) {
@@ -272,6 +284,11 @@ export function formatReport(report) {
       for (const warning of check.warnings)
         lines.push(`  warning         ${check.name}: ${warning}`)
     }
+  }
+  for (const dir of report.leftovers ?? []) {
+    lines.push(
+      `  warning         could not remove the temporary directory ${dir}; delete it by hand`
+    )
   }
   for (const file of report.unreadable) {
     lines.push(`  warning         ${file} could not be read; its servers were not checked`)

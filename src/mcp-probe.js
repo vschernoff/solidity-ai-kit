@@ -37,21 +37,32 @@ export function probe({ command, args, cwd, timeoutMs, env = process.env }) {
     const noise = []
     const child = spawn(command, args, { cwd, env, stdio: ['pipe', 'pipe', 'pipe'], shell: false })
 
+    let exited = false
+    child.once('exit', () => {
+      exited = true
+    })
+
+    // Resolves once the server has exited: closing stdin first, killing it after a grace
+    // period, and giving up waiting after twice that. Returning only then means no server
+    // outlives the probe, and its working directory is free to delete (Windows refuses to
+    // remove a directory a process is still running in).
     function stop() {
-      child.stdin.end()
-      const timer = setTimeout(() => {
-        if (child.exitCode === null && child.signalCode === null) child.kill()
-      }, GRACE_MS)
-      timer.unref()
-      child.once('exit', () => clearTimeout(timer))
+      return new Promise((done) => {
+        if (exited || child.pid === undefined) return done()
+        const timers = [setTimeout(() => child.kill(), GRACE_MS), setTimeout(done, GRACE_MS * 2)]
+        child.once('exit', () => {
+          for (const timer of timers) clearTimeout(timer)
+          done()
+        })
+        child.stdin.end()
+      })
     }
 
     function finish(result) {
       if (settled) return
       settled = true
       clearTimeout(timeout)
-      stop()
-      resolve({ pid: child.pid, stderr: stderr.slice(-2000), ...result })
+      stop().then(() => resolve({ pid: child.pid, stderr: stderr.slice(-2000), ...result }))
     }
 
     const timeout = setTimeout(
