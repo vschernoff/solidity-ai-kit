@@ -109,6 +109,13 @@ async function oneHandshake(spec, cwd, timeouts, secrets) {
     record.errors.push(errorRecord('initialize', error))
   } finally {
     await session.close()
+    if (session.stats.orphans) {
+      record.errors.push({
+        step: 'close',
+        kind: 'orphans',
+        message: "processes in the server's group survived SIGKILL",
+      })
+    }
   }
   record.stdoutPollutionBytes = session.stats.pollutionBytes
   record.stdoutPollutionSamples = session.stats.pollutionSamples
