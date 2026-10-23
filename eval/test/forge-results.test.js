@@ -308,6 +308,8 @@ describe('forge result comparison', () => {
     assert.equal(forgeVersionMatches(out('1.8.5'), '1.8.5'), true)
     assert.equal(forgeVersionMatches(out('1.8.5-stable'), '1.8.5'), true)
     assert.equal(forgeVersionMatches(out('1.8.50'), '1.8.5'), false)
+    assert.equal(forgeVersionMatches(out('1.8.5-nightly'), '1.8.5'), false)
+    assert.equal(forgeVersionMatches(out('1.8.5-rc.1'), '1.8.5'), false)
     assert.equal(forgeVersionMatches(out('1.8.6'), '1.8.5'), false)
     assert.equal(forgeVersionMatches('nothing useful', '1.8.5'), false)
   })

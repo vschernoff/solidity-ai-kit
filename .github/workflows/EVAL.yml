@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+# D25: a newer push to the same PR cancels the older run; runs on main are never cancelled.
+concurrency:
+  group: eval-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   fixtures:
     name: Fixtures and ground truth
@@ -42,3 +47,47 @@ jobs:
           name: ground-truth-report
           path: ground-truth-report.json
           if-no-files-found: warn
+
+  probe:
+    # One pinned candidate per job: install on the runner (network, integrity-checked, no
+    # lifecycle scripts), then probe in a container with no network, a read-only root and a
+    # read-only install, as a non-root user. The report is the evidence, kept as an artifact.
+    name: Probe ${{ matrix.candidate }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate: [solhint-mcp]
+    env:
+      CANDIDATE: ${{ matrix.candidate }}
+      # Must match eval/deps.json probeImage (eval/test/workflow.test.js).
+      PROBE_IMAGE: node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install the pinned candidate
+        run: node eval/scripts/install-candidate.mjs "$CANDIDATE" "$RUNNER_TEMP/candidate"
+      - name: Probe with no network
+        run: |
+          mkdir -p "$RUNNER_TEMP/out" && chmod 777 "$RUNNER_TEMP/out"
+          # --init: a real PID 1 that reaps orphaned children, so close() never mistakes a
+          # zombie for a surviving process (review of #18).
+          docker run --rm --init --network none --read-only --tmpfs /tmp --user 1001:1001 \
+            -v "$GITHUB_WORKSPACE:/repo:ro" \
+            -v "$RUNNER_TEMP/candidate:/candidate:ro" \
+            -v "$RUNNER_TEMP/out:/out" \
+            "$PROBE_IMAGE" \
+            node /repo/eval/scripts/probe.mjs "$CANDIDATE" /candidate --out /out/probe.json
+          cp "$RUNNER_TEMP/candidate/install-report.json" "$RUNNER_TEMP/out/"
+      - name: Findings in the step summary
+        if: always()
+        run: node eval/scripts/probe-summary.mjs "$RUNNER_TEMP/out/probe.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the probe report as evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: probe-${{ matrix.candidate }}
+          path: ${{ runner.temp }}/out/
+          if-no-files-found: error
