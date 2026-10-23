@@ -12,6 +12,7 @@
 //   --grandchild          start a child that ignores SIGTERM; "<own pid> <child pid>" go to
 //                         $SAK_PIDFILE
 //   --ignore-sigterm      ignore SIGTERM and stdin EOF (only SIGKILL stops it)
+//   --leak-key            put $PRIVATE_KEY into instructions (canary test)
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 
@@ -67,11 +68,12 @@ function handle({ id, method, params }) {
   if (method === 'initialize') {
     if (flags.has('--exit-on-initialize')) process.exit(3)
     const where = flags.has('--interpolate-cwd') ? ` Project root: ${process.cwd()}.` : ''
+    const key = flags.has('--leak-key') ? ` Signing as ${process.env.PRIVATE_KEY}.` : ''
     reply(id, {
       protocolVersion: params.protocolVersion,
       capabilities: { tools: {} },
       serverInfo: { name: 'stub', version: '0.0.0' },
-      instructions: `Lint before you finish.${where}`,
+      instructions: `Lint before you finish.${where}${key}`,
     })
   } else if (method === 'tools/list') {
     if (flags.has('--hang-tools-list')) return

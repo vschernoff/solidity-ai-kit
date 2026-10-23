@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it } from 'node:test'
 import { parseDocument } from 'yaml'
+import { listCandidates } from '../lib/candidates.js'
 import { EVAL_ROOT, readDeps } from '../lib/fixtures.js'
 
 const workflowFile = path.join(EVAL_ROOT, '..', '.github', 'workflows', 'EVAL.yml')
@@ -33,6 +34,20 @@ describe('EVAL.yml', () => {
     const confirmAt = runs.findIndex((r) => r.includes('eval/scripts/confirm-ground-truth.mjs'))
     assert.ok(fetchAt >= 0 && confirmAt > fetchAt)
     assert.ok(runs.some((r) => r.startsWith('actions/upload-artifact@')))
+  })
+
+  it('probes every npm candidate, offline, in the image pinned in deps.json', () => {
+    const probe = workflow.jobs.probe
+    const npmIds = listCandidates()
+      .filter((c) => c.install.type === 'npm')
+      .map((c) => c.id)
+    assert.deepEqual([...probe.strategy.matrix.candidate].sort(), npmIds.sort())
+    const { image, digest } = deps.probeImage
+    assert.equal(probe.env.PROBE_IMAGE, `${image}@${digest}`)
+    const script = probe.steps.map((s) => s.run ?? '').join('\n')
+    for (const flag of ['--network none', '--read-only', '--user 1001:1001', '/candidate:ro']) {
+      assert.ok(script.includes(flag), `docker run lacks ${flag}`)
+    }
   })
 
   it('has read-only permissions', () => {

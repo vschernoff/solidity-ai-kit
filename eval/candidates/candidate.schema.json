@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vschernoff/solidity-ai-kit/eval/candidates/candidate.schema.json",
+  "title": "Evaluation candidate",
+  "description": "How the harness installs and starts one candidate MCP server, pinned exactly.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "manifestId",
+    "stage",
+    "install",
+    "transport",
+    "args",
+    "network",
+    "requiresBinaries",
+    "deniedTools"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "manifestId": { "type": ["string", "null"] },
+    "stage": { "enum": ["build-test", "lint", "static", "fuzz", "foundry-utils", "onchain-read"] },
+    "install": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "package", "version", "integrity", "bin"],
+          "properties": {
+            "type": { "const": "npm" },
+            "package": { "type": "string" },
+            "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+            "integrity": { "type": "string", "pattern": "^sha512-[A-Za-z0-9+/]+={0,2}$" },
+            "bin": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "repo", "tag", "commit", "constraints", "bin"],
+          "properties": {
+            "type": { "const": "python-git" },
+            "repo": { "type": "string", "pattern": "^https://github\\.com/" },
+            "tag": { "type": "string" },
+            "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "constraints": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+==[0-9A-Za-z.]+$" }
+            },
+            "bin": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "transport": { "enum": ["stdio", "http"] },
+    "args": { "type": "array", "items": { "type": "string" } },
+    "network": {
+      "description": "none = the probe runs with no network; logged = through the egress-logging proxy (later).",
+      "enum": ["none", "logged"]
+    },
+    "requiresBinaries": { "type": "array", "items": { "type": "string" } },
+    "deniedTools": { "type": "array", "items": { "type": "string" } }
+  }
+}

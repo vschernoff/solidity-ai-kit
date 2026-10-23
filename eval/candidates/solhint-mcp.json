@@ -1,0 +1,18 @@
+{
+  "$schema": "./candidate.schema.json",
+  "id": "solhint-mcp",
+  "manifestId": "solhint",
+  "stage": "lint",
+  "install": {
+    "type": "npm",
+    "package": "solhint-mcp",
+    "version": "0.1.3",
+    "integrity": "sha512-A9eM5kNbCksMRKbvGe19C2cDZtPxVuDvuGkr0Ko3AZUCjXI/d6iSzi70pvfBtezQodjELrBAiYa2C7wDWLrl2A==",
+    "bin": "solhint-mcp"
+  },
+  "transport": "stdio",
+  "args": [],
+  "network": "none",
+  "requiresBinaries": [],
+  "deniedTools": []
+}

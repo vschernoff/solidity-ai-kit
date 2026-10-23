@@ -1,0 +1,19 @@
+{
+  "$schema": "./candidate.schema.json",
+  "id": "slither-mcp",
+  "manifestId": null,
+  "stage": "static",
+  "install": {
+    "type": "python-git",
+    "repo": "https://github.com/trailofbits/slither-mcp",
+    "tag": "v2.3.2",
+    "commit": "196a420a90f4b5e27d245148f46fb1ad32c40458",
+    "constraints": ["fastmcp==2.14.5"],
+    "bin": "slither-mcp"
+  },
+  "transport": "stdio",
+  "args": ["--disable-metrics"],
+  "network": "none",
+  "requiresBinaries": ["forge", "solc"],
+  "deniedTools": []
+}
