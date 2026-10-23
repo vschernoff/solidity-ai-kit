@@ -1,0 +1,5 @@
+# Populated by eval/scripts/fetch-deps.mjs at a pinned commit; never committed.
+*/lib/forge-std/
+*/out/
+*/cache/
+*/crytic-export/

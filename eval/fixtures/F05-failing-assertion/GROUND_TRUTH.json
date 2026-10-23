@@ -1,0 +1,50 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F05",
+  "name": "failing-assertion",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "One failing assertEq with a message.",
+  "planted": [
+    {
+      "id": "off-by-one",
+      "file": "src/Bank.sol",
+      "line": 15,
+      "description": "Recipient credited amount - 1."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["BankTest.test_credit()"],
+      "failing": [
+        {
+          "contract": "BankTest",
+          "test": "test_transfer()",
+          "kind": "unit",
+          "reasonContains": "balance mismatch",
+          "label": "confirmed-by:forge@1.8.5"
+        }
+      ],
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

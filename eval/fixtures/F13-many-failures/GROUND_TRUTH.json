@@ -1,0 +1,1443 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F13",
+  "name": "many-failures",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "200 failing unit tests with long messages across 4 suites, one passing. Drives the interpreter's size budget and truncation (FR-32): the response must stay within budget and say what it dropped.",
+  "planted": [
+    {
+      "id": "increment",
+      "file": "src/Counter.sol",
+      "line": 12,
+      "description": "Every failing test expects the counter unchanged after increment()."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["ManyFailures0Test.test_setNumber()"],
+      "failing": [
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail000()",
+          "kind": "unit",
+          "reasonContains": "case 0:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail001()",
+          "kind": "unit",
+          "reasonContains": "case 1:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail002()",
+          "kind": "unit",
+          "reasonContains": "case 2:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail003()",
+          "kind": "unit",
+          "reasonContains": "case 3:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail004()",
+          "kind": "unit",
+          "reasonContains": "case 4:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail005()",
+          "kind": "unit",
+          "reasonContains": "case 5:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail006()",
+          "kind": "unit",
+          "reasonContains": "case 6:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail007()",
+          "kind": "unit",
+          "reasonContains": "case 7:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail008()",
+          "kind": "unit",
+          "reasonContains": "case 8:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail009()",
+          "kind": "unit",
+          "reasonContains": "case 9:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail010()",
+          "kind": "unit",
+          "reasonContains": "case 10:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail011()",
+          "kind": "unit",
+          "reasonContains": "case 11:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail012()",
+          "kind": "unit",
+          "reasonContains": "case 12:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail013()",
+          "kind": "unit",
+          "reasonContains": "case 13:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail014()",
+          "kind": "unit",
+          "reasonContains": "case 14:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail015()",
+          "kind": "unit",
+          "reasonContains": "case 15:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail016()",
+          "kind": "unit",
+          "reasonContains": "case 16:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail017()",
+          "kind": "unit",
+          "reasonContains": "case 17:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail018()",
+          "kind": "unit",
+          "reasonContains": "case 18:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail019()",
+          "kind": "unit",
+          "reasonContains": "case 19:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail020()",
+          "kind": "unit",
+          "reasonContains": "case 20:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail021()",
+          "kind": "unit",
+          "reasonContains": "case 21:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail022()",
+          "kind": "unit",
+          "reasonContains": "case 22:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail023()",
+          "kind": "unit",
+          "reasonContains": "case 23:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail024()",
+          "kind": "unit",
+          "reasonContains": "case 24:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail025()",
+          "kind": "unit",
+          "reasonContains": "case 25:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail026()",
+          "kind": "unit",
+          "reasonContains": "case 26:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail027()",
+          "kind": "unit",
+          "reasonContains": "case 27:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail028()",
+          "kind": "unit",
+          "reasonContains": "case 28:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail029()",
+          "kind": "unit",
+          "reasonContains": "case 29:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail030()",
+          "kind": "unit",
+          "reasonContains": "case 30:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail031()",
+          "kind": "unit",
+          "reasonContains": "case 31:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail032()",
+          "kind": "unit",
+          "reasonContains": "case 32:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail033()",
+          "kind": "unit",
+          "reasonContains": "case 33:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail034()",
+          "kind": "unit",
+          "reasonContains": "case 34:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail035()",
+          "kind": "unit",
+          "reasonContains": "case 35:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail036()",
+          "kind": "unit",
+          "reasonContains": "case 36:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail037()",
+          "kind": "unit",
+          "reasonContains": "case 37:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail038()",
+          "kind": "unit",
+          "reasonContains": "case 38:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail039()",
+          "kind": "unit",
+          "reasonContains": "case 39:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail040()",
+          "kind": "unit",
+          "reasonContains": "case 40:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail041()",
+          "kind": "unit",
+          "reasonContains": "case 41:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail042()",
+          "kind": "unit",
+          "reasonContains": "case 42:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail043()",
+          "kind": "unit",
+          "reasonContains": "case 43:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail044()",
+          "kind": "unit",
+          "reasonContains": "case 44:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail045()",
+          "kind": "unit",
+          "reasonContains": "case 45:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail046()",
+          "kind": "unit",
+          "reasonContains": "case 46:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail047()",
+          "kind": "unit",
+          "reasonContains": "case 47:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail048()",
+          "kind": "unit",
+          "reasonContains": "case 48:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures0Test",
+          "test": "test_fail049()",
+          "kind": "unit",
+          "reasonContains": "case 49:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail050()",
+          "kind": "unit",
+          "reasonContains": "case 50:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail051()",
+          "kind": "unit",
+          "reasonContains": "case 51:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail052()",
+          "kind": "unit",
+          "reasonContains": "case 52:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail053()",
+          "kind": "unit",
+          "reasonContains": "case 53:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail054()",
+          "kind": "unit",
+          "reasonContains": "case 54:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail055()",
+          "kind": "unit",
+          "reasonContains": "case 55:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail056()",
+          "kind": "unit",
+          "reasonContains": "case 56:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail057()",
+          "kind": "unit",
+          "reasonContains": "case 57:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail058()",
+          "kind": "unit",
+          "reasonContains": "case 58:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail059()",
+          "kind": "unit",
+          "reasonContains": "case 59:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail060()",
+          "kind": "unit",
+          "reasonContains": "case 60:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail061()",
+          "kind": "unit",
+          "reasonContains": "case 61:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail062()",
+          "kind": "unit",
+          "reasonContains": "case 62:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail063()",
+          "kind": "unit",
+          "reasonContains": "case 63:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail064()",
+          "kind": "unit",
+          "reasonContains": "case 64:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail065()",
+          "kind": "unit",
+          "reasonContains": "case 65:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail066()",
+          "kind": "unit",
+          "reasonContains": "case 66:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail067()",
+          "kind": "unit",
+          "reasonContains": "case 67:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail068()",
+          "kind": "unit",
+          "reasonContains": "case 68:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail069()",
+          "kind": "unit",
+          "reasonContains": "case 69:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail070()",
+          "kind": "unit",
+          "reasonContains": "case 70:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail071()",
+          "kind": "unit",
+          "reasonContains": "case 71:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail072()",
+          "kind": "unit",
+          "reasonContains": "case 72:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail073()",
+          "kind": "unit",
+          "reasonContains": "case 73:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail074()",
+          "kind": "unit",
+          "reasonContains": "case 74:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail075()",
+          "kind": "unit",
+          "reasonContains": "case 75:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail076()",
+          "kind": "unit",
+          "reasonContains": "case 76:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail077()",
+          "kind": "unit",
+          "reasonContains": "case 77:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail078()",
+          "kind": "unit",
+          "reasonContains": "case 78:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail079()",
+          "kind": "unit",
+          "reasonContains": "case 79:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail080()",
+          "kind": "unit",
+          "reasonContains": "case 80:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail081()",
+          "kind": "unit",
+          "reasonContains": "case 81:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail082()",
+          "kind": "unit",
+          "reasonContains": "case 82:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail083()",
+          "kind": "unit",
+          "reasonContains": "case 83:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail084()",
+          "kind": "unit",
+          "reasonContains": "case 84:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail085()",
+          "kind": "unit",
+          "reasonContains": "case 85:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail086()",
+          "kind": "unit",
+          "reasonContains": "case 86:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail087()",
+          "kind": "unit",
+          "reasonContains": "case 87:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail088()",
+          "kind": "unit",
+          "reasonContains": "case 88:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail089()",
+          "kind": "unit",
+          "reasonContains": "case 89:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail090()",
+          "kind": "unit",
+          "reasonContains": "case 90:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail091()",
+          "kind": "unit",
+          "reasonContains": "case 91:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail092()",
+          "kind": "unit",
+          "reasonContains": "case 92:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail093()",
+          "kind": "unit",
+          "reasonContains": "case 93:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail094()",
+          "kind": "unit",
+          "reasonContains": "case 94:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail095()",
+          "kind": "unit",
+          "reasonContains": "case 95:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail096()",
+          "kind": "unit",
+          "reasonContains": "case 96:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail097()",
+          "kind": "unit",
+          "reasonContains": "case 97:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail098()",
+          "kind": "unit",
+          "reasonContains": "case 98:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures1Test",
+          "test": "test_fail099()",
+          "kind": "unit",
+          "reasonContains": "case 99:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail100()",
+          "kind": "unit",
+          "reasonContains": "case 100:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail101()",
+          "kind": "unit",
+          "reasonContains": "case 101:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail102()",
+          "kind": "unit",
+          "reasonContains": "case 102:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail103()",
+          "kind": "unit",
+          "reasonContains": "case 103:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail104()",
+          "kind": "unit",
+          "reasonContains": "case 104:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail105()",
+          "kind": "unit",
+          "reasonContains": "case 105:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail106()",
+          "kind": "unit",
+          "reasonContains": "case 106:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail107()",
+          "kind": "unit",
+          "reasonContains": "case 107:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail108()",
+          "kind": "unit",
+          "reasonContains": "case 108:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail109()",
+          "kind": "unit",
+          "reasonContains": "case 109:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail110()",
+          "kind": "unit",
+          "reasonContains": "case 110:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail111()",
+          "kind": "unit",
+          "reasonContains": "case 111:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail112()",
+          "kind": "unit",
+          "reasonContains": "case 112:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail113()",
+          "kind": "unit",
+          "reasonContains": "case 113:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail114()",
+          "kind": "unit",
+          "reasonContains": "case 114:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail115()",
+          "kind": "unit",
+          "reasonContains": "case 115:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail116()",
+          "kind": "unit",
+          "reasonContains": "case 116:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail117()",
+          "kind": "unit",
+          "reasonContains": "case 117:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail118()",
+          "kind": "unit",
+          "reasonContains": "case 118:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail119()",
+          "kind": "unit",
+          "reasonContains": "case 119:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail120()",
+          "kind": "unit",
+          "reasonContains": "case 120:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail121()",
+          "kind": "unit",
+          "reasonContains": "case 121:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail122()",
+          "kind": "unit",
+          "reasonContains": "case 122:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail123()",
+          "kind": "unit",
+          "reasonContains": "case 123:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail124()",
+          "kind": "unit",
+          "reasonContains": "case 124:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail125()",
+          "kind": "unit",
+          "reasonContains": "case 125:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail126()",
+          "kind": "unit",
+          "reasonContains": "case 126:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail127()",
+          "kind": "unit",
+          "reasonContains": "case 127:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail128()",
+          "kind": "unit",
+          "reasonContains": "case 128:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail129()",
+          "kind": "unit",
+          "reasonContains": "case 129:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail130()",
+          "kind": "unit",
+          "reasonContains": "case 130:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail131()",
+          "kind": "unit",
+          "reasonContains": "case 131:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail132()",
+          "kind": "unit",
+          "reasonContains": "case 132:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail133()",
+          "kind": "unit",
+          "reasonContains": "case 133:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail134()",
+          "kind": "unit",
+          "reasonContains": "case 134:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail135()",
+          "kind": "unit",
+          "reasonContains": "case 135:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail136()",
+          "kind": "unit",
+          "reasonContains": "case 136:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail137()",
+          "kind": "unit",
+          "reasonContains": "case 137:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail138()",
+          "kind": "unit",
+          "reasonContains": "case 138:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail139()",
+          "kind": "unit",
+          "reasonContains": "case 139:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail140()",
+          "kind": "unit",
+          "reasonContains": "case 140:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail141()",
+          "kind": "unit",
+          "reasonContains": "case 141:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail142()",
+          "kind": "unit",
+          "reasonContains": "case 142:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail143()",
+          "kind": "unit",
+          "reasonContains": "case 143:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail144()",
+          "kind": "unit",
+          "reasonContains": "case 144:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail145()",
+          "kind": "unit",
+          "reasonContains": "case 145:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail146()",
+          "kind": "unit",
+          "reasonContains": "case 146:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail147()",
+          "kind": "unit",
+          "reasonContains": "case 147:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail148()",
+          "kind": "unit",
+          "reasonContains": "case 148:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures2Test",
+          "test": "test_fail149()",
+          "kind": "unit",
+          "reasonContains": "case 149:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail150()",
+          "kind": "unit",
+          "reasonContains": "case 150:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail151()",
+          "kind": "unit",
+          "reasonContains": "case 151:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail152()",
+          "kind": "unit",
+          "reasonContains": "case 152:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail153()",
+          "kind": "unit",
+          "reasonContains": "case 153:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail154()",
+          "kind": "unit",
+          "reasonContains": "case 154:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail155()",
+          "kind": "unit",
+          "reasonContains": "case 155:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail156()",
+          "kind": "unit",
+          "reasonContains": "case 156:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail157()",
+          "kind": "unit",
+          "reasonContains": "case 157:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail158()",
+          "kind": "unit",
+          "reasonContains": "case 158:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail159()",
+          "kind": "unit",
+          "reasonContains": "case 159:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail160()",
+          "kind": "unit",
+          "reasonContains": "case 160:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail161()",
+          "kind": "unit",
+          "reasonContains": "case 161:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail162()",
+          "kind": "unit",
+          "reasonContains": "case 162:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail163()",
+          "kind": "unit",
+          "reasonContains": "case 163:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail164()",
+          "kind": "unit",
+          "reasonContains": "case 164:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail165()",
+          "kind": "unit",
+          "reasonContains": "case 165:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail166()",
+          "kind": "unit",
+          "reasonContains": "case 166:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail167()",
+          "kind": "unit",
+          "reasonContains": "case 167:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail168()",
+          "kind": "unit",
+          "reasonContains": "case 168:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail169()",
+          "kind": "unit",
+          "reasonContains": "case 169:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail170()",
+          "kind": "unit",
+          "reasonContains": "case 170:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail171()",
+          "kind": "unit",
+          "reasonContains": "case 171:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail172()",
+          "kind": "unit",
+          "reasonContains": "case 172:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail173()",
+          "kind": "unit",
+          "reasonContains": "case 173:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail174()",
+          "kind": "unit",
+          "reasonContains": "case 174:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail175()",
+          "kind": "unit",
+          "reasonContains": "case 175:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail176()",
+          "kind": "unit",
+          "reasonContains": "case 176:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail177()",
+          "kind": "unit",
+          "reasonContains": "case 177:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail178()",
+          "kind": "unit",
+          "reasonContains": "case 178:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail179()",
+          "kind": "unit",
+          "reasonContains": "case 179:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail180()",
+          "kind": "unit",
+          "reasonContains": "case 180:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail181()",
+          "kind": "unit",
+          "reasonContains": "case 181:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail182()",
+          "kind": "unit",
+          "reasonContains": "case 182:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail183()",
+          "kind": "unit",
+          "reasonContains": "case 183:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail184()",
+          "kind": "unit",
+          "reasonContains": "case 184:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail185()",
+          "kind": "unit",
+          "reasonContains": "case 185:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail186()",
+          "kind": "unit",
+          "reasonContains": "case 186:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail187()",
+          "kind": "unit",
+          "reasonContains": "case 187:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail188()",
+          "kind": "unit",
+          "reasonContains": "case 188:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail189()",
+          "kind": "unit",
+          "reasonContains": "case 189:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail190()",
+          "kind": "unit",
+          "reasonContains": "case 190:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail191()",
+          "kind": "unit",
+          "reasonContains": "case 191:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail192()",
+          "kind": "unit",
+          "reasonContains": "case 192:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail193()",
+          "kind": "unit",
+          "reasonContains": "case 193:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail194()",
+          "kind": "unit",
+          "reasonContains": "case 194:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail195()",
+          "kind": "unit",
+          "reasonContains": "case 195:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail196()",
+          "kind": "unit",
+          "reasonContains": "case 196:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail197()",
+          "kind": "unit",
+          "reasonContains": "case 197:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail198()",
+          "kind": "unit",
+          "reasonContains": "case 198:",
+          "label": "confirmed-by:forge@1.8.5"
+        },
+        {
+          "contract": "ManyFailures3Test",
+          "test": "test_fail199()",
+          "kind": "unit",
+          "reasonContains": "case 199:",
+          "label": "confirmed-by:forge@1.8.5"
+        }
+      ],
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}
