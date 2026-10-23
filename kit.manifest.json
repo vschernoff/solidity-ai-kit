@@ -19,9 +19,9 @@
       "deniedTools": [],
       "riskNotes": [
         {
-          "note": "agent-supplied config extends/plugins code execution: fixed in 0.1.4 per source review and owner's run; Evaluator execution check pending",
+          "note": "Agent-supplied `config` with an absolute-path `extends` executed arbitrary JS in 0.1.3; fixed in 0.1.4. Verified by execution (lint_solidity, absolute path) and at source (array, solhint:../, plugins, fix_solidity).",
           "security": true,
-          "resolved": false
+          "resolved": true
         },
         {
           "note": "Linting a repository runs that repository's own Solhint plugins and JS config (.solhint.json plugins, .solhintrc.js, solhint.config.js, a project-installed Solhint): the same trust as running `npx solhint` there. No version of this component changes that; it is not safe for untrusted repositories.",
@@ -34,7 +34,7 @@
           "resolved": false
         },
         {
-          "note": "instructions ~716 chars, path-interpolated, over Codex's ~512-char guidance",
+          "note": "instructions ≈700–820 chars depending on path, path-interpolated, over Codex's ~512-char guidance",
           "security": false,
           "resolved": false
         }
