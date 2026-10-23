@@ -1,13 +1,16 @@
 import fs from 'node:fs'
-import path from 'node:path'
+import { resolveInside } from '../changes.js'
 
 // Merging into JSON config files (FR-5): parse what is there, change only the kit's keys,
 // and keep everything else, including the file's indentation. Anything that is not a JSON
 // object is an error, never overwritten.
 
+// Checks the path before reading, so a config symlinked to a file outside the project is
+// never read (its contents could otherwise surface in an error message).
 export function readText(root, file) {
+  const absolute = resolveInside(root, file)
   try {
-    return fs.readFileSync(path.join(root, file), 'utf8')
+    return fs.readFileSync(absolute, 'utf8')
   } catch (error) {
     if (error.code === 'ENOENT') return null
     throw error
@@ -20,7 +23,9 @@ export function parseJsonObject(file, text) {
   try {
     value = JSON.parse(text)
   } catch (error) {
-    throw new Error(`${file} is not valid JSON (${error.message}); fix it or move it aside.`, {
+    // JSON.parse quotes the input in its message, so it is never shown: the file could
+    // hold credentials.
+    throw new Error(`${file} is not valid JSON; fix it or move it aside.`, {
       cause: error,
     })
   }

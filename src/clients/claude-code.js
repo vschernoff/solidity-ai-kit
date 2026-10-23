@@ -45,7 +45,8 @@ export function claudeCode(project, { components, notes }) {
   }
 
   notes.push(
-    'Claude Code asks you to approve project servers from .mcp.json the first time it starts in this project.'
+    'In interactive sessions Claude Code asks you to approve the project servers in .mcp.json ' +
+      'the first time; non-interactive runs (claude -p) load them without asking.'
   )
   return edits
 }

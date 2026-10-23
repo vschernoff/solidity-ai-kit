@@ -8,6 +8,7 @@ import { after, describe, it } from 'node:test'
 import { promisify } from 'node:util'
 import { claudeCode, MCP_FILE, SETTINGS_FILE } from '../src/clients/claude-code.js'
 import { cursor, MCP_FILE as CURSOR_FILE } from '../src/clients/cursor.js'
+import { readText } from '../src/clients/json.js'
 import { label } from '../src/components.js'
 import { runInit } from '../src/init.js'
 import { PACKAGE_ROOT, loadManifest, readPackageJson } from '../src/manifest.js'
@@ -164,6 +165,81 @@ describe('client configs from the real manifest (FR-3, FR-4)', () => {
     const again = await cli(dir, 'init', '--write', ...withAll)
     assert.match(again.stdout, /Nothing to change/)
     assert.equal(hashTree(dir), before)
+  })
+})
+
+describe('preview with components selected (FR-2)', () => {
+  it('leaves the tree byte-identical without --write, even with every component opted in', async () => {
+    const dir = project()
+    const before = hashTree(dir)
+    const result = await cli(dir, 'init', ...withAll)
+    assert.equal(result.code, 0, result.stderr)
+    assert.match(result.stdout, /Preview only; nothing was written/)
+    assert.equal(hashTree(dir), before)
+  })
+})
+
+describe('http components (FR-3)', () => {
+  const remote = {
+    id: 'remote',
+    stage: 'onchain-read',
+    package: undefined,
+    command: 'unused',
+    version: '1.0.0',
+    transport: 'http',
+    url: 'http://localhost:3000/mcp',
+    deniedTools: [],
+    experimental: false,
+  }
+
+  it('writes type http for Claude Code and a bare url for Cursor', () => {
+    const dir = project()
+    runInit({
+      root: dir,
+      write: true,
+      components: [remote],
+      generators: [claudeCode, cursor],
+      stdout: sink(),
+      stderr: sink(),
+    })
+    assert.deepEqual(readJson(dir, MCP_FILE).mcpServers.remote, {
+      type: 'http',
+      url: 'http://localhost:3000/mcp',
+    })
+    assert.deepEqual(readJson(dir, CURSOR_FILE).mcpServers.remote, {
+      url: 'http://localhost:3000/mcp',
+    })
+  })
+})
+
+describe('reading existing configs safely', () => {
+  const symlinkTest = process.platform === 'win32' ? it.skip : it
+
+  symlinkTest('refuses a config symlinked outside the project, without reading it', async () => {
+    const dir = project()
+    const outside = path.join(project(), 'secrets.json')
+    fs.writeFileSync(outside, '{ "aws_secret": "AKIA-not-a-real-key" ')
+    fs.symlinkSync(outside, path.join(dir, MCP_FILE))
+    const result = await cli(dir, 'init', '--write', ...withAll)
+    assert.equal(result.code, 1)
+    assert.match(result.stderr, /symlink/)
+    assert.doesNotMatch(result.stderr + result.stdout, /aws_secret|AKIA/)
+  })
+
+  symlinkTest('readText checks the path before it reads', () => {
+    const dir = project()
+    const outside = path.join(project(), 'secrets.json')
+    fs.writeFileSync(outside, '{}')
+    fs.symlinkSync(outside, path.join(dir, MCP_FILE))
+    assert.throws(() => readText(dir, MCP_FILE), /symlink/)
+  })
+
+  it('never quotes file contents when a config is not valid JSON', async () => {
+    const dir = project({ [MCP_FILE]: '{ "token": "s3cr3t-value" ' })
+    const result = await cli(dir, 'init', '--write', ...withAll)
+    assert.equal(result.code, 1)
+    assert.match(result.stderr, /\.mcp\.json is not valid JSON/)
+    assert.doesNotMatch(result.stderr + result.stdout, /s3cr3t|token/)
   })
 })
 
