@@ -36,6 +36,16 @@ version, with its licence, source and evaluation record. The agent never picks b
 competing servers at runtime. A component is enabled by default only once its evaluation
 is published in `SCORECARD.md`.
 
+<!-- components:start (generated from kit.manifest.json by npm run readme) -->
+<!-- prettier-ignore-start -->
+| Id | Stage | Runs as | Licence | Default | Evaluation | Open risk notes | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `solhint` | lint | `npx -y solhint-mcp@0.1.3` | MIT | opt-in | not yet evaluated | 0 | [source](https://github.com/vschernoff/solhint-mcp) |
+<!-- prettier-ignore-end -->
+
+Risk notes, including what a component cannot protect against, are in `kit.manifest.json`.
+<!-- components:end -->
+
 ## What it does not do
 
 - It does not send transactions, deploy, or handle private keys.
