@@ -93,11 +93,13 @@ describe('handshake probe (eval-design §3)', () => {
     )
   })
 
-  it('leaves no orphans: kills the process group, with SIGKILL when SIGTERM is ignored', async () => {
+  // close() must not resolve while anything in the server's process group is alive. A CI
+  // flake on #8 showed close() returned when the server exited, leaving its children (C4, FR-37).
+  async function closeAndCheck(stubFlags, expectedExit) {
     const pidfile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sak-pid-')), 'pid')
     const session = startStdio({
       command: process.execPath,
-      args: [STUB, '--grandchild', '--ignore-sigterm'],
+      args: [STUB, '--grandchild', ...stubFlags],
       env: { PATH: process.env.PATH, SAK_PIDFILE: pidfile },
     })
     const pids = () => fs.readFileSync(pidfile, 'utf8').split(' ').map(Number)
@@ -111,16 +113,17 @@ describe('handshake probe (eval-design §3)', () => {
     }
     let deadline
     try {
-      await initialize(session, 5_000)
-      assert.deepEqual(pids().filter(alive).length, 2, 'stub and grandchild should be running')
-      // Bounded: a close() that never kills must fail this test, not hang the runner.
+      await initialize(session, 5_000).catch(() => {}) // --exit-on-initialize never answers
+      await waitForFile(pidfile)
       await Promise.race([
-        session.close(300),
+        session.close(300, 3_000),
         new Promise((_, reject) => {
           deadline = setTimeout(() => reject(new Error('close() did not finish in 10 s')), 10_000)
         }),
       ])
-      assert.deepEqual(session.stats.exit, { code: null, signal: 'SIGKILL' })
+      assert.equal(session.stats.exit?.signal ?? session.stats.exit?.code, expectedExit)
+      assert.equal(session.stats.orphans, false)
+      // Checked right after close() resolves: no polling, close() itself must have waited.
       assert.deepEqual(pids().filter(alive), [], 'server or grandchild survived close()')
     } finally {
       clearTimeout(deadline)
@@ -128,6 +131,53 @@ describe('handshake probe (eval-design §3)', () => {
         if (alive(pid)) process.kill(pid, 'SIGKILL')
       }
     }
+  }
+
+  async function waitForFile(file) {
+    for (let i = 0; i < 200 && !fs.existsSync(file); i++) {
+      await new Promise((resolve) => setTimeout(resolve, 25))
+    }
+  }
+
+  it('kills a grandchild that ignores SIGTERM even when the server itself exits on SIGTERM', () =>
+    closeAndCheck([], 'SIGTERM'))
+
+  it('cleans up the group when the server has already exited on its own', () =>
+    closeAndCheck(['--exit-on-initialize'], 3))
+
+  it('uses SIGKILL when both the server and its grandchild ignore SIGTERM', () =>
+    closeAndCheck(['--ignore-sigterm'], 'SIGKILL'))
+
+  it('reports processes that outlive close() as a C4 error (orphans)', async () => {
+    // Nothing survives SIGKILL in a real test, so a fake session stands in for one whose
+    // close() could not empty the process group (review of #18).
+    const fakeSession = () => ({
+      transport: 'stdio',
+      stats: { pollutionBytes: 0, pollutionSamples: [], stderr: '', orphans: false },
+      async request(method) {
+        const result =
+          method === 'initialize'
+            ? { protocolVersion: '2025-06-18', serverInfo: { name: 'fake' }, instructions: 'x' }
+            : { tools: [] }
+        return { result, bytes: 10 }
+      },
+      notify() {},
+      async close() {
+        this.stats.orphans = true
+      },
+    })
+    const result = await probeServer(
+      { id: 'fake', transport: 'stdio' },
+      { ...fast, connect: fakeSession }
+    )
+    assert.equal(result.healthy, false)
+    assert.deepEqual(
+      result.errors.map((e) => [e.step, e.kind]),
+      [
+        ['close', 'orphans'],
+        ['close', 'orphans'],
+      ]
+    )
   })
 
   it('follows tools/list cursors', async () => {

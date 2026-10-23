@@ -66,4 +66,15 @@ describe('GitHub YAML (NFR-3)', () => {
     assert.doesNotMatch(concurrency.group, /github\.ref/)
     assert.equal(concurrency['cancel-in-progress'], "${{ github.event_name == 'pull_request' }}")
   })
+
+  it('runs the packed smoke test, Linux-only on pull requests (NFR-2, D25)', () => {
+    const { packed } = parseYaml(path.join(githubDir, 'workflows', 'TESTS.yml')).jobs
+    assert.ok(packed.steps.some(({ run }) => run === 'npm run test:packed'))
+    const os = packed.strategy.matrix.os
+    assert.match(os, /github\.event_name == 'pull_request' && '\["ubuntu-latest"\]'/)
+    for (const platform of ['ubuntu-latest', 'windows-latest', 'macos-latest']) {
+      assert.ok(os.includes(`"${platform}"`), platform)
+    }
+    assert.equal(readPackageJson().scripts['test:packed'], 'node test/packed-smoke.js')
+  })
 })
