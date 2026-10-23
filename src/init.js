@@ -1,11 +1,10 @@
 import fs from 'node:fs'
-import { detectProject } from './detect.js'
 import { applyChanges, planChanges, renderChanges } from './changes.js'
+import { detectProject } from './detect.js'
 
-// Generators turn the detected project into file edits ({ file, after }). The client
-// config writers (FR-3…FR-9) and the workflow-rules block (FR-6) are added here as they
-// land; each one only proposes edits, and this function alone decides whether to write.
-export const DEFAULT_GENERATORS = []
+// Generators turn the detected project into proposed file edits ({ file, after }). The
+// client writers live in src/clients/; each one only proposes edits, and this function
+// alone decides whether to write. Generators may add `notes` and `warnings` for the user.
 
 function describe(project) {
   const markers = project.markers.length > 0 ? ` (${project.markers.join(', ')})` : ''
@@ -15,7 +14,8 @@ function describe(project) {
 export function runInit({
   root,
   write = false,
-  generators = DEFAULT_GENERATORS,
+  components = [],
+  generators = [],
   stdout = process.stdout,
   stderr = process.stderr,
 }) {
@@ -37,10 +37,13 @@ export function runInit({
     stdout.write('No foundry.toml or hardhat.config.* found; continuing without one.\n')
   }
 
+  const context = { components, notes: [], warnings: [] }
   const changes = planChanges(
     project.root,
-    generators.flatMap((generate) => generate(project))
+    generators.flatMap((generate) => generate(project, context))
   )
+  for (const warning of context.warnings) stderr.write(`Warning: ${warning}\n`)
+
   if (changes.length === 0) {
     stdout.write('Nothing to change.\n')
     return 0
@@ -55,5 +58,6 @@ export function runInit({
   }
   applyChanges(changes)
   stdout.write(`Wrote:\n${files}\n`)
+  for (const note of context.notes) stdout.write(`Note: ${note}\n`)
   return 0
 }
