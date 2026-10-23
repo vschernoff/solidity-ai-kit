@@ -35,6 +35,14 @@ describe('EVAL.yml', () => {
     assert.ok(runs.some((r) => r.startsWith('actions/upload-artifact@')))
   })
 
+  it('cancels superseded PR runs but never runs on main (D25)', () => {
+    assert.match(workflow.concurrency.group, /github\.event\.pull_request\.number/)
+    assert.equal(
+      workflow.concurrency['cancel-in-progress'],
+      "${{ github.event_name == 'pull_request' }}"
+    )
+  })
+
   it('has read-only permissions', () => {
     assert.deepEqual(workflow.permissions, { contents: 'read' })
   })
