@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import readline from 'node:readline'
@@ -8,8 +8,42 @@ import readline from 'node:readline'
 // a timeout, an error response, or anything on stdout that is not a protocol message (C3:
 // one stray line there corrupts a client's session).
 
+// A signalled process lingers until the system reaps it; wait (up to `limitMs`) until no
+// process of the group is left, so "returned" means "gone". Windows: taskkill /F has
+// already waited.
+async function groupGone(child, limitMs) {
+  if (IS_WINDOWS) return
+  const deadline = Date.now() + limitMs
+  while (Date.now() < deadline) {
+    try {
+      process.kill(-child.pid, 0)
+    } catch {
+      return
+    }
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  }
+}
+
 export const PROTOCOL_VERSION = '2025-11-25'
 const GRACE_MS = 2000
+const IS_WINDOWS = process.platform === 'win32'
+
+// Ends the server and everything it started (npx runs the real server as its child). On
+// POSIX the server leads its own process group (spawned detached), so -pid reaches the
+// whole group even after the leader has exited. Windows has no groups: taskkill /T takes
+// the tree, /F forces it, and it can only find the tree while its root is alive.
+function killTree(child, signal) {
+  try {
+    if (IS_WINDOWS) {
+      if (child.exitCode !== null || child.signalCode !== null) return
+      spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true })
+    } else {
+      process.kill(-child.pid, signal)
+    }
+  } catch {
+    // Already gone.
+  }
+}
 
 // On Windows `npx` is a .cmd script, which Node only runs through a shell. The kit never
 // uses a shell (NFR-4), so it runs npm's own npx-cli.js with the current Node instead.
@@ -30,30 +64,50 @@ export function launchCommand(spec) {
   return { command: npx.command, args: [...npx.prefix, ...spec.args] }
 }
 
-export function probe({ command, args, cwd, timeoutMs, env = process.env }) {
+export function probe({ command, args, cwd, timeoutMs, env = process.env, graceMs = GRACE_MS }) {
   return new Promise((resolve) => {
     let settled = false
     let stderr = ''
     const noise = []
-    const child = spawn(command, args, { cwd, env, stdio: ['pipe', 'pipe', 'pipe'], shell: false })
+    const child = spawn(command, args, {
+      cwd,
+      env,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: false,
+      detached: !IS_WINDOWS,
+      windowsHide: true,
+    })
 
     let exited = false
     child.once('exit', () => {
       exited = true
     })
 
-    // Resolves once the server has exited: closing stdin first, killing it after a grace
-    // period, and giving up waiting after twice that. Returning only then means no server
-    // outlives the probe, and its working directory is free to delete (Windows refuses to
-    // remove a directory a process is still running in).
+    // Resolves once the server and its descendants are gone: stdin is closed first (a well
+    // behaved stdio server exits on EOF), then the tree gets SIGTERM after `graceMs` and
+    // SIGKILL after twice that. When the server exits, its group is swept once more so a
+    // descendant cannot linger, and the pipes are closed so nothing holds this process open.
+    // Returning only then also frees the working directory (Windows refuses to remove a
+    // directory a process is still running in).
     function stop() {
       return new Promise((done) => {
-        if (exited || child.pid === undefined) return done()
-        const timers = [setTimeout(() => child.kill(), GRACE_MS), setTimeout(done, GRACE_MS * 2)]
-        child.once('exit', () => {
+        if (child.pid === undefined) return done()
+        const release = async () => {
           for (const timer of timers) clearTimeout(timer)
+          killTree(child, 'SIGKILL')
+          await groupGone(child, graceMs)
+          child.stdin.destroy()
+          child.stdout.destroy()
+          child.stderr.destroy()
           done()
-        })
+        }
+        const timers = [
+          setTimeout(() => killTree(child, 'SIGTERM'), graceMs),
+          setTimeout(() => killTree(child, 'SIGKILL'), graceMs * 2),
+          setTimeout(release, graceMs * 3),
+        ]
+        if (exited) return release()
+        child.once('exit', release)
         child.stdin.end()
       })
     }

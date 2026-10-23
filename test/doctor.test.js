@@ -86,7 +86,8 @@ describe('probe: the MCP initialize handshake (FR-10, C3, C4)', () => {
   it('reports a healthy server with its serverInfo and instructions', async () => {
     const result = await probe(launch('fixed', 40))
     assert.equal(result.status, 'healthy')
-    assert.deepEqual(result.serverInfo, { name: 'stub', version: '1.0.0' })
+    assert.match(result.serverInfo.name, /^stub-\d+$/)
+    assert.equal(result.serverInfo.version, '1.0.0')
     assert.equal(result.instructions.length, 40)
   })
 
@@ -118,6 +119,29 @@ describe('probe: the MCP initialize handshake (FR-10, C3, C4)', () => {
     const result = await probe({ ...launch('stubborn'), timeoutMs: 500 })
     assert.equal(result.status, 'failed')
     assert.throws(() => process.kill(result.pid, 0), /ESRCH/)
+  })
+
+  const pidOf = (result) => Number(result.serverInfo.name.replace('stub-', ''))
+  const gone = (pid) => assert.throws(() => process.kill(pid, 0), /ESRCH/, `pid ${pid} is alive`)
+
+  it('kills a server that ignores both end of input and SIGTERM', async () => {
+    const result = await probe({ ...launch('immortal'), graceMs: 200 })
+    assert.equal(result.status, 'healthy')
+    gone(pidOf(result))
+  })
+
+  it('kills the whole tree when a wrapper (like npx) runs the real server', async () => {
+    const result = await probe({ ...launch('wrapper'), graceMs: 200 })
+    assert.equal(result.status, 'healthy')
+    gone(result.pid)
+    // The server itself is the wrapper's child, and it ignores SIGTERM.
+    gone(pidOf(result))
+  })
+
+  it('fails a response that has no serverInfo', async () => {
+    const result = await probe(launch('noinfo'))
+    assert.equal(result.status, 'failed')
+    assert.match(result.reason, /no serverInfo/)
   })
 
   it('leaves its working directory free to delete (Windows refuses while in use)', async () => {
@@ -164,6 +188,7 @@ describe('doctor checks and report (FR-10, FR-11)', () => {
       .text.replaceAll(dir, '<project>')
       .replace(/^ {2}healthy {9}Node: .*$/m, '  healthy         Node: <version>')
       .replace(/from \S*solidity-ai-kit-doctor-\S+/g, 'from <temp>')
+      .replace(/: stub-\d+ /g, ': stub ')
     assert.equal(
       normalized,
       [
