@@ -15,10 +15,13 @@ on:
 permissions:
   contents: read
 
-# A new push to a pull request cancels its older run. Runs on main are never cancelled,
-# so every merged commit gets a complete result.
+# A new push to a pull request cancels its older run. Every other run gets a group of its
+# own (one per commit), because GitHub cancels a *pending* run in the same group whenever a
+# newer one queues, whatever cancel-in-progress says; a ref-wide group could drop a merged
+# commit's run. queue: max would avoid that too, but GitHub rejects it alongside
+# cancel-in-progress: true, which pull requests need.
 concurrency:
-  group: tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  group: tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -66,3 +69,22 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+
+  # NFR-2: the packed tarball, installed into a fresh project; init and doctor run from it,
+  # and doctor starts every manifest component through the real npx. Linux on pull
+  # requests (D25); all three platforms on main, nightly and on demand.
+  packed:
+    name: packed / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(github.event_name == 'pull_request' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:packed

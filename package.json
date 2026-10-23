@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
+    "test:packed": "node test/packed-smoke.js",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write ."
   },

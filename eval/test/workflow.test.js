@@ -58,8 +58,21 @@ describe('EVAL.yml', () => {
     const { image, digest } = deps.probeImage
     assert.equal(probe.env.PROBE_IMAGE, `${image}@${digest}`)
     const script = probe.steps.map((s) => s.run ?? '').join('\n')
-    for (const flag of ['--network none', '--read-only', '--user 1001:1001', '/candidate:ro']) {
-      assert.ok(script.includes(flag), `docker run lacks ${flag}`)
+    // Only the docker run command itself counts (comments may mention the flags).
+    const dockerRun = script
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('#'))
+      .join('\n')
+      .match(/docker run[\s\S]*?probe\.mjs/)?.[0]
+    assert.ok(dockerRun, 'no docker run … probe.mjs command')
+    for (const flag of [
+      '--init',
+      '--network none',
+      '--read-only',
+      '--user 1001:1001',
+      '/candidate:ro',
+    ]) {
+      assert.ok(dockerRun.includes(flag), `docker run lacks ${flag}`)
     }
   })
 
