@@ -37,6 +37,7 @@ export function startStdio({ command, args = [], cwd, env, requestTimeoutMs = 30
     stdoutBytes: 0,
     pollutionBytes: 0,
     pollutionSamples: [],
+    pollutionText: '',
     stderr: '',
     exit: null,
     spawnError: null,
@@ -89,6 +90,8 @@ export function startStdio({ command, args = [], cwd, env, requestTimeoutMs = 30
     if (!isJsonRpc(message)) {
       stats.pollutionBytes += Buffer.byteLength(line) + 1
       if (stats.pollutionSamples.length < 5) stats.pollutionSamples.push(line.slice(0, 200))
+      // Kept whole (up to 256 KiB) so a secret printed on stdout is found wherever it appears.
+      if (stats.pollutionText.length < 256 * 1024) stats.pollutionText += `${line}\n`
       return
     }
     if (message.id !== undefined && pending.has(message.id) && !message.method) {
