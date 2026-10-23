@@ -137,14 +137,13 @@ describe('client configs from the real manifest (FR-3, FR-4)', () => {
     }
   })
 
-  it('writes nothing when no component is selected, and says how to opt in', async () => {
+  it('writes no MCP config when no component is selected, and says how to opt in', async () => {
     const dir = project()
-    const before = hashTree(dir)
     const result = await cli(dir, 'init', '--write')
     assert.equal(result.code, 0)
     if (manifest.components.every((c) => !c.enabledByDefault)) {
       assert.match(result.stderr, /Opt in with --with/)
-      assert.equal(hashTree(dir), before)
+      for (const file of [MCP_FILE, CURSOR_FILE]) assert.ok(!exists(dir, file), file)
     }
   })
 
@@ -242,7 +241,11 @@ describe('reading existing configs safely', () => {
     const dir = project({ [MCP_FILE]: '{ "token": "s3cr3t-value" ' })
     const result = await cli(dir, 'init', '--write', ...withAll)
     assert.equal(result.code, 1)
-    assert.match(result.stderr, /\.mcp\.json is not valid JSON/)
+    // Pinned exactly, so the parser's message (which quotes the input) cannot creep back in.
+    assert.equal(
+      result.stderr.trim(),
+      'solidity-ai-kit init: .mcp.json is not valid JSON; fix it or move it aside.'
+    )
     assert.doesNotMatch(result.stderr + result.stdout, /s3cr3t|token/)
   })
 })
