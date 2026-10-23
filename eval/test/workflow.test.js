@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
+import { describe, it } from 'node:test'
+import { parseDocument } from 'yaml'
+import { EVAL_ROOT, readDeps } from '../lib/fixtures.js'
+
+const workflowFile = path.join(EVAL_ROOT, '..', '.github', 'workflows', 'EVAL.yml')
+const document = parseDocument(fs.readFileSync(workflowFile, 'utf8'), { uniqueKeys: true })
+const workflow = document.toJS()
+const steps = workflow.jobs.fixtures.steps
+const deps = readDeps()
+
+describe('EVAL.yml', () => {
+  it('parses as YAML (NFR-3)', () => {
+    assert.deepEqual(document.errors, [])
+  })
+
+  it('runs on Linux only (D16)', () => {
+    for (const job of Object.values(workflow.jobs)) assert.equal(job['runs-on'], 'ubuntu-latest')
+  })
+
+  it('installs exactly the Foundry pinned in deps.json, by action commit', () => {
+    const { toolchainAction, version } = deps.foundry
+    const step = steps.find((s) => s.uses?.startsWith(`${toolchainAction.repo}@`))
+    assert.equal(step.uses, `${toolchainAction.repo}@${toolchainAction.commit}`)
+    assert.equal(step.with.version, version)
+  })
+
+  it('fetches dependencies before confirming ground truth, and keeps the report', () => {
+    const runs = steps.map((s) => s.run ?? s.uses ?? '')
+    const fetchAt = runs.findIndex((r) => r.includes('eval/scripts/fetch-deps.mjs'))
+    const confirmAt = runs.findIndex((r) => r.includes('eval/scripts/confirm-ground-truth.mjs'))
+    assert.ok(fetchAt >= 0 && confirmAt > fetchAt)
+    assert.ok(runs.some((r) => r.startsWith('actions/upload-artifact@')))
+  })
+
+  it('has read-only permissions', () => {
+    assert.deepEqual(workflow.permissions, { contents: 'read' })
+  })
+})

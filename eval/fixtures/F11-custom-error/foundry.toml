@@ -1,0 +1,20 @@
+# Shared by every Foundry fixture; tests assert each fixture's copy is identical
+# (except where its GROUND_TRUTH.json says why not).
+[profile.default]
+src = "src"
+test = "test"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.37"
+auto_detect_solc = false
+optimizer = false
+ffi = false
+
+[fuzz]
+runs = 256
+seed = "0x5eed"
+
+[invariant]
+runs = 64
+depth = 16
+fail_on_revert = false

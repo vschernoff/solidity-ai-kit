@@ -1,0 +1,54 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F06",
+  "name": "failing-fuzz",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Fuzz test that overflows for x >= 2**128. The counterexample is checked by predicate, not exact value.",
+  "planted": [
+    {
+      "id": "overflow",
+      "file": "src/Math.sol",
+      "line": 7,
+      "description": "x * x overflows for x >= 2**128."
+    }
+  ],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "test": {
+      "outcome": "fail",
+      "passing": ["MathTest.test_squareOfThree()"],
+      "failing": [
+        {
+          "contract": "MathTest",
+          "test": "testFuzz_squareIsMonotonic(uint256)",
+          "kind": "fuzz",
+          "reasonContains": "0x11",
+          "counterexample": {
+            "arg": 0,
+            "gte": "340282366920938463463374607431768211456"
+          },
+          "label": "confirmed-by:forge@1.8.5"
+        }
+      ],
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "lint": {
+      "outcome": "findings",
+      "errors": 0,
+      "label": "to-confirm",
+      "note": "Exact rule-ID list is recorded on the first pinned Solhint run (confirmed-by label)."
+    },
+    "static": {
+      "outcome": "findings",
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}
