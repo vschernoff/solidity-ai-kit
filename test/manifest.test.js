@@ -228,8 +228,68 @@ describe('schema: who may be enabled by default (FR-16, FR-17)', () => {
     })
 
     it(`accepts ${reason} when the component is opt-in`, () => {
-      const optIn = evaluatedComponent({ ...overrides, enabledByDefault: false })
+      // D20: an opt-in component without an OSI licence still has to explain it.
+      const note = {
+        note: 'why this licence is acceptable as opt-in',
+        security: false,
+        resolved: true,
+      }
+      const optIn = evaluatedComponent({
+        riskNotes: [note],
+        ...overrides,
+        enabledByDefault: false,
+      })
       assert.deepEqual(errorsOf(manifestWith(optIn)), [])
     })
   }
+})
+
+describe('schema: licences (D20)', () => {
+  const osi = schema.$defs.osiLicense
+  const riskNote = { note: 'custom licence, revocable', security: false, resolved: false }
+
+  it('lists OSI-approved SPDX ids from a pinned SPDX release', () => {
+    assert.match(osi.$comment, /SPDX License List v\d+\.\d+\.\d+ .*sha256 [0-9a-f]{64}/)
+    assert.deepEqual(osi.enum, [...new Set(osi.enum)].sort())
+    for (const id of ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'ISC', 'GPL-3.0-only']) {
+      assert.ok(osi.enum.includes(id), id)
+    }
+    for (const id of ['LicenseRef-Blockscout', 'BUSL-1.1', 'SSPL-1.0', 'GPL-2.0', 'CC-BY-4.0']) {
+      assert.ok(!osi.enum.includes(id), id)
+    }
+  })
+
+  it('rejects enabledByDefault with a custom, non-OSI, deprecated or compound licence', () => {
+    for (const license of [
+      'LicenseRef-Blockscout',
+      'BUSL-1.1',
+      'SSPL-1.0',
+      'GPL-2.0',
+      'MIT OR Apache-2.0',
+    ]) {
+      const component = evaluatedComponent({ license, riskNotes: [riskNote] })
+      assert.notDeepEqual(errorsOf(manifestWith(component)), [], license)
+    }
+  })
+
+  it('rejects enabledByDefault with a missing or null licence', () => {
+    const missing = evaluatedComponent({ riskNotes: [riskNote] })
+    delete missing.license
+    assert.notDeepEqual(errorsOf(manifestWith(missing)), [])
+    const none = evaluatedComponent({ license: null, riskNotes: [riskNote] })
+    assert.notDeepEqual(errorsOf(manifestWith(none)), [])
+  })
+
+  it('accepts an opt-in LicenseRef-* component only with a riskNote', () => {
+    const optIn = { license: 'LicenseRef-Blockscout', enabledByDefault: false }
+    assert.deepEqual(
+      errorsOf(manifestWith(evaluatedComponent({ ...optIn, riskNotes: [riskNote] }))),
+      []
+    )
+    assert.notDeepEqual(errorsOf(manifestWith(evaluatedComponent({ ...optIn, riskNotes: [] }))), [])
+  })
+
+  it('needs no riskNote for an OSI licence', () => {
+    assert.deepEqual(errorsOf(manifestWith(evaluatedComponent({ riskNotes: [] }))), [])
+  })
 })
