@@ -10,14 +10,22 @@ client you use.
   repository, run `npm ci`, and call `node <path-to-clone>/src/bin.js` from your Solidity
   project.
 - **One component so far:** [`solhint-mcp`](https://github.com/vschernoff/solhint-mcp), the
-  Solhint linter. It is opt-in until its evaluation is recorded, so pass `--with solhint`.
+  Solhint linter, on by default since its evaluation (October 2026). Two things to know
+  before relying on it:
+  - **It runs the project's own code.** Linting, or reading the config with `get_config`,
+    loads that repository's Solhint plugins and JavaScript config, the same as running
+    `npx solhint` there. Do not use it on a repository you do not trust.
+  - **A degraded run is a text banner, not an error.** When a plugin fails to load or a
+    rule id is unknown, the result starts with a "⚠️ This run was degraded" banner naming
+    each problem, and the findings from the rules that did run still follow. The result
+    is not marked as an error, so the agent has to read the banner.
 - **Interfaces may still change** before the first release.
 
 ```sh
-node <path-to-clone>/src/bin.js init --with solhint           # preview what would change
-node <path-to-clone>/src/bin.js init --with solhint --write   # write it
-node <path-to-clone>/src/bin.js doctor                        # check the toolchain and each server
-node <path-to-clone>/src/bin.js remove --write                # undo init
+node <path-to-clone>/src/bin.js init            # preview what would change
+node <path-to-clone>/src/bin.js init --write    # write it
+node <path-to-clone>/src/bin.js doctor          # check the toolchain and each server
+node <path-to-clone>/src/bin.js remove --write  # undo init
 ```
 
 ## What the commands do
@@ -73,7 +81,7 @@ evaluation is recorded, and only with an OSI-approved licence; until then it is 
 <!-- prettier-ignore-start -->
 | Id | Stage | Runs as | Licence | Default | Evaluation | Open risk notes | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `solhint` | lint | `npx -y solhint-mcp@0.1.7` | MIT | opt-in | not yet evaluated | 1 | [source](https://github.com/vschernoff/solhint-mcp) |
+| `solhint` | lint | `npx -y solhint-mcp@0.1.7` | MIT | on by default | evaluated 2026-10-24 | 1 | [source](https://github.com/vschernoff/solhint-mcp) |
 <!-- prettier-ignore-end -->
 
 Risk notes, including what a component cannot protect against, are in `kit.manifest.json`.
