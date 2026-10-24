@@ -1,0 +1,6 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "sak-no-such-rule": "error"
+  }
+}

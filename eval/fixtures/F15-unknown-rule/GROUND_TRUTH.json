@@ -1,0 +1,38 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F15",
+  "name": "unknown-rule",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Valid project whose .solhint.json enables a rule id that does not exist. A lint tool must say that rule did not run (C4).",
+  "planted": [],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "test": {
+      "outcome": "pass",
+      "passing": ["CounterTest.test_increment()"],
+      "failing": [],
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "lint": {
+      "outcome": "degraded",
+      "messageContains": "sak-no-such-rule",
+      "label": "planted",
+      "note": "Solhint warns \"Rule 'sak-no-such-rule' doesn't exist\" and lints without it."
+    },
+    "static": {
+      "outcome": "findings",
+      "mustNotFind": {
+        "impact": ["High", "Medium"]
+      },
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

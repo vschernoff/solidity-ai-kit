@@ -4,8 +4,8 @@ Evidence for every component choice in `kit.manifest.json` (SRS §8). The kit's 
 curation; this directory is where the curation is checked. Scores and decisions are published
 in `SCORECARD.md`.
 
-**Status:** fixtures and ground truth only. The MCP client that drives candidate servers,
-the security probes and the scoring land in later PRs.
+**Status:** fixtures with forge-confirmed ground truth, the MCP probe, and lint-stage cases.
+Scoring and the other stages' cases land in later PRs.
 
 ## Fixtures
 
@@ -29,6 +29,9 @@ stage — build, test, lint, static analysis, fuzzing — must report.
 | F11 | `custom-error`          | Foundry   | custom errors with and without args, expectRevert mismatches, panics, an undecodable selector |
 | F12 | `ffi-disabled`          | Foundry   | `vm.ffi` under `ffi = false`: the test fails and `ffi-marker.txt` must not exist              |
 | F13 | `many-failures`         | Foundry   | 200 failing tests across 4 suites: response size budgets and truncation                       |
+| F14 | `missing-plugin`        | Foundry   | `.solhint.json` names a plugin that is not installed: lint must say its rules did not run     |
+| F15 | `unknown-rule`          | Foundry   | `.solhint.json` enables a rule id that does not exist: lint must say it did not run           |
+| F16 | `chatty-plugin`         | Foundry   | a plugin (planted at run time) prints chatter: not a degraded run, nothing on MCP stdout      |
 
 Every planted defect carries a `// @gt:<id>` comment on the line `GROUND_TRUTH.json` names;
 a test checks the two agree both ways.
@@ -58,6 +61,24 @@ never as a pass. A forge version other than the one in `deps.json` fails the run
 
 CI runs all three on Linux only (`.github/workflows/EVAL.yml`, decision D16). Pinned
 versions live in `deps.json`; a test keeps the workflow in step with it.
+
+### Stage cases
+
+`cases/<stage>.json` lists tool calls against fixtures, each with expectations that any server for
+that stage must meet: `isError`, text it must or must not contain, and that no planted marker
+module was loaded as code. `scripts/run-cases.mjs` runs every case with a fresh fixture copy and
+its own server process, in the same no-network container as the probe (EVAL.yml). A failed case
+is a result in the report, not a harness failure.
+
+`cases/lint.json` covers:
+
+- F10: invalid config is an error;
+- F14/F15: the lint and `get_config` must name the plugin or rule that did not run, with and
+  without `FORCE_COLOR`, and `get_config` must not claim "✅";
+- F16: a plugin that prints chatter must not be reported as a problem, and nothing may reach
+  the MCP stdout channel;
+- code loading from an agent-supplied `config`: `extends` absolute, array, `solhint:../`
+  traversal, relative; `plugins`; `plugins` + `pluginPaths`; `fix_solidity` (SRS NFR-11).
 
 ### Forge behaviour the comparer depends on (checked by execution)
 

@@ -60,20 +60,27 @@ describe('EVAL.yml', () => {
     assert.equal(probe.env.PROBE_IMAGE, `${image}@${digest}`)
     const script = probe.steps.map((s) => s.run ?? '').join('\n')
     // Only the docker run command itself counts (comments may mention the flags).
-    const dockerRun = script
+    const commands = script
       .split('\n')
       .filter((line) => !line.trim().startsWith('#'))
       .join('\n')
-      .match(/docker run[\s\S]*?probe\.mjs/)?.[0]
-    assert.ok(dockerRun, 'no docker run … probe.mjs command')
-    for (const flag of [
-      '--init',
-      '--network none',
-      '--read-only',
-      '--user 1001:1001',
-      '/candidate:ro',
-    ]) {
-      assert.ok(dockerRun.includes(flag), `docker run lacks ${flag}`)
+      .match(/docker run[\s\S]*?\.mjs/g)
+    // The probe and the stage cases both run the candidate; both get the same lockdown.
+    assert.deepEqual(
+      commands?.map((c) => c.match(/scripts\/(\S+\.mjs)/)[1]),
+      ['probe.mjs', 'run-cases.mjs']
+    )
+    for (const dockerRun of commands) {
+      for (const flag of [
+        '--init',
+        '--network none',
+        '--read-only',
+        '--user 1001:1001',
+        '/candidate:ro',
+        '"$PROBE_IMAGE"',
+      ]) {
+        assert.ok(dockerRun.includes(flag), `docker run lacks ${flag}: ${dockerRun}`)
+      }
     }
   })
 

@@ -1,0 +1,315 @@
+{
+  "$comment": "Lint-stage cases (SRS §8.2 step 2, C4, NFR-11). Requirements on any lint MCP server, not on one implementation. `files` are written into the project copy before the server starts (never committed). `matches` are regular expressions (a leading (?i) means case-insensitive). Placeholders: $MARKER_JS (absolute path of a JS file that writes a marker when required), $MARKER_REL (the same file, relative to the project), $MARKER_DIR (its directory).",
+  "stage": "lint",
+  "cases": [
+    {
+      "id": "F01-lint_project",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "isError": false
+      },
+      "why": "Baseline: a clean, valid project lints without error."
+    },
+    {
+      "id": "F10-lint_project",
+      "fixture": "F10-broken-solhint-config",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "isError": true,
+        "includes": [".solhint.json"]
+      },
+      "why": "C4: an invalid config must be an error naming the file, never 'no violations'."
+    },
+    {
+      "id": "F10-get_config",
+      "fixture": "F10-broken-solhint-config",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "isError": true
+      },
+      "why": "C4: get_config over invalid JSON must fail."
+    },
+    {
+      "id": "F14-lint_project",
+      "fixture": "F14-missing-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
+    },
+    {
+      "id": "F14-lint_project-FORCE_COLOR",
+      "fixture": "F14-missing-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "F14-get_config",
+      "fixture": "F14-missing-plugin",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
+    },
+    {
+      "id": "F14-get_config-FORCE_COLOR",
+      "fixture": "F14-missing-plugin",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "F15-lint_project",
+      "fixture": "F15-unknown-rule",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
+    },
+    {
+      "id": "F15-lint_project-FORCE_COLOR",
+      "fixture": "F15-unknown-rule",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "F15-get_config",
+      "fixture": "F15-unknown-rule",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
+    },
+    {
+      "id": "F15-get_config-FORCE_COLOR",
+      "fixture": "F15-unknown-rule",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "sec-extends-absolute",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "$MARKER_JS"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-extends-array",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": ["solhint:recommended", "$MARKER_JS"]
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-extends-solhint-traversal",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "solhint:../../../../$MARKER_JS"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
+    },
+    {
+      "id": "sec-extends-relative",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "$MARKER_REL"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
+    },
+    {
+      "id": "sec-plugins-path",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "solhint:recommended",
+          "plugins": ["$MARKER_JS"]
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
+    },
+    {
+      "id": "sec-plugins-with-pluginPaths",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "solhint:recommended",
+          "plugins": ["marker"],
+          "pluginPaths": ["$MARKER_DIR"]
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
+    },
+    {
+      "id": "sec-fix-extends-absolute",
+      "fixture": "F01-erc20-clean",
+      "tool": "fix_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "$MARKER_JS"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "F16-lint_project",
+      "fixture": "F16-chatty-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "files": {
+        "node_modules/solhint-plugin-sak-chatty/package.json": "{\"name\": \"solhint-plugin-sak-chatty\", \"version\": \"0.0.0\", \"main\": \"index.js\"}",
+        "node_modules/solhint-plugin-sak-chatty/index.js": "console.log('sak-chatty: hello on stdout')\nconsole.error('sak-chatty: hello on stderr')\nprocess.stdout.write('sak-chatty: raw stdout write\\n')\nmodule.exports = []\n"
+      },
+      "expect": {
+        "isError": false,
+        "excludes": ["hello on stdout", "hello on stderr", "raw stdout write"],
+        "stdoutClean": true
+      },
+      "why": "A plugin that loads fine but prints chatter is not a degraded run: the chatter must not be reported as a problem, and none of it may reach the MCP stdout channel (C3)."
+    },
+    {
+      "id": "F16-get_config",
+      "fixture": "F16-chatty-plugin",
+      "tool": "get_config",
+      "args": {},
+      "files": {
+        "node_modules/solhint-plugin-sak-chatty/package.json": "{\"name\": \"solhint-plugin-sak-chatty\", \"version\": \"0.0.0\", \"main\": \"index.js\"}",
+        "node_modules/solhint-plugin-sak-chatty/index.js": "console.log('sak-chatty: hello on stdout')\nconsole.error('sak-chatty: hello on stderr')\nprocess.stdout.write('sak-chatty: raw stdout write\\n')\nmodule.exports = []\n"
+      },
+      "expect": {
+        "isError": false,
+        "excludes": ["hello on stdout", "hello on stderr", "raw stdout write"],
+        "stdoutClean": true
+      },
+      "why": "A plugin that loads fine but prints chatter is not a degraded run: the chatter must not be reported as a problem, and none of it may reach the MCP stdout channel (C3)."
+    },
+    {
+      "id": "F16-lint_project-FORCE_COLOR",
+      "fixture": "F16-chatty-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "files": {
+        "node_modules/solhint-plugin-sak-chatty/package.json": "{\"name\": \"solhint-plugin-sak-chatty\", \"version\": \"0.0.0\", \"main\": \"index.js\"}",
+        "node_modules/solhint-plugin-sak-chatty/index.js": "console.log('sak-chatty: hello on stdout')\nconsole.error('sak-chatty: hello on stderr')\nprocess.stdout.write('sak-chatty: raw stdout write\\n')\nmodule.exports = []\n"
+      },
+      "expect": {
+        "isError": false,
+        "excludes": ["hello on stdout", "hello on stderr", "raw stdout write"],
+        "stdoutClean": true
+      },
+      "why": "A plugin that loads fine but prints chatter is not a degraded run: the chatter must not be reported as a problem, and none of it may reach the MCP stdout channel (C3).",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    }
+  ]
+}

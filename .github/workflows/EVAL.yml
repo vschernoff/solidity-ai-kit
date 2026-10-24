@@ -87,9 +87,22 @@ jobs:
             "$PROBE_IMAGE" \
             node /repo/eval/scripts/probe.mjs "$CANDIDATE" /candidate --out /out/probe.json
           cp "$RUNNER_TEMP/candidate/install-report.json" "$RUNNER_TEMP/out/"
+      - name: Run the stage cases with no network
+        run: |
+          # Same container and flags as the probe; each case gets its own server process.
+          docker run --rm --init --network none --read-only --tmpfs /tmp --user 1001:1001 \
+            -v "$GITHUB_WORKSPACE:/repo:ro" \
+            -v "$RUNNER_TEMP/candidate:/candidate:ro" \
+            -v "$RUNNER_TEMP/out:/out" \
+            "$PROBE_IMAGE" \
+            node /repo/eval/scripts/run-cases.mjs "$CANDIDATE" /candidate --out /out/cases.json
       - name: Findings in the step summary
         if: always()
-        run: node eval/scripts/probe-summary.mjs "$RUNNER_TEMP/out/probe.json" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          node eval/scripts/probe-summary.mjs "$RUNNER_TEMP/out/probe.json" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$RUNNER_TEMP/out/cases.json" ]; then
+            node eval/scripts/cases-summary.mjs "$RUNNER_TEMP/out/cases.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Keep the probe report as evidence
         if: always()
         uses: actions/upload-artifact@v7
