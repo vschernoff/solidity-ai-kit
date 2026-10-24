@@ -9,6 +9,15 @@ import { spawn } from 'node:child_process'
 export const PROTOCOL_VERSION = '2025-06-18'
 const CLIENT_INFO = { name: 'solidity-ai-kit-eval', version: '0.0.0' }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/** Poll `done()` every 25 ms until it is true or `ms` have passed; returns the last result. */
+async function waitUntil(done, ms) {
+  const deadline = Date.now() + ms
+  while (!done() && Date.now() < deadline) await sleep(25)
+  return done()
+}
+
 export class McpError extends Error {
   /** kind: timeout | exited | protocol | rpc | http */
   constructor(kind, message, detail = {}) {
@@ -41,8 +50,27 @@ export function startStdio({ command, args = [], cwd, env, requestTimeoutMs = 30
     stderr: '',
     exit: null,
     spawnError: null,
+    orphans: false,
   }
   const pending = new Map()
+  // The server runs in its own process group (detached), so the group id is its pid.
+  const groupAlive = () => {
+    if (process.platform === 'win32' || !child.pid) return false
+    try {
+      process.kill(-child.pid, 0)
+      return true
+    } catch (error) {
+      return error.code === 'EPERM'
+    }
+  }
+  const signalGroup = (signal) => {
+    try {
+      if (process.platform === 'win32') child.kill(signal)
+      else process.kill(-child.pid, signal)
+    } catch {
+      // Already gone.
+    }
+  }
   let buffer = ''
   let nextId = 1
 
@@ -63,6 +91,8 @@ export function startStdio({ command, args = [], cwd, env, requestTimeoutMs = 30
     stats.exit = { code, signal }
     rejectAll(new McpError('exited', `server exited (code ${code}, signal ${signal})`, stats.exit))
   })
+  // Writing to a server that already died raises EPIPE here; the exit is recorded elsewhere.
+  child.stdin.on('error', () => {})
   child.stderr.setEncoding('utf8')
   child.stderr.on('data', (chunk) => {
     if (stats.stderr.length < 256 * 1024) stats.stderr += chunk
@@ -133,22 +163,22 @@ export function startStdio({ command, args = [], cwd, env, requestTimeoutMs = 30
     notify(method, params = {}) {
       send({ jsonrpc: '2.0', method, params })
     },
-    async close(graceMs = 2_000) {
-      if (stats.exit) return
-      const exited = new Promise((resolve) => child.once('close', resolve))
-      child.stdin.end()
-      const killTree = (signal) => {
-        try {
-          if (process.platform === 'win32') child.kill(signal)
-          else process.kill(-child.pid, signal)
-        } catch {
-          // Already gone.
-        }
-      }
-      killTree('SIGTERM')
-      const timer = setTimeout(() => killTree('SIGKILL'), graceMs)
+    /**
+     * Stop the server and everything it started. Resolves only once the whole process group is
+     * gone: SIGTERM, then (after `graceMs`, if any member is left) SIGKILL, then a bounded wait
+     * for the kernel to reap them. Waiting on the server alone is not enough: it can exit on
+     * SIGTERM while a child that ignores SIGTERM lives on (C4, FR-37). If anything survives
+     * `reapMs` after SIGKILL, `stats.orphans` is set.
+     */
+    async close(graceMs = 2_000, reapMs = 2_000) {
+      if (!child.pid) return // never started (stats.spawnError says why)
+      const exited = stats.exit ? Promise.resolve() : new Promise((r) => child.once('close', r))
+      if (!stats.exit) child.stdin.end()
+      signalGroup('SIGTERM')
+      const allGone = () => stats.exit !== null && !groupAlive()
+      if (!(await waitUntil(allGone, graceMs))) signalGroup('SIGKILL')
       await exited
-      clearTimeout(timer)
+      if (!(await waitUntil(() => !groupAlive(), reapMs))) stats.orphans = true
     },
   }
 }

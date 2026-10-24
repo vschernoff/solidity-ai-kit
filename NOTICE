@@ -16,6 +16,8 @@ Every component in kit.manifest.json must be listed here; a test enforces it.
 solhint-mcp
   Licence: MIT
   Source:  https://github.com/vschernoff/solhint-mcp
+  Copyright (c) 2026 Diego Bale, Copyright (c) 2026 Vitaliy Chernov
+  (as stated in its LICENSE as of 0.1.4)
 
 Runtime dependencies
 --------------------

@@ -53,6 +53,7 @@ export function runInit({
   const files = changes.map(({ file }) => `  ${file}`).join('\n')
   if (!write) {
     stdout.write(`Preview only; nothing was written. Files that would change:\n${files}\n`)
+    for (const note of context.notes) stdout.write(`Note: ${note}\n`)
     stdout.write('Run again with --write to apply.\n')
     return 0
   }

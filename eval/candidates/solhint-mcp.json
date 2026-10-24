@@ -6,8 +6,8 @@
   "install": {
     "type": "npm",
     "package": "solhint-mcp",
-    "version": "0.1.3",
-    "integrity": "sha512-A9eM5kNbCksMRKbvGe19C2cDZtPxVuDvuGkr0Ko3AZUCjXI/d6iSzi70pvfBtezQodjELrBAiYa2C7wDWLrl2A==",
+    "version": "0.1.4",
+    "integrity": "sha512-7PleBUtt7JioKdF5lLGU0gen7Qt8t4hEdDhbykuTO2ZviT97NcBax/vZrVLNrsszZhM8ZMzbYrFbar2nc2ySCg==",
     "bin": "solhint-mcp"
   },
   "transport": "stdio",
