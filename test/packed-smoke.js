@@ -130,7 +130,23 @@ function main() {
     // forge is not installed on the runners, so doctor fails on that; the components must
     // still each complete a real handshake through npx.
     const beforeDoctor = hashTree(project)
-    const doctor = kit('doctor', '--timeout', '120')
+    // doctor runs the way users run it, through `npx --package=<tarball>`. npm then puts its
+    // own run in the environment, which a server started through npx must not inherit (a
+    // bug this caught: the nested npx installed the kit instead of the server).
+    const npx = resolveNpx()
+    const doctor = spawnSync(
+      npx.command,
+      [
+        ...npx.prefix,
+        '--yes',
+        `--package=${path.join(artifacts, tarball)}`,
+        packageJson.name,
+        'doctor',
+        '--timeout',
+        '120',
+      ],
+      { cwd: project, encoding: 'utf8', timeout: COMMAND_TIMEOUT_MS }
+    )
     console.log(doctor.stdout)
     for (const component of manifest.components) {
       assert.match(
