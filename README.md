@@ -1,8 +1,9 @@
 # solidity-ai-kit
 
-Set up a curated, pinned set of Solidity MCP servers for your AI coding agent, plus the
-workflow rules that tell the agent how to use them together, in one command, for every
-client you use.
+One command sets up your AI coding agent (Claude Code, Codex or Cursor) for Solidity work in
+a Foundry or Hardhat project. It configures a curated, pinned set of MCP servers (starting
+with Solhint for linting) and adds workflow rules that tell the agent to build, test and lint
+in order, and not to make a check pass by weakening it unless you agree.
 
 ## Status: pre-release, not published
 

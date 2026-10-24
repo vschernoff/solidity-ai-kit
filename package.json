@@ -2,7 +2,7 @@
   "name": "solidity-ai-kit",
   "version": "0.0.0",
   "private": true,
-  "description": "One command to set up a curated, pinned set of Solidity MCP servers and workflow rules for any AI coding agent",
+  "description": "Set up Claude Code, Codex or Cursor for Solidity: pinned MCP servers (Solhint lint) plus build, test and lint rules for Foundry and Hardhat",
   "type": "module",
   "bin": {
     "solidity-ai-kit": "src/bin.js"
@@ -17,14 +17,22 @@
   "keywords": [
     "solidity",
     "smart-contracts",
+    "ethereum",
+    "foundry",
+    "hardhat",
+    "solhint",
+    "lint",
+    "linter",
+    "testing",
     "mcp",
     "model-context-protocol",
     "ai-agent",
-    "foundry",
-    "hardhat",
+    "ai-coding-agent",
+    "claude-code",
     "codex",
     "cursor",
-    "claude"
+    "cli",
+    "developer-tools"
   ],
   "author": "Vitaliy Chernov",
   "license": "MIT",
