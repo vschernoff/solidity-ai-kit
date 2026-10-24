@@ -31,7 +31,8 @@ describe('EVAL.yml', () => {
   })
 
   it('runs on Linux only (D16)', () => {
-    for (const job of Object.values(workflow.jobs)) assert.equal(job['runs-on'], 'ubuntu-latest')
+    // A pinned Linux image, never a moving label: results must not change with the runner.
+    for (const job of Object.values(workflow.jobs)) assert.equal(job['runs-on'], 'ubuntu-24.04')
   })
 
   it('installs exactly the Foundry pinned in deps.json, by action commit', () => {
