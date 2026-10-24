@@ -23,7 +23,9 @@ concurrency:
 jobs:
   fixtures:
     name: Fixtures and ground truth
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: the label moves to Ubuntu 26 from 2026-10-19 and the eval must
+    # not change underneath a comparison (bump deliberately, with a re-run of the ground truth).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -55,7 +57,9 @@ jobs:
     # lifecycle scripts), then probe in a container with no network, a read-only root and a
     # read-only install, as a non-root user. The report is the evidence, kept as an artifact.
     name: Probe ${{ matrix.candidate }}
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: the label moves to Ubuntu 26 from 2026-10-19 and the eval must
+    # not change underneath a comparison (bump deliberately, with a re-run of the ground truth).
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
