@@ -11,7 +11,8 @@
     "test": "node --test test/*.test.js",
     "test:packed": "node test/packed-smoke.js",
     "lint": "eslint . && prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "readme": "node scripts/readme-components.js"
   },
   "keywords": [
     "solidity",
