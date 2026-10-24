@@ -189,13 +189,13 @@ describe('probe.mjs end to end', () => {
     assert.deepEqual(report.homeWrites, [])
   })
 
-  // Review of #8: the canary scan missed stderr, descriptions and schemas.
+  // The canary scan once missed stderr, descriptions and schemas.
   for (const [flag, where] of [
     ['--leak-key', 'initialize'],
     ['--leak-key-stderr', 'stderr'],
     ['--leak-key-description', 'tools/list'],
     ['--leak-key-schema', 'tools/list'],
-    // Past the five 200-char samples kept for the report (review of #8).
+    // Past the five 200-char samples kept for the report.
     ['--leak-key-stdout', 'stdout'],
   ]) {
     it(`catches the canary private key in ${where} (${flag}, G7)`, async () => {

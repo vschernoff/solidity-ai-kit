@@ -34,7 +34,7 @@ try {
   process.exit(2)
 }
 
-// Allow-list, not deny-list: no keys, RPC URLs or tokens reach forge (eval-design §2).
+// Allow-list, not deny-list: no keys, RPC URLs or tokens reach forge.
 const env = {
   PATH: process.env.PATH,
   HOME: home,
