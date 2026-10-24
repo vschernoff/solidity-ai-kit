@@ -44,8 +44,9 @@ them together. Works with any MCP client. Never Claude-first in copy.
   `node:` specifiers for built-ins and `import.meta.dirname` for paths; read JSON with
   `fs.readFileSync` + `JSON.parse` rather than import attributes.
 - Tests use the built-in `node:test` runner (`npm test`); no test framework dependency.
-- Runtime dependencies: `smol-toml` only (parses `.codex/config.toml`; chosen in #5). Every
-  new one is justified in its PR (NFR-9).
+- Runtime dependencies: `smol-toml` only (parses `.codex/config.toml`; it has no dependencies
+  of its own and reports passing the official `toml-test` suite). Every new one is justified in
+  its PR (NFR-9).
 - ESLint flat config + Prettier: single quotes, 2-space indent, ~100-char lines, no empty
   `catch` without a comment, no nested ternaries.
 - Tests derive tool names, counts and versions from the source of truth (`package.json`,
