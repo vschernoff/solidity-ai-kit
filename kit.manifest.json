@@ -12,7 +12,7 @@
       "source": "https://github.com/vschernoff/solhint-mcp",
       "evaluatedAt": "2026-10-24",
       "score": 1,
-      "scorecardRef": "SCORECARD.md §1 (Lint row); §2.4d (lint-stage cases: 21/21 on 0.1.7, Eval run 40075075328)",
+      "scorecardRef": "SCORECARD.md §1 (Lint row); §2.4d (lint-stage cases: 21/21 on 0.1.7, CI 2026-10-24)",
       "enabledByDefault": true,
       "experimental": false,
       "requiresBinaries": [],
@@ -29,7 +29,7 @@
           "resolved": false
         },
         {
-          "note": "Run health (C4) resolved in 0.1.7: a plugin that fails to load or an unknown rule id is reported as a \"⚠️ This run was degraded\" banner naming each problem, above the findings, also with FORCE_COLOR set; get_config no longer claims the config is sound. A degraded run is not isError (by design: findings from the rules that did load stay usable), so the agent must read the banner. Verified by execution: lint-stage cases 21/21 (kit PR #27, Eval run 40075075328).",
+          "note": "Run health (C4) resolved in 0.1.7: a plugin that fails to load or an unknown rule id is reported as a \"⚠️ This run was degraded\" banner naming each problem, above the findings, also with FORCE_COLOR set; get_config no longer claims the config is sound. A degraded run is not isError (by design: findings from the rules that did load stay usable), so the agent must read the banner. Verified by execution: lint-stage cases 21/21 on 0.1.7 (CI, 2026-10-24; SCORECARD.md §2.4d).",
           "security": false,
           "resolved": true
         }
