@@ -40,12 +40,12 @@ node <path-to-clone>/src/bin.js remove --write                # undo init
 
 Each row says how far support has actually been checked.
 
-| Client               | What `init` writes                                             | How it was checked                                                                                                                                                 |
-| -------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Claude Code          | `.mcp.json`, `.claude/settings.json` (deny rules), `CLAUDE.md` | Formats checked against Claude Code's documentation (Oct 2026). Not yet run end-to-end with the kit. Claude Code asks you to approve project servers on first use. |
-| Cursor               | `.cursor/mcp.json`, `AGENTS.md`                                | Formats checked against Cursor's documentation (Oct 2026). Not yet run end-to-end. Cursor has no per-tool deny list.                                               |
-| Codex                | `.codex/config.toml`, `AGENTS.md`                              | Formats checked against OpenAI's Codex documentation (Oct 2026). Not yet run end-to-end. Codex reads the project file only for projects you trust.                 |
-| Any other MCP client | nothing yet                                                    | Use each component's own README.                                                                                                                                   |
+| Client               | What `init` writes                                             | How it was checked                                                                                                                                                                                                                                      |
+| -------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Code          | `.mcp.json`, `.claude/settings.json` (deny rules), `CLAUDE.md` | Formats checked against Claude Code's documentation (Oct 2026). Not yet run end-to-end with the kit. In interactive sessions Claude Code asks you to approve project servers on first use; non-interactive runs (`claude -p`) load them without asking. |
+| Cursor               | `.cursor/mcp.json`, `AGENTS.md`                                | Formats checked against Cursor's documentation (Oct 2026). Not yet run end-to-end. Cursor has no per-tool deny list.                                                                                                                                    |
+| Codex                | `.codex/config.toml`, `AGENTS.md`                              | Formats checked against OpenAI's Codex documentation (Oct 2026). Not yet run end-to-end. Codex reads the project file only for projects you trust.                                                                                                      |
+| Any other MCP client | nothing yet                                                    | Use each component's own README.                                                                                                                                                                                                                        |
 
 ## Where it fits
 
