@@ -122,20 +122,35 @@ describe('probe: the MCP initialize handshake (FR-10, C3, C4)', () => {
   })
 
   const pidOf = (result) => Number(result.serverInfo.name.replace('stub-', ''))
-  const gone = (pid) => assert.throws(() => process.kill(pid, 0), /ESRCH/, `pid ${pid} is alive`)
+  // A killed process can linger briefly as a zombie until it is reaped (its parent here has
+  // exited too, so the system reaps it). A zombie holds no resources or working directory,
+  // but kill(pid, 0) still finds it, so wait up to 2 s for it to be reaped.
+  async function gone(pid) {
+    const deadline = Date.now() + 2000
+    while (Date.now() < deadline) {
+      try {
+        process.kill(pid, 0)
+      } catch (error) {
+        if (error.code === 'ESRCH') return
+        throw error
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+    assert.fail(`pid ${pid} is still alive 2 s after probe returned`)
+  }
 
   it('kills a server that ignores both end of input and SIGTERM', async () => {
     const result = await probe({ ...launch('immortal'), graceMs: 200 })
     assert.equal(result.status, 'healthy')
-    gone(pidOf(result))
+    await gone(pidOf(result))
   })
 
   it('kills the whole tree when a wrapper (like npx) runs the real server', async () => {
     const result = await probe({ ...launch('wrapper'), graceMs: 200 })
     assert.equal(result.status, 'healthy')
-    gone(result.pid)
+    await gone(result.pid)
     // The server itself is the wrapper's child, and it ignores SIGTERM.
-    gone(pidOf(result))
+    await gone(pidOf(result))
   })
 
   it('fails a response that has no serverInfo', async () => {
@@ -301,12 +316,18 @@ describe('doctor changes nothing (FR-13)', () => {
   it('leaves the project byte-identical and removes its temp directory', async () => {
     const dir = project({ '.mcp.json': mcpJson('pathy') })
     const before = hashTree(dir)
-    const temps = () =>
-      fs.readdirSync(os.tmpdir()).filter((f) => f.startsWith('solidity-ai-kit-doctor-'))
-    const tempsBefore = temps()
-    await doctor(dir, [stubComponent('pathy', 'path')])
+    // A private temp root: the shared system one also holds directories of any other doctor
+    // run on the machine, which made a before/after count there flaky.
+    const ownTemp = fs.mkdtempSync(path.join(tempRoot, 'temp-root-'))
+    let seen = []
+    const prober = async (launch) => {
+      seen = fs.readdirSync(ownTemp)
+      return probe(launch)
+    }
+    await doctor(dir, [stubComponent('pathy', 'path')], { tempRoot: ownTemp, prober })
     assert.equal(hashTree(dir), before)
-    assert.deepEqual(temps(), tempsBefore)
+    assert.equal(seen.length, 1, 'doctor made its directory under the temp root it was given')
+    assert.deepEqual(fs.readdirSync(ownTemp), [], 'and removed it')
   })
 })
 
