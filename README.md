@@ -73,7 +73,7 @@ evaluation is recorded, and only with an OSI-approved licence; until then it is 
 <!-- prettier-ignore-start -->
 | Id | Stage | Runs as | Licence | Default | Evaluation | Open risk notes | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `solhint` | lint | `npx -y solhint-mcp@0.1.6` | MIT | opt-in | not yet evaluated | 2 | [source](https://github.com/vschernoff/solhint-mcp) |
+| `solhint` | lint | `npx -y solhint-mcp@0.1.7` | MIT | opt-in | not yet evaluated | 2 | [source](https://github.com/vschernoff/solhint-mcp) |
 <!-- prettier-ignore-end -->
 
 Risk notes, including what a component cannot protect against, are in `kit.manifest.json`.
