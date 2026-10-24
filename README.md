@@ -40,7 +40,7 @@ is published in `SCORECARD.md`.
 <!-- prettier-ignore-start -->
 | Id | Stage | Runs as | Licence | Default | Evaluation | Open risk notes | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `solhint` | lint | `npx -y solhint-mcp@0.1.3` | MIT | opt-in | not yet evaluated | 0 | [source](https://github.com/vschernoff/solhint-mcp) |
+| `solhint` | lint | `npx -y solhint-mcp@0.1.4` | MIT | opt-in | not yet evaluated | 3 | [source](https://github.com/vschernoff/solhint-mcp) |
 <!-- prettier-ignore-end -->
 
 Risk notes, including what a component cannot protect against, are in `kit.manifest.json`.
