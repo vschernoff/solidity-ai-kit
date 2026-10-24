@@ -23,7 +23,7 @@ const stub = (...flags) => ({
 })
 const fast = { timeouts: { initializeMs: 5_000, toolsListMs: 1_000 } }
 
-describe('handshake probe (eval-design §3)', () => {
+describe('handshake probe', () => {
   it('records a healthy server from two working directories', async () => {
     const result = await probeServer(stub(), fast)
     assert.equal(result.healthy, true, JSON.stringify(result.errors))

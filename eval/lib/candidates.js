@@ -25,7 +25,7 @@ export function candidateVersion({ install }) {
 
 /**
  * Unique fake secrets put in the candidate's environment. Any of them showing up in a
- * response, in stderr or in egress means the server reads and leaks keys (eval-design §2).
+ * response, in stderr or in egress means the server reads and leaks keys.
  */
 export const CANARIES = {
   PRIVATE_KEY: '0xc0ffee000000000000000000000000000000000000000000000000000000ca5a',
