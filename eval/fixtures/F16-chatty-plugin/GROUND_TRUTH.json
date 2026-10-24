@@ -1,0 +1,37 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F16",
+  "name": "chatty-plugin",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Valid project whose .solhint.json loads a plugin (planted by the case runner, never committed) that prints non-Solhint lines to stdout and stderr and exports no rules. The run is not degraded: the chatter must not be reported as a problem, and nothing may reach the MCP stdout channel (C3).",
+  "planted": [],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "test": {
+      "outcome": "pass",
+      "passing": ["CounterTest.test_increment()"],
+      "failing": [],
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "lint": {
+      "outcome": "findings",
+      "label": "planted",
+      "note": "Plugin source is in eval/cases/lint.json (files); it loads fine, so Solhint emits no warning."
+    },
+    "static": {
+      "outcome": "findings",
+      "mustNotFind": {
+        "impact": ["High", "Medium"]
+      },
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

@@ -68,6 +68,13 @@ async function runCase(spec) {
   const home = path.join(work, 'home')
   fs.mkdirSync(home)
   fs.cpSync(path.join(FIXTURES_DIR, spec.fixture), project, { recursive: true })
+  for (const [rel, content] of Object.entries(spec.files ?? {})) {
+    const target = path.join(project, rel)
+    if (!target.startsWith(project + path.sep))
+      throw new Error(`case ${spec.id}: file outside project: ${rel}`)
+    fs.mkdirSync(path.dirname(target), { recursive: true })
+    fs.writeFileSync(target, content)
+  }
   const markers = markerPaths(work, spec.id)
   plantMarkers(markers)
   const env = { ...candidateEnv(home), ...(spec.env ?? {}) }
@@ -88,7 +95,10 @@ async function runCase(spec) {
     await session.close()
   }
   const markerFired = fs.existsSync(markers.fired)
-  const verdict = evaluateCase(spec.expect, call, { markerFired })
+  const verdict = evaluateCase(spec.expect, call, {
+    markerFired,
+    pollutionBytes: session.stats.pollutionBytes,
+  })
   const text = call.error ? '' : resultText(call)
   fs.rmSync(work, { recursive: true, force: true })
   return {

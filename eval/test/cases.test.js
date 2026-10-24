@@ -38,7 +38,7 @@ describe('lint cases file', () => {
 
   it('covers F10, the C4 fixtures with and without FORCE_COLOR, and code loading', () => {
     const ids = cases.map((c) => c.id)
-    for (const fx of ['F10', 'F14', 'F15'])
+    for (const fx of ['F10', 'F14', 'F15', 'F16'])
       assert.ok(
         ids.some((id) => id.startsWith(fx)),
         fx
@@ -67,6 +67,12 @@ describe('case evaluation', () => {
     assert.equal(evaluateCase(expect, text('⚠️ degraded: sak-missing did not load')).passed, true)
     assert.equal(evaluateCase(expect, text('No violations ✅')).passed, false)
     assert.equal(evaluateCase(expect, text('sak-missing', true)).passed, false)
+  })
+
+  it('fails stdoutClean when stray bytes reached stdout', () => {
+    const expect = { stdoutClean: true }
+    assert.equal(evaluateCase(expect, text('ok')).passed, true)
+    assert.equal(evaluateCase(expect, text('ok'), { pollutionBytes: 31 }).passed, false)
   })
 
   it('never passes a call that failed (timeout, crash)', () => {

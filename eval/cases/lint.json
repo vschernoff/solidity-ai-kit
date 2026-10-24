@@ -1,5 +1,5 @@
 {
-  "$comment": "Lint-stage cases (SRS §8.2 step 2, C4, NFR-11). Requirements on any lint MCP server, not on one implementation. Placeholders: $MARKER_JS (absolute path of a JS file that writes a marker when required), $MARKER_REL (the same file, relative to the project), $MARKER_DIR (its directory).",
+  "$comment": "Lint-stage cases (SRS §8.2 step 2, C4, NFR-11). Requirements on any lint MCP server, not on one implementation. `files` are written into the project copy before the server starts (never committed). Placeholders: $MARKER_JS (absolute path of a JS file that writes a marker when required), $MARKER_REL (the same file, relative to the project), $MARKER_DIR (its directory).",
   "stage": "lint",
   "cases": [
     {
@@ -243,6 +243,57 @@
         "markerAbsent": true
       },
       "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "F16-lint_project",
+      "fixture": "F16-chatty-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "files": {
+        "node_modules/solhint-plugin-sak-chatty/package.json": "{\"name\": \"solhint-plugin-sak-chatty\", \"version\": \"0.0.0\", \"main\": \"index.js\"}",
+        "node_modules/solhint-plugin-sak-chatty/index.js": "console.log('sak-chatty: hello on stdout')\nconsole.error('sak-chatty: hello on stderr')\nprocess.stdout.write('sak-chatty: raw stdout write\\n')\nmodule.exports = []\n"
+      },
+      "expect": {
+        "isError": false,
+        "excludes": ["hello on stdout", "hello on stderr", "raw stdout write"],
+        "stdoutClean": true
+      },
+      "why": "A plugin that loads fine but prints chatter is not a degraded run: the chatter must not be reported as a problem, and none of it may reach the MCP stdout channel (C3)."
+    },
+    {
+      "id": "F16-get_config",
+      "fixture": "F16-chatty-plugin",
+      "tool": "get_config",
+      "args": {},
+      "files": {
+        "node_modules/solhint-plugin-sak-chatty/package.json": "{\"name\": \"solhint-plugin-sak-chatty\", \"version\": \"0.0.0\", \"main\": \"index.js\"}",
+        "node_modules/solhint-plugin-sak-chatty/index.js": "console.log('sak-chatty: hello on stdout')\nconsole.error('sak-chatty: hello on stderr')\nprocess.stdout.write('sak-chatty: raw stdout write\\n')\nmodule.exports = []\n"
+      },
+      "expect": {
+        "isError": false,
+        "excludes": ["hello on stdout", "hello on stderr", "raw stdout write"],
+        "stdoutClean": true
+      },
+      "why": "A plugin that loads fine but prints chatter is not a degraded run: the chatter must not be reported as a problem, and none of it may reach the MCP stdout channel (C3)."
+    },
+    {
+      "id": "F16-lint_project-FORCE_COLOR",
+      "fixture": "F16-chatty-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "files": {
+        "node_modules/solhint-plugin-sak-chatty/package.json": "{\"name\": \"solhint-plugin-sak-chatty\", \"version\": \"0.0.0\", \"main\": \"index.js\"}",
+        "node_modules/solhint-plugin-sak-chatty/index.js": "console.log('sak-chatty: hello on stdout')\nconsole.error('sak-chatty: hello on stderr')\nprocess.stdout.write('sak-chatty: raw stdout write\\n')\nmodule.exports = []\n"
+      },
+      "expect": {
+        "isError": false,
+        "excludes": ["hello on stdout", "hello on stderr", "raw stdout write"],
+        "stdoutClean": true
+      },
+      "why": "A plugin that loads fine but prints chatter is not a degraded run: the chatter must not be reported as a problem, and none of it may reach the MCP stdout channel (C3).",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
     }
   ]
 }

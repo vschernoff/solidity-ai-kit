@@ -31,6 +31,7 @@ stage — build, test, lint, static analysis, fuzzing — must report.
 | F13 | `many-failures`         | Foundry   | 200 failing tests across 4 suites: response size budgets and truncation                       |
 | F14 | `missing-plugin`        | Foundry   | `.solhint.json` names a plugin that is not installed: lint must say its rules did not run     |
 | F15 | `unknown-rule`          | Foundry   | `.solhint.json` enables a rule id that does not exist: lint must say it did not run           |
+| F16 | `chatty-plugin`         | Foundry   | a plugin (planted at run time) prints chatter: not a degraded run, nothing on MCP stdout      |
 
 Every planted defect carries a `// @gt:<id>` comment on the line `GROUND_TRUTH.json` names;
 a test checks the two agree both ways.
@@ -74,6 +75,8 @@ is a result in the report, not a harness failure.
 - F10: invalid config is an error;
 - F14/F15: the lint and `get_config` must name the plugin or rule that did not run, with and
   without `FORCE_COLOR`, and `get_config` must not claim "✅";
+- F16: a plugin that prints chatter must not be reported as a problem, and nothing may reach
+  the MCP stdout channel;
 - code loading from an agent-supplied `config`: `extends` absolute, array, `solhint:../`
   traversal, relative; `plugins`; `plugins` + `pluginPaths`; `fix_solidity` (SRS NFR-11).
 

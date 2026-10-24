@@ -1269,10 +1269,22 @@
         "status": "confirmed",
         "detail": "passes"
       }
+    ],
+    "F16-chatty-plugin": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test CounterTest.test_increment()",
+        "status": "confirmed",
+        "detail": "passes"
+      }
     ]
   },
   "mismatches": 0,
   "date": "2026-10-24",
   "runs": 1,
-  "note": "forge 1.8.5 by absolute path (D18), HOME sandboxed; all Foundry fixtures incl. F14/F15; tests with --offline."
+  "note": "forge 1.8.5 by absolute path (D18), HOME sandboxed; all Foundry fixtures incl. F14-F16; tests with --offline."
 }

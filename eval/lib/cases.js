@@ -52,7 +52,7 @@ export function resultText(call) {
  * Check one call against a case's `expect`. `call` is { isError, content } or { error } when
  * the call itself failed (timeout, crash), which never satisfies an expectation.
  */
-export function evaluateCase(expect, call, { markerFired = false } = {}) {
+export function evaluateCase(expect, call, { markerFired = false, pollutionBytes = 0 } = {}) {
   const checks = []
   const add = (check, ok, detail) => checks.push({ check, ok, detail })
   if (call.error) {
@@ -74,6 +74,9 @@ export function evaluateCase(expect, call, { markerFired = false } = {}) {
       !text.includes(needle),
       text.includes(needle) ? 'present' : 'absent'
     )
+  }
+  if (expect.stdoutClean) {
+    add('nothing but JSON-RPC on stdout', pollutionBytes === 0, `${pollutionBytes} stray bytes`)
   }
   if (expect.markerAbsent) {
     add(
