@@ -1,0 +1,1278 @@
+{
+  "forge": "forge Version: 1.8.5\nCommit SHA: 51a52c59cffd940f76eddd0b4bb1791aa4b5ac7f\nBuild Timestamp: 2026-10-05T17:07:33.315474000Z (1791220053)\nBuild Profile: dist",
+  "drift": false,
+  "fixtures": {
+    "F01-erc20-clean": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test TokenTest.test_transfer()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test TokenTest.test_transferFromUsesAllowance()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test TokenTest.test_RevertWhen_mintByNonOwner()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test TokenTest.testFuzz_transferKeepsSupply(uint256)",
+        "status": "confirmed",
+        "detail": "passes"
+      }
+    ],
+    "F02-vault-reentrancy": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test VaultTest.test_depositAndWithdraw()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test VaultTest.test_attackerCannotDrain()",
+        "status": "confirmed",
+        "detail": "vault drained: 7000000000000000000 != 10000000000000000000"
+      }
+    ],
+    "F03-upgradeable-proxy": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test ProxyTest.test_ownerCanSetValue()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test ProxyTest.test_upgradeKeepsOwner()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "storage ImplV1",
+        "status": "confirmed",
+        "detail": "[[\"owner\",0],[\"value\",1],[\"initialized\",2]]"
+      },
+      {
+        "check": "storage ImplV2",
+        "status": "confirmed",
+        "detail": "[[\"owner\",0],[\"fee\",1],[\"value\",2],[\"initialized\",3]]"
+      }
+    ],
+    "F04-compile-error": [
+      {
+        "check": "build error src/Broken.sol:13",
+        "status": "confirmed",
+        "detail": "TypeError: TypeError: Type literal_string \"not a number\" is not implicitly convertible to expected type uint256."
+      },
+      {
+        "check": "test run",
+        "status": "confirmed",
+        "detail": "forge test exited 1, no test reported"
+      }
+    ],
+    "F05-failing-assertion": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test BankTest.test_credit()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test BankTest.test_transfer()",
+        "status": "confirmed",
+        "detail": "balance mismatch: 99 != 100"
+      }
+    ],
+    "F06-failing-fuzz": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test MathTest.test_squareOfThree()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test MathTest.testFuzz_squareIsMonotonic(uint256)",
+        "status": "confirmed",
+        "detail": "panic: arithmetic underflow or overflow (0x11)"
+      }
+    ],
+    "F07-failing-invariant": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test SupplyInvariantTest.test_mintUpdatesSupply()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test SupplyInvariantTest.invariant_supplyMatches()",
+        "status": "confirmed",
+        "detail": "supply mismatch: 6683 != 6355"
+      }
+    ],
+    "F09-mixed-foundry-hardhat": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test MarketTest.test_quoteOfZero()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test MarketTest.test_quoteIsOnePercent()",
+        "status": "confirmed",
+        "detail": "fee mismatch: 10 != 100"
+      }
+    ],
+    "F10-broken-solhint-config": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test CounterTest.test_increment()",
+        "status": "confirmed",
+        "detail": "passes"
+      }
+    ],
+    "F11-custom-error": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test VaultTest.test_expectRevertMatches()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test VaultTest.test_withdrawMoreThanBalance()",
+        "status": "confirmed",
+        "detail": "InsufficientBalance(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0, 1000000000000000000 [1e18])"
+      },
+      {
+        "check": "test VaultTest.test_withdrawWhenPaused()",
+        "status": "confirmed",
+        "detail": "Paused()"
+      },
+      {
+        "check": "test VaultTest.test_expectRevertMismatch()",
+        "status": "confirmed",
+        "detail": "Error != expected error: Paused() != InsufficientBalance(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0, 1)"
+      },
+      {
+        "check": "test VaultTest.test_expectRevertButNone()",
+        "status": "confirmed",
+        "detail": "next call did not revert as expected"
+      },
+      {
+        "check": "test VaultTest.test_panicDivZero()",
+        "status": "confirmed",
+        "detail": "panic: division or modulo by zero (0x12)"
+      },
+      {
+        "check": "test VaultTest.test_panicUnderflow()",
+        "status": "confirmed",
+        "detail": "panic: arithmetic underflow or overflow (0x11)"
+      },
+      {
+        "check": "test VaultTest.test_undeclaredSelector()",
+        "status": "confirmed",
+        "detail": "custom error 0xdeadbeef"
+      }
+    ],
+    "F12-ffi-disabled": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test FfiTest.test_noFfi()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test FfiTest.test_ffiWritesMarker()",
+        "status": "confirmed",
+        "detail": "vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands"
+      },
+      {
+        "check": "not created: ffi-marker.txt",
+        "status": "confirmed",
+        "detail": "absent after the test run"
+      }
+    ],
+    "F13-many-failures": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test ManyFailures0Test.test_setNumber()",
+        "status": "confirmed",
+        "detail": "passes"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail000()",
+        "status": "confirmed",
+        "detail": "case 0: expected the counter to keep its initial value after increment: 1 != 0"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail001()",
+        "status": "confirmed",
+        "detail": "case 1: expected the counter to keep its initial value after increment: 2 != 1"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail002()",
+        "status": "confirmed",
+        "detail": "case 2: expected the counter to keep its initial value after increment: 3 != 2"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail003()",
+        "status": "confirmed",
+        "detail": "case 3: expected the counter to keep its initial value after increment: 4 != 3"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail004()",
+        "status": "confirmed",
+        "detail": "case 4: expected the counter to keep its initial value after increment: 5 != 4"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail005()",
+        "status": "confirmed",
+        "detail": "case 5: expected the counter to keep its initial value after increment: 6 != 5"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail006()",
+        "status": "confirmed",
+        "detail": "case 6: expected the counter to keep its initial value after increment: 7 != 6"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail007()",
+        "status": "confirmed",
+        "detail": "case 7: expected the counter to keep its initial value after increment: 8 != 7"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail008()",
+        "status": "confirmed",
+        "detail": "case 8: expected the counter to keep its initial value after increment: 9 != 8"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail009()",
+        "status": "confirmed",
+        "detail": "case 9: expected the counter to keep its initial value after increment: 10 != 9"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail010()",
+        "status": "confirmed",
+        "detail": "case 10: expected the counter to keep its initial value after increment: 11 != 10"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail011()",
+        "status": "confirmed",
+        "detail": "case 11: expected the counter to keep its initial value after increment: 12 != 11"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail012()",
+        "status": "confirmed",
+        "detail": "case 12: expected the counter to keep its initial value after increment: 13 != 12"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail013()",
+        "status": "confirmed",
+        "detail": "case 13: expected the counter to keep its initial value after increment: 14 != 13"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail014()",
+        "status": "confirmed",
+        "detail": "case 14: expected the counter to keep its initial value after increment: 15 != 14"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail015()",
+        "status": "confirmed",
+        "detail": "case 15: expected the counter to keep its initial value after increment: 16 != 15"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail016()",
+        "status": "confirmed",
+        "detail": "case 16: expected the counter to keep its initial value after increment: 17 != 16"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail017()",
+        "status": "confirmed",
+        "detail": "case 17: expected the counter to keep its initial value after increment: 18 != 17"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail018()",
+        "status": "confirmed",
+        "detail": "case 18: expected the counter to keep its initial value after increment: 19 != 18"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail019()",
+        "status": "confirmed",
+        "detail": "case 19: expected the counter to keep its initial value after increment: 20 != 19"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail020()",
+        "status": "confirmed",
+        "detail": "case 20: expected the counter to keep its initial value after increment: 21 != 20"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail021()",
+        "status": "confirmed",
+        "detail": "case 21: expected the counter to keep its initial value after increment: 22 != 21"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail022()",
+        "status": "confirmed",
+        "detail": "case 22: expected the counter to keep its initial value after increment: 23 != 22"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail023()",
+        "status": "confirmed",
+        "detail": "case 23: expected the counter to keep its initial value after increment: 24 != 23"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail024()",
+        "status": "confirmed",
+        "detail": "case 24: expected the counter to keep its initial value after increment: 25 != 24"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail025()",
+        "status": "confirmed",
+        "detail": "case 25: expected the counter to keep its initial value after increment: 26 != 25"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail026()",
+        "status": "confirmed",
+        "detail": "case 26: expected the counter to keep its initial value after increment: 27 != 26"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail027()",
+        "status": "confirmed",
+        "detail": "case 27: expected the counter to keep its initial value after increment: 28 != 27"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail028()",
+        "status": "confirmed",
+        "detail": "case 28: expected the counter to keep its initial value after increment: 29 != 28"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail029()",
+        "status": "confirmed",
+        "detail": "case 29: expected the counter to keep its initial value after increment: 30 != 29"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail030()",
+        "status": "confirmed",
+        "detail": "case 30: expected the counter to keep its initial value after increment: 31 != 30"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail031()",
+        "status": "confirmed",
+        "detail": "case 31: expected the counter to keep its initial value after increment: 32 != 31"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail032()",
+        "status": "confirmed",
+        "detail": "case 32: expected the counter to keep its initial value after increment: 33 != 32"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail033()",
+        "status": "confirmed",
+        "detail": "case 33: expected the counter to keep its initial value after increment: 34 != 33"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail034()",
+        "status": "confirmed",
+        "detail": "case 34: expected the counter to keep its initial value after increment: 35 != 34"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail035()",
+        "status": "confirmed",
+        "detail": "case 35: expected the counter to keep its initial value after increment: 36 != 35"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail036()",
+        "status": "confirmed",
+        "detail": "case 36: expected the counter to keep its initial value after increment: 37 != 36"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail037()",
+        "status": "confirmed",
+        "detail": "case 37: expected the counter to keep its initial value after increment: 38 != 37"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail038()",
+        "status": "confirmed",
+        "detail": "case 38: expected the counter to keep its initial value after increment: 39 != 38"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail039()",
+        "status": "confirmed",
+        "detail": "case 39: expected the counter to keep its initial value after increment: 40 != 39"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail040()",
+        "status": "confirmed",
+        "detail": "case 40: expected the counter to keep its initial value after increment: 41 != 40"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail041()",
+        "status": "confirmed",
+        "detail": "case 41: expected the counter to keep its initial value after increment: 42 != 41"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail042()",
+        "status": "confirmed",
+        "detail": "case 42: expected the counter to keep its initial value after increment: 43 != 42"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail043()",
+        "status": "confirmed",
+        "detail": "case 43: expected the counter to keep its initial value after increment: 44 != 43"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail044()",
+        "status": "confirmed",
+        "detail": "case 44: expected the counter to keep its initial value after increment: 45 != 44"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail045()",
+        "status": "confirmed",
+        "detail": "case 45: expected the counter to keep its initial value after increment: 46 != 45"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail046()",
+        "status": "confirmed",
+        "detail": "case 46: expected the counter to keep its initial value after increment: 47 != 46"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail047()",
+        "status": "confirmed",
+        "detail": "case 47: expected the counter to keep its initial value after increment: 48 != 47"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail048()",
+        "status": "confirmed",
+        "detail": "case 48: expected the counter to keep its initial value after increment: 49 != 48"
+      },
+      {
+        "check": "test ManyFailures0Test.test_fail049()",
+        "status": "confirmed",
+        "detail": "case 49: expected the counter to keep its initial value after increment: 50 != 49"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail050()",
+        "status": "confirmed",
+        "detail": "case 50: expected the counter to keep its initial value after increment: 51 != 50"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail051()",
+        "status": "confirmed",
+        "detail": "case 51: expected the counter to keep its initial value after increment: 52 != 51"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail052()",
+        "status": "confirmed",
+        "detail": "case 52: expected the counter to keep its initial value after increment: 53 != 52"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail053()",
+        "status": "confirmed",
+        "detail": "case 53: expected the counter to keep its initial value after increment: 54 != 53"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail054()",
+        "status": "confirmed",
+        "detail": "case 54: expected the counter to keep its initial value after increment: 55 != 54"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail055()",
+        "status": "confirmed",
+        "detail": "case 55: expected the counter to keep its initial value after increment: 56 != 55"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail056()",
+        "status": "confirmed",
+        "detail": "case 56: expected the counter to keep its initial value after increment: 57 != 56"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail057()",
+        "status": "confirmed",
+        "detail": "case 57: expected the counter to keep its initial value after increment: 58 != 57"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail058()",
+        "status": "confirmed",
+        "detail": "case 58: expected the counter to keep its initial value after increment: 59 != 58"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail059()",
+        "status": "confirmed",
+        "detail": "case 59: expected the counter to keep its initial value after increment: 60 != 59"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail060()",
+        "status": "confirmed",
+        "detail": "case 60: expected the counter to keep its initial value after increment: 61 != 60"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail061()",
+        "status": "confirmed",
+        "detail": "case 61: expected the counter to keep its initial value after increment: 62 != 61"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail062()",
+        "status": "confirmed",
+        "detail": "case 62: expected the counter to keep its initial value after increment: 63 != 62"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail063()",
+        "status": "confirmed",
+        "detail": "case 63: expected the counter to keep its initial value after increment: 64 != 63"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail064()",
+        "status": "confirmed",
+        "detail": "case 64: expected the counter to keep its initial value after increment: 65 != 64"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail065()",
+        "status": "confirmed",
+        "detail": "case 65: expected the counter to keep its initial value after increment: 66 != 65"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail066()",
+        "status": "confirmed",
+        "detail": "case 66: expected the counter to keep its initial value after increment: 67 != 66"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail067()",
+        "status": "confirmed",
+        "detail": "case 67: expected the counter to keep its initial value after increment: 68 != 67"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail068()",
+        "status": "confirmed",
+        "detail": "case 68: expected the counter to keep its initial value after increment: 69 != 68"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail069()",
+        "status": "confirmed",
+        "detail": "case 69: expected the counter to keep its initial value after increment: 70 != 69"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail070()",
+        "status": "confirmed",
+        "detail": "case 70: expected the counter to keep its initial value after increment: 71 != 70"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail071()",
+        "status": "confirmed",
+        "detail": "case 71: expected the counter to keep its initial value after increment: 72 != 71"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail072()",
+        "status": "confirmed",
+        "detail": "case 72: expected the counter to keep its initial value after increment: 73 != 72"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail073()",
+        "status": "confirmed",
+        "detail": "case 73: expected the counter to keep its initial value after increment: 74 != 73"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail074()",
+        "status": "confirmed",
+        "detail": "case 74: expected the counter to keep its initial value after increment: 75 != 74"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail075()",
+        "status": "confirmed",
+        "detail": "case 75: expected the counter to keep its initial value after increment: 76 != 75"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail076()",
+        "status": "confirmed",
+        "detail": "case 76: expected the counter to keep its initial value after increment: 77 != 76"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail077()",
+        "status": "confirmed",
+        "detail": "case 77: expected the counter to keep its initial value after increment: 78 != 77"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail078()",
+        "status": "confirmed",
+        "detail": "case 78: expected the counter to keep its initial value after increment: 79 != 78"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail079()",
+        "status": "confirmed",
+        "detail": "case 79: expected the counter to keep its initial value after increment: 80 != 79"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail080()",
+        "status": "confirmed",
+        "detail": "case 80: expected the counter to keep its initial value after increment: 81 != 80"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail081()",
+        "status": "confirmed",
+        "detail": "case 81: expected the counter to keep its initial value after increment: 82 != 81"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail082()",
+        "status": "confirmed",
+        "detail": "case 82: expected the counter to keep its initial value after increment: 83 != 82"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail083()",
+        "status": "confirmed",
+        "detail": "case 83: expected the counter to keep its initial value after increment: 84 != 83"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail084()",
+        "status": "confirmed",
+        "detail": "case 84: expected the counter to keep its initial value after increment: 85 != 84"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail085()",
+        "status": "confirmed",
+        "detail": "case 85: expected the counter to keep its initial value after increment: 86 != 85"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail086()",
+        "status": "confirmed",
+        "detail": "case 86: expected the counter to keep its initial value after increment: 87 != 86"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail087()",
+        "status": "confirmed",
+        "detail": "case 87: expected the counter to keep its initial value after increment: 88 != 87"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail088()",
+        "status": "confirmed",
+        "detail": "case 88: expected the counter to keep its initial value after increment: 89 != 88"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail089()",
+        "status": "confirmed",
+        "detail": "case 89: expected the counter to keep its initial value after increment: 90 != 89"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail090()",
+        "status": "confirmed",
+        "detail": "case 90: expected the counter to keep its initial value after increment: 91 != 90"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail091()",
+        "status": "confirmed",
+        "detail": "case 91: expected the counter to keep its initial value after increment: 92 != 91"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail092()",
+        "status": "confirmed",
+        "detail": "case 92: expected the counter to keep its initial value after increment: 93 != 92"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail093()",
+        "status": "confirmed",
+        "detail": "case 93: expected the counter to keep its initial value after increment: 94 != 93"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail094()",
+        "status": "confirmed",
+        "detail": "case 94: expected the counter to keep its initial value after increment: 95 != 94"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail095()",
+        "status": "confirmed",
+        "detail": "case 95: expected the counter to keep its initial value after increment: 96 != 95"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail096()",
+        "status": "confirmed",
+        "detail": "case 96: expected the counter to keep its initial value after increment: 97 != 96"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail097()",
+        "status": "confirmed",
+        "detail": "case 97: expected the counter to keep its initial value after increment: 98 != 97"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail098()",
+        "status": "confirmed",
+        "detail": "case 98: expected the counter to keep its initial value after increment: 99 != 98"
+      },
+      {
+        "check": "test ManyFailures1Test.test_fail099()",
+        "status": "confirmed",
+        "detail": "case 99: expected the counter to keep its initial value after increment: 100 != 99"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail100()",
+        "status": "confirmed",
+        "detail": "case 100: expected the counter to keep its initial value after increment: 101 != 100"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail101()",
+        "status": "confirmed",
+        "detail": "case 101: expected the counter to keep its initial value after increment: 102 != 101"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail102()",
+        "status": "confirmed",
+        "detail": "case 102: expected the counter to keep its initial value after increment: 103 != 102"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail103()",
+        "status": "confirmed",
+        "detail": "case 103: expected the counter to keep its initial value after increment: 104 != 103"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail104()",
+        "status": "confirmed",
+        "detail": "case 104: expected the counter to keep its initial value after increment: 105 != 104"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail105()",
+        "status": "confirmed",
+        "detail": "case 105: expected the counter to keep its initial value after increment: 106 != 105"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail106()",
+        "status": "confirmed",
+        "detail": "case 106: expected the counter to keep its initial value after increment: 107 != 106"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail107()",
+        "status": "confirmed",
+        "detail": "case 107: expected the counter to keep its initial value after increment: 108 != 107"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail108()",
+        "status": "confirmed",
+        "detail": "case 108: expected the counter to keep its initial value after increment: 109 != 108"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail109()",
+        "status": "confirmed",
+        "detail": "case 109: expected the counter to keep its initial value after increment: 110 != 109"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail110()",
+        "status": "confirmed",
+        "detail": "case 110: expected the counter to keep its initial value after increment: 111 != 110"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail111()",
+        "status": "confirmed",
+        "detail": "case 111: expected the counter to keep its initial value after increment: 112 != 111"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail112()",
+        "status": "confirmed",
+        "detail": "case 112: expected the counter to keep its initial value after increment: 113 != 112"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail113()",
+        "status": "confirmed",
+        "detail": "case 113: expected the counter to keep its initial value after increment: 114 != 113"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail114()",
+        "status": "confirmed",
+        "detail": "case 114: expected the counter to keep its initial value after increment: 115 != 114"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail115()",
+        "status": "confirmed",
+        "detail": "case 115: expected the counter to keep its initial value after increment: 116 != 115"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail116()",
+        "status": "confirmed",
+        "detail": "case 116: expected the counter to keep its initial value after increment: 117 != 116"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail117()",
+        "status": "confirmed",
+        "detail": "case 117: expected the counter to keep its initial value after increment: 118 != 117"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail118()",
+        "status": "confirmed",
+        "detail": "case 118: expected the counter to keep its initial value after increment: 119 != 118"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail119()",
+        "status": "confirmed",
+        "detail": "case 119: expected the counter to keep its initial value after increment: 120 != 119"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail120()",
+        "status": "confirmed",
+        "detail": "case 120: expected the counter to keep its initial value after increment: 121 != 120"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail121()",
+        "status": "confirmed",
+        "detail": "case 121: expected the counter to keep its initial value after increment: 122 != 121"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail122()",
+        "status": "confirmed",
+        "detail": "case 122: expected the counter to keep its initial value after increment: 123 != 122"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail123()",
+        "status": "confirmed",
+        "detail": "case 123: expected the counter to keep its initial value after increment: 124 != 123"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail124()",
+        "status": "confirmed",
+        "detail": "case 124: expected the counter to keep its initial value after increment: 125 != 124"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail125()",
+        "status": "confirmed",
+        "detail": "case 125: expected the counter to keep its initial value after increment: 126 != 125"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail126()",
+        "status": "confirmed",
+        "detail": "case 126: expected the counter to keep its initial value after increment: 127 != 126"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail127()",
+        "status": "confirmed",
+        "detail": "case 127: expected the counter to keep its initial value after increment: 128 != 127"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail128()",
+        "status": "confirmed",
+        "detail": "case 128: expected the counter to keep its initial value after increment: 129 != 128"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail129()",
+        "status": "confirmed",
+        "detail": "case 129: expected the counter to keep its initial value after increment: 130 != 129"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail130()",
+        "status": "confirmed",
+        "detail": "case 130: expected the counter to keep its initial value after increment: 131 != 130"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail131()",
+        "status": "confirmed",
+        "detail": "case 131: expected the counter to keep its initial value after increment: 132 != 131"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail132()",
+        "status": "confirmed",
+        "detail": "case 132: expected the counter to keep its initial value after increment: 133 != 132"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail133()",
+        "status": "confirmed",
+        "detail": "case 133: expected the counter to keep its initial value after increment: 134 != 133"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail134()",
+        "status": "confirmed",
+        "detail": "case 134: expected the counter to keep its initial value after increment: 135 != 134"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail135()",
+        "status": "confirmed",
+        "detail": "case 135: expected the counter to keep its initial value after increment: 136 != 135"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail136()",
+        "status": "confirmed",
+        "detail": "case 136: expected the counter to keep its initial value after increment: 137 != 136"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail137()",
+        "status": "confirmed",
+        "detail": "case 137: expected the counter to keep its initial value after increment: 138 != 137"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail138()",
+        "status": "confirmed",
+        "detail": "case 138: expected the counter to keep its initial value after increment: 139 != 138"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail139()",
+        "status": "confirmed",
+        "detail": "case 139: expected the counter to keep its initial value after increment: 140 != 139"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail140()",
+        "status": "confirmed",
+        "detail": "case 140: expected the counter to keep its initial value after increment: 141 != 140"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail141()",
+        "status": "confirmed",
+        "detail": "case 141: expected the counter to keep its initial value after increment: 142 != 141"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail142()",
+        "status": "confirmed",
+        "detail": "case 142: expected the counter to keep its initial value after increment: 143 != 142"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail143()",
+        "status": "confirmed",
+        "detail": "case 143: expected the counter to keep its initial value after increment: 144 != 143"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail144()",
+        "status": "confirmed",
+        "detail": "case 144: expected the counter to keep its initial value after increment: 145 != 144"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail145()",
+        "status": "confirmed",
+        "detail": "case 145: expected the counter to keep its initial value after increment: 146 != 145"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail146()",
+        "status": "confirmed",
+        "detail": "case 146: expected the counter to keep its initial value after increment: 147 != 146"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail147()",
+        "status": "confirmed",
+        "detail": "case 147: expected the counter to keep its initial value after increment: 148 != 147"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail148()",
+        "status": "confirmed",
+        "detail": "case 148: expected the counter to keep its initial value after increment: 149 != 148"
+      },
+      {
+        "check": "test ManyFailures2Test.test_fail149()",
+        "status": "confirmed",
+        "detail": "case 149: expected the counter to keep its initial value after increment: 150 != 149"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail150()",
+        "status": "confirmed",
+        "detail": "case 150: expected the counter to keep its initial value after increment: 151 != 150"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail151()",
+        "status": "confirmed",
+        "detail": "case 151: expected the counter to keep its initial value after increment: 152 != 151"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail152()",
+        "status": "confirmed",
+        "detail": "case 152: expected the counter to keep its initial value after increment: 153 != 152"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail153()",
+        "status": "confirmed",
+        "detail": "case 153: expected the counter to keep its initial value after increment: 154 != 153"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail154()",
+        "status": "confirmed",
+        "detail": "case 154: expected the counter to keep its initial value after increment: 155 != 154"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail155()",
+        "status": "confirmed",
+        "detail": "case 155: expected the counter to keep its initial value after increment: 156 != 155"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail156()",
+        "status": "confirmed",
+        "detail": "case 156: expected the counter to keep its initial value after increment: 157 != 156"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail157()",
+        "status": "confirmed",
+        "detail": "case 157: expected the counter to keep its initial value after increment: 158 != 157"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail158()",
+        "status": "confirmed",
+        "detail": "case 158: expected the counter to keep its initial value after increment: 159 != 158"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail159()",
+        "status": "confirmed",
+        "detail": "case 159: expected the counter to keep its initial value after increment: 160 != 159"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail160()",
+        "status": "confirmed",
+        "detail": "case 160: expected the counter to keep its initial value after increment: 161 != 160"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail161()",
+        "status": "confirmed",
+        "detail": "case 161: expected the counter to keep its initial value after increment: 162 != 161"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail162()",
+        "status": "confirmed",
+        "detail": "case 162: expected the counter to keep its initial value after increment: 163 != 162"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail163()",
+        "status": "confirmed",
+        "detail": "case 163: expected the counter to keep its initial value after increment: 164 != 163"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail164()",
+        "status": "confirmed",
+        "detail": "case 164: expected the counter to keep its initial value after increment: 165 != 164"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail165()",
+        "status": "confirmed",
+        "detail": "case 165: expected the counter to keep its initial value after increment: 166 != 165"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail166()",
+        "status": "confirmed",
+        "detail": "case 166: expected the counter to keep its initial value after increment: 167 != 166"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail167()",
+        "status": "confirmed",
+        "detail": "case 167: expected the counter to keep its initial value after increment: 168 != 167"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail168()",
+        "status": "confirmed",
+        "detail": "case 168: expected the counter to keep its initial value after increment: 169 != 168"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail169()",
+        "status": "confirmed",
+        "detail": "case 169: expected the counter to keep its initial value after increment: 170 != 169"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail170()",
+        "status": "confirmed",
+        "detail": "case 170: expected the counter to keep its initial value after increment: 171 != 170"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail171()",
+        "status": "confirmed",
+        "detail": "case 171: expected the counter to keep its initial value after increment: 172 != 171"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail172()",
+        "status": "confirmed",
+        "detail": "case 172: expected the counter to keep its initial value after increment: 173 != 172"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail173()",
+        "status": "confirmed",
+        "detail": "case 173: expected the counter to keep its initial value after increment: 174 != 173"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail174()",
+        "status": "confirmed",
+        "detail": "case 174: expected the counter to keep its initial value after increment: 175 != 174"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail175()",
+        "status": "confirmed",
+        "detail": "case 175: expected the counter to keep its initial value after increment: 176 != 175"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail176()",
+        "status": "confirmed",
+        "detail": "case 176: expected the counter to keep its initial value after increment: 177 != 176"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail177()",
+        "status": "confirmed",
+        "detail": "case 177: expected the counter to keep its initial value after increment: 178 != 177"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail178()",
+        "status": "confirmed",
+        "detail": "case 178: expected the counter to keep its initial value after increment: 179 != 178"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail179()",
+        "status": "confirmed",
+        "detail": "case 179: expected the counter to keep its initial value after increment: 180 != 179"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail180()",
+        "status": "confirmed",
+        "detail": "case 180: expected the counter to keep its initial value after increment: 181 != 180"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail181()",
+        "status": "confirmed",
+        "detail": "case 181: expected the counter to keep its initial value after increment: 182 != 181"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail182()",
+        "status": "confirmed",
+        "detail": "case 182: expected the counter to keep its initial value after increment: 183 != 182"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail183()",
+        "status": "confirmed",
+        "detail": "case 183: expected the counter to keep its initial value after increment: 184 != 183"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail184()",
+        "status": "confirmed",
+        "detail": "case 184: expected the counter to keep its initial value after increment: 185 != 184"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail185()",
+        "status": "confirmed",
+        "detail": "case 185: expected the counter to keep its initial value after increment: 186 != 185"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail186()",
+        "status": "confirmed",
+        "detail": "case 186: expected the counter to keep its initial value after increment: 187 != 186"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail187()",
+        "status": "confirmed",
+        "detail": "case 187: expected the counter to keep its initial value after increment: 188 != 187"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail188()",
+        "status": "confirmed",
+        "detail": "case 188: expected the counter to keep its initial value after increment: 189 != 188"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail189()",
+        "status": "confirmed",
+        "detail": "case 189: expected the counter to keep its initial value after increment: 190 != 189"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail190()",
+        "status": "confirmed",
+        "detail": "case 190: expected the counter to keep its initial value after increment: 191 != 190"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail191()",
+        "status": "confirmed",
+        "detail": "case 191: expected the counter to keep its initial value after increment: 192 != 191"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail192()",
+        "status": "confirmed",
+        "detail": "case 192: expected the counter to keep its initial value after increment: 193 != 192"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail193()",
+        "status": "confirmed",
+        "detail": "case 193: expected the counter to keep its initial value after increment: 194 != 193"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail194()",
+        "status": "confirmed",
+        "detail": "case 194: expected the counter to keep its initial value after increment: 195 != 194"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail195()",
+        "status": "confirmed",
+        "detail": "case 195: expected the counter to keep its initial value after increment: 196 != 195"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail196()",
+        "status": "confirmed",
+        "detail": "case 196: expected the counter to keep its initial value after increment: 197 != 196"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail197()",
+        "status": "confirmed",
+        "detail": "case 197: expected the counter to keep its initial value after increment: 198 != 197"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail198()",
+        "status": "confirmed",
+        "detail": "case 198: expected the counter to keep its initial value after increment: 199 != 198"
+      },
+      {
+        "check": "test ManyFailures3Test.test_fail199()",
+        "status": "confirmed",
+        "detail": "case 199: expected the counter to keep its initial value after increment: 200 != 199"
+      }
+    ],
+    "F14-missing-plugin": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test CounterTest.test_increment()",
+        "status": "confirmed",
+        "detail": "passes"
+      }
+    ],
+    "F15-unknown-rule": [
+      {
+        "check": "build",
+        "status": "confirmed",
+        "detail": "forge build exited 0"
+      },
+      {
+        "check": "test CounterTest.test_increment()",
+        "status": "confirmed",
+        "detail": "passes"
+      }
+    ]
+  },
+  "mismatches": 0,
+  "date": "2026-10-24",
+  "runs": 1,
+  "note": "forge 1.8.5 by absolute path (D18), HOME sandboxed; all Foundry fixtures incl. F14/F15; tests with --offline."
+}

@@ -1,0 +1,248 @@
+{
+  "$comment": "Lint-stage cases (SRS §8.2 step 2, C4, NFR-11). Requirements on any lint MCP server, not on one implementation. Placeholders: $MARKER_JS (absolute path of a JS file that writes a marker when required), $MARKER_REL (the same file, relative to the project), $MARKER_DIR (its directory).",
+  "stage": "lint",
+  "cases": [
+    {
+      "id": "F01-lint_project",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "isError": false
+      },
+      "why": "Baseline: a clean, valid project lints without error."
+    },
+    {
+      "id": "F10-lint_project",
+      "fixture": "F10-broken-solhint-config",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "isError": true,
+        "includes": [".solhint.json"]
+      },
+      "why": "C4: an invalid config must be an error naming the file, never 'no violations'."
+    },
+    {
+      "id": "F10-get_config",
+      "fixture": "F10-broken-solhint-config",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "isError": true
+      },
+      "why": "C4: get_config over invalid JSON must fail."
+    },
+    {
+      "id": "F14-lint_project",
+      "fixture": "F14-missing-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "includes": ["sak-missing"]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure."
+    },
+    {
+      "id": "F14-lint_project-FORCE_COLOR",
+      "fixture": "F14-missing-plugin",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "includes": ["sak-missing"]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "F14-get_config",
+      "fixture": "F14-missing-plugin",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "includes": ["sak-missing"],
+        "excludes": ["✅"]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure."
+    },
+    {
+      "id": "F14-get_config-FORCE_COLOR",
+      "fixture": "F14-missing-plugin",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "includes": ["sak-missing"],
+        "excludes": ["✅"]
+      },
+      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "F15-lint_project",
+      "fixture": "F15-unknown-rule",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "includes": ["sak-no-such-rule"]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure."
+    },
+    {
+      "id": "F15-lint_project-FORCE_COLOR",
+      "fixture": "F15-unknown-rule",
+      "tool": "lint_project",
+      "args": {},
+      "expect": {
+        "includes": ["sak-no-such-rule"]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "F15-get_config",
+      "fixture": "F15-unknown-rule",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "includes": ["sak-no-such-rule"],
+        "excludes": ["✅"]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure."
+    },
+    {
+      "id": "F15-get_config-FORCE_COLOR",
+      "fixture": "F15-unknown-rule",
+      "tool": "get_config",
+      "args": {},
+      "expect": {
+        "includes": ["sak-no-such-rule"],
+        "excludes": ["✅"]
+      },
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure.",
+      "env": {
+        "FORCE_COLOR": "1"
+      }
+    },
+    {
+      "id": "sec-extends-absolute",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "$MARKER_JS"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-extends-array",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": ["solhint:recommended", "$MARKER_JS"]
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-extends-solhint-traversal",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "solhint:../../../../$MARKER_JS"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-extends-relative",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "$MARKER_REL"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-plugins-path",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "solhint:recommended",
+          "plugins": ["$MARKER_JS"]
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-plugins-with-pluginPaths",
+      "fixture": "F01-erc20-clean",
+      "tool": "lint_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "solhint:recommended",
+          "plugins": ["marker"],
+          "pluginPaths": ["$MARKER_DIR"]
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    },
+    {
+      "id": "sec-fix-extends-absolute",
+      "fixture": "F01-erc20-clean",
+      "tool": "fix_solidity",
+      "args": {
+        "code": "pragma solidity ^0.8.0;\n",
+        "config": {
+          "extends": "$MARKER_JS"
+        }
+      },
+      "expect": {
+        "isError": true,
+        "markerAbsent": true
+      },
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+    }
+  ]
+}
