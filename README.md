@@ -69,6 +69,16 @@ version, with its licence, source, evaluation record and risk notes. The agent n
 between competing servers at runtime. A component is enabled by default only once its
 evaluation is recorded, and only with an OSI-approved licence; until then it is opt-in.
 
+<!-- components:start (generated from kit.manifest.json by npm run readme) -->
+<!-- prettier-ignore-start -->
+| Id | Stage | Runs as | Licence | Default | Evaluation | Open risk notes | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `solhint` | lint | `npx -y solhint-mcp@0.1.4` | MIT | opt-in | not yet evaluated | 3 | [source](https://github.com/vschernoff/solhint-mcp) |
+<!-- prettier-ignore-end -->
+
+Risk notes, including what a component cannot protect against, are in `kit.manifest.json`.
+<!-- components:end -->
+
 ## What it does not do
 
 - It does not send transactions, deploy, or handle private keys.

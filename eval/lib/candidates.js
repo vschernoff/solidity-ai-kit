@@ -64,8 +64,9 @@ export function launchCommand(candidate, installDir) {
 }
 
 /**
- * How many characters of `instructions` each client keeps (SRS C2, FR-12). A client behaviour,
- * not an MCP limit; other clients keep more.
+ * Instruction lengths client guidance recommends (SRS C2, FR-12). 512 is Codex's guidance to keep
+ * the first ~512 chars self-contained: a recommendation, not a documented cut-off, and not an
+ * MCP limit.
  */
 export const INSTRUCTION_LIMITS = { Codex: 512 }
 
@@ -101,7 +102,7 @@ export function probeFindings(result, candidate) {
       findings.push({
         gate: 'C2',
         severity: 'warning',
-        finding: `instructions are ${longest} chars: exceeds the ~${limit} chars ${client} retains`,
+        finding: `instructions are ${longest} chars: exceeds the ~${limit} chars ${client}'s guidance recommends`,
       })
     }
   }
