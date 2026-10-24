@@ -68,7 +68,7 @@ function rawOutputs(record, session) {
     initialize: record.initializeRaw ?? '',
     'tools/list': record.tools ? JSON.stringify(record.tools) : '',
     stderr: session.stats.stderr ?? '',
-    stdout: (session.stats.pollutionSamples ?? []).join('\n'),
+    stdout: session.stats.pollutionText ?? '',
   }
 }
 
