@@ -74,7 +74,7 @@ describe('case evaluation', () => {
     assert.equal(evaluateCase(expect, text('sak-missing', true)).passed, false)
   })
 
-  it('does not let the get_config echo of the project config satisfy a C4 case (review of #28)', () => {
+  it('does not let the get_config echo of the project config satisfy a C4 case', () => {
     const lintCases = readCases('lint')
     for (const [fx, config] of [
       ['F14-missing-plugin', { extends: 'solhint:recommended', plugins: ['sak-missing'] }],

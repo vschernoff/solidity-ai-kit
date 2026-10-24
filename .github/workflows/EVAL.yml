@@ -79,7 +79,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/out" && chmod 777 "$RUNNER_TEMP/out"
           # --init: a real PID 1 that reaps orphaned children, so close() never mistakes a
-          # zombie for a surviving process (review of #18).
+          # zombie for a surviving process.
           docker run --rm --init --network none --read-only --tmpfs /tmp --user 1001:1001 \
             -v "$GITHUB_WORKSPACE:/repo:ro" \
             -v "$RUNNER_TEMP/candidate:/candidate:ro" \

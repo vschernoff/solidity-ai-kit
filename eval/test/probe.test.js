@@ -23,7 +23,7 @@ const stub = (...flags) => ({
 })
 const fast = { timeouts: { initializeMs: 5_000, toolsListMs: 1_000 } }
 
-describe('handshake probe (eval-design §3)', () => {
+describe('handshake probe', () => {
   it('records a healthy server from two working directories', async () => {
     const result = await probeServer(stub(), fast)
     assert.equal(result.healthy, true, JSON.stringify(result.errors))
@@ -79,7 +79,7 @@ describe('handshake probe (eval-design §3)', () => {
     assert.equal(result.errors[0].kind, 'exited')
   })
 
-  // The four tests below close mutation gaps the Reviewer found on PR #7.
+  // The four tests below close mutation gaps found in review.
   it('reports a JSON-RPC error from tools/list as an error, never as zero healthy tools (C4)', async () => {
     const result = await probeServer(stub('--tools-list-error'), fast)
     assert.equal(result.healthy, false)
@@ -94,7 +94,7 @@ describe('handshake probe (eval-design §3)', () => {
   })
 
   // close() must not resolve while anything in the server's process group is alive. A CI
-  // flake on #8 showed close() returned when the server exited, leaving its children (C4, FR-37).
+  // CI flake showed close() returned when the server exited, leaving its children (C4, FR-37).
   async function closeAndCheck(stubFlags, expectedExit) {
     const pidfile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sak-pid-')), 'pid')
     const session = startStdio({
@@ -150,7 +150,7 @@ describe('handshake probe (eval-design §3)', () => {
 
   it('reports processes that outlive close() as a C4 error (orphans)', async () => {
     // Nothing survives SIGKILL in a real test, so a fake session stands in for one whose
-    // close() could not empty the process group (review of #18).
+    // close() could not empty the process group.
     const fakeSession = () => ({
       transport: 'stdio',
       stats: { pollutionBytes: 0, pollutionSamples: [], stderr: '', orphans: false },

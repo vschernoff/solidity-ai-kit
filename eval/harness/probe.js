@@ -1,4 +1,4 @@
-// Handshake and tool-surface probe (eval-design §3 steps 1, 2 and 6). For one candidate:
+// Handshake and tool-surface probe. For one candidate:
 // initialize from two working directories of different depth, measure `instructions` live,
 // snapshot tools/list, and count stdout pollution. Every failure is recorded, never dropped.
 import { createHash } from 'node:crypto'
