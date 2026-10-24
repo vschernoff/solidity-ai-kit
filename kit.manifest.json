@@ -29,9 +29,9 @@
           "resolved": false
         },
         {
-          "note": "Partly resolved in 0.1.6: an unloadable plugin or unknown rule is reported as a '⚠️ degraded run' banner in the result text (not isError), and get_config no longer claims the config is sound. Not covered: if FORCE_COLOR is set in the server's environment, Solhint's warnings are coloured and not recognised, so the run looks clean.",
+          "note": "Run health (C4) resolved in 0.1.7: a plugin that fails to load or an unknown rule id is reported as a \"⚠️ This run was degraded\" banner naming each problem, above the findings, also with FORCE_COLOR set; get_config no longer claims the config is sound. A degraded run is not isError (by design: findings from the rules that did load stay usable), so the agent must read the banner. Verified by execution: lint-stage cases 21/21 (kit PR #27, Eval run 40075075328).",
           "security": false,
-          "resolved": false
+          "resolved": true
         }
       ]
     }
