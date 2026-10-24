@@ -1,6 +1,13 @@
 import path from 'node:path'
 import { launchSpec } from '../components.js'
-import { objectAt, parseJsonObject, readText, setServer, stringifyLike } from './json.js'
+import {
+  objectAt,
+  parseJsonObject,
+  readText,
+  setServer,
+  stringifyLike,
+  withoutServers,
+} from './json.js'
 
 // Formats checked against https://code.claude.com/docs/en/mcp and
 // https://code.claude.com/docs/en/permissions on 2026-10-23: project servers live in
@@ -48,5 +55,33 @@ export function claudeCode(project, { components, notes }) {
     'In interactive sessions Claude Code asks you to approve the project servers in .mcp.json ' +
       'the first time; non-interactive runs (claude -p) load them without asking.'
   )
+  return edits
+}
+
+export function claudeCodeRemove(project, { components }) {
+  const edits = []
+  const mcpText = readText(project.root, MCP_FILE)
+  const mcp = withoutServers(
+    MCP_FILE,
+    mcpText,
+    components.map(({ id }) => id)
+  )
+  if (mcp !== undefined) edits.push({ file: MCP_FILE, after: mcp })
+
+  const rules = new Set(
+    components.flatMap(({ id, deniedTools }) => deniedTools.map((tool) => `mcp__${id}__${tool}`))
+  )
+  const settingsText = readText(project.root, SETTINGS_FILE)
+  if (rules.size === 0 || settingsText === null) return edits
+  const settings = parseJsonObject(SETTINGS_FILE, settingsText)
+  const deny = settings.permissions?.deny
+  if (!Array.isArray(deny) || !deny.some((rule) => rules.has(rule))) return edits
+  settings.permissions.deny = deny.filter((rule) => !rules.has(rule))
+  if (settings.permissions.deny.length === 0) delete settings.permissions.deny
+  if (Object.keys(settings.permissions).length === 0) delete settings.permissions
+  edits.push({
+    file: SETTINGS_FILE,
+    after: Object.keys(settings).length === 0 ? null : stringifyLike(settingsText, settings),
+  })
   return edits
 }

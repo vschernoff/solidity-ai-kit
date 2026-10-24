@@ -171,3 +171,44 @@ export function codex(project, { components, notes }) {
   )
   return [{ file: CONFIG_FILE, after }]
 }
+
+// FR-9: drops the kit's tables (and sub-tables) as text, then checks by parsing that the
+// result is the original config minus exactly those servers.
+export function codexRemove(project, { components }) {
+  const before = readText(project.root, CONFIG_FILE)
+  if (before === null) return []
+  const current = parseToml(before)
+  const servers = isTable(current.mcp_servers) ? current.mcp_servers : {}
+  const ids = components.map(({ id }) => id).filter((id) => Object.hasOwn(servers, id))
+  if (ids.length === 0) return []
+
+  const eol = before.includes('\r\n') ? '\r\n' : '\n'
+  let lines = before.split(/\r?\n/)
+  if (lines.at(-1) === '') lines.pop()
+  for (const id of ids) lines = replaceTables(lines, id, [])
+  while (lines.length > 0 && lines.at(-1).trim() === '') lines.pop()
+  const after = lines.length === 0 ? null : `${lines.join(eol)}${eol}`
+
+  const rest = Object.fromEntries(Object.entries(servers).filter(([id]) => !ids.includes(id)))
+  const expected = { ...current }
+  if (Object.keys(rest).length > 0) expected.mcp_servers = rest
+  else delete expected.mcp_servers
+  let result
+  try {
+    result = after === null ? {} : parse(after)
+  } catch {
+    result = undefined
+  }
+  // An emptied [mcp_servers] parent table may remain; it carries nothing.
+  if (result && isTable(result.mcp_servers) && Object.keys(result.mcp_servers).length === 0) {
+    delete result.mcp_servers
+  }
+  if (result === undefined || !isDeepStrictEqual(normalize(result), normalize(expected))) {
+    throw new Error(
+      `${CONFIG_FILE} defines the kit's servers in a way it cannot remove safely ` +
+        `(for example an inline table or dotted keys). Nothing was written. ` +
+        `Remove these tables by hand: ${ids.map((id) => `[mcp_servers.${id}]`).join(', ')}`
+    )
+  }
+  return [{ file: CONFIG_FILE, after }]
+}
