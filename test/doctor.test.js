@@ -6,7 +6,13 @@ import os from 'node:os'
 import path from 'node:path'
 import { after, describe, it } from 'node:test'
 import { promisify } from 'node:util'
-import { STATUS, configuredInProject, formatReport, runDoctor } from '../src/doctor.js'
+import {
+  STATUS,
+  configuredInProject,
+  formatReport,
+  runDoctor,
+  serverEnvironment,
+} from '../src/doctor.js'
 import { PACKAGE_ROOT, loadManifest, readPackageJson } from '../src/manifest.js'
 import { probe, resolveNpx } from '../src/mcp-probe.js'
 
@@ -416,5 +422,48 @@ describe('doctor through the CLI', () => {
       const result = await cli(project({}, { foundry: false }), 'doctor', ...args)
       assert.equal(result.code, 1, args.join(' '))
     }
+  })
+})
+
+describe('the environment doctor gives servers', () => {
+  it('drops what npx sets for its own run, keeps the user’s npm settings', () => {
+    const env = serverEnvironment({
+      PATH: '/bin',
+      npm_config_package: '/tmp/solidity-ai-kit-0.1.0.tgz',
+      npm_config_call: 'x',
+      npm_command: 'exec',
+      npm_lifecycle_event: 'npx',
+      npm_lifecycle_script: 'solidity-ai-kit doctor',
+      npm_package_json: '/p/package.json',
+      npm_config_registry: 'https://registry.example',
+      npm_config_cache: '/c',
+      npm_config_yes: 'true',
+    })
+    assert.deepEqual(env, {
+      PATH: '/bin',
+      npm_config_registry: 'https://registry.example',
+      npm_config_cache: '/c',
+      npm_config_yes: 'true',
+    })
+  })
+
+  it('starts servers with that environment, even when doctor runs under npx', async () => {
+    const seen = []
+    const prober = async (launch) => {
+      seen.push(launch.env)
+      return probe(launch)
+    }
+    const saved = process.env.npm_config_package
+    process.env.npm_config_package = '/tmp/solidity-ai-kit-0.1.0.tgz'
+    try {
+      await doctor(project({ '.mcp.json': mcpJson('p') }), [stubComponent('p', 'fixed', 1)], {
+        prober,
+      })
+    } finally {
+      if (saved === undefined) delete process.env.npm_config_package
+      else process.env.npm_config_package = saved
+    }
+    assert.equal(seen.length, 2)
+    for (const env of seen) assert.equal(env.npm_config_package, undefined)
   })
 })

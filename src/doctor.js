@@ -103,6 +103,16 @@ async function checkBinary(name, { required, fix, timeoutMs, runner }) {
   return { name, status: STATUS.healthy, detail: result.version }
 }
 
+// When doctor itself runs under `npx` / `npm exec`, npm puts the details of that run in the
+// environment (npm_config_package names the kit's own package). A server started from here
+// through `npx` would inherit them and install the kit instead of the server. Those run-
+// specific variables are removed; the user's own npm settings (registry, proxy, cache) stay.
+const NPM_RUN_VARIABLES = /^npm_(config_package|config_call|command|lifecycle_.*|package_json)$/i
+
+export function serverEnvironment(env = process.env) {
+  return Object.fromEntries(Object.entries(env).filter(([key]) => !NPM_RUN_VARIABLES.test(key)))
+}
+
 async function checkComponent(component, { root, deepDir, timeoutMs, prober }) {
   const name = label(component)
   const fix = component.package
@@ -125,7 +135,8 @@ async function checkComponent(component, { root, deepDir, timeoutMs, prober }) {
       fix: 'Reinstall Node with npm included.',
     }
   }
-  const first = await prober({ ...launch, cwd: root, timeoutMs })
+  const env = serverEnvironment()
+  const first = await prober({ ...launch, cwd: root, timeoutMs, env })
   if (first.status !== 'healthy') {
     return {
       name,
@@ -145,7 +156,7 @@ async function checkComponent(component, { root, deepDir, timeoutMs, prober }) {
   }
   // FR-12: the same server from a directory of different depth; a different length means
   // the text interpolates something machine-specific (usually a path).
-  const second = await prober({ ...launch, cwd: deepDir, timeoutMs })
+  const second = await prober({ ...launch, cwd: deepDir, timeoutMs, env })
   const lengths = [{ dir: root, length: first.instructions.length }]
   if (second.status === 'healthy')
     lengths.push({ dir: deepDir, length: second.instructions.length })
