@@ -29,32 +29,65 @@ describe('GitHub YAML (NFR-3)', () => {
   }
 
   const tests = () => parseYaml(path.join(githubDir, 'workflows', 'TESTS.yml'))
+  const EVENTS = ['pull_request', 'push', 'schedule', 'workflow_dispatch']
+
+  // Evaluates this workflow's own `if:` and matrix expressions for an event. They only use
+  // github.event_name, ==, !=, &&, ||, parentheses, string literals and fromJSON, which map
+  // one-to-one onto JavaScript.
+  function evaluate(expression, event) {
+    if (expression === undefined) return true
+    const body = expression
+      .replace(/^\$\{\{\s*|\s*\}\}$/g, '')
+      .replaceAll('github.event_name', JSON.stringify(event))
+      .replaceAll('fromJSON', 'JSON.parse')
+      .replaceAll(' == ', ' === ')
+      .replaceAll(' != ', ' !== ')
+    assert.match(body, /^[\w\s"'(),.[\]=!&|-]+$/, `unexpected expression: ${expression}`)
+    return new Function(`return (${body})`)()
+  }
+
+  // Which platforms each event tests on: the npm test jobs, and the packed smoke job.
+  function platforms(event) {
+    const { jobs } = tests()
+    const testJobs = ['linux', 'windows', 'macos'].filter((name) => evaluate(jobs[name].if, event))
+    return {
+      test: testJobs.map((name) => jobs[name]['runs-on']).sort(),
+      packed: [...evaluate(jobs.packed.strategy.matrix.os, event)].sort(),
+    }
+  }
 
   it('tests every supported Node line on every platform (NFR-1)', () => {
     const { jobs } = tests()
     const floor = Number(readPackageJson().engines.node.match(/^>=(\d+)/)[1])
-    for (const job of [jobs.linux, jobs['other-platforms']]) {
-      const { node } = job.strategy.matrix
-      assert.ok(node.includes(floor), `matrix misses the engines floor, Node ${floor}`)
+    for (const name of ['linux', 'windows', 'macos']) {
+      const { node } = jobs[name].strategy.matrix
+      assert.ok(node.includes(floor), `${name} misses the engines floor, Node ${floor}`)
       // Both supported LTS lines (C11), written out so dropping one fails here.
-      assert.deepEqual([...node].sort(), [22, 24])
+      assert.deepEqual([...node].sort(), [22, 24], name)
+      // The test jobs run the same steps, so the platforms differ only in where they run.
+      assert.deepEqual(jobs[name].steps, jobs.linux.steps, name)
     }
-    const platforms = [jobs.linux['runs-on'], ...jobs['other-platforms'].strategy.matrix.os]
-    assert.deepEqual(platforms.sort(), ['macos-latest', 'ubuntu-latest', 'windows-latest'])
-    // Both test jobs run the same steps, so the platforms differ only in where they run.
-    assert.deepEqual(jobs['other-platforms'].steps, jobs.linux.steps)
     assert.ok(jobs.linux.steps.some(({ run }) => run === 'npm test'))
+    const all = ['macos-latest', 'ubuntu-latest', 'windows-latest']
+    assert.deepEqual(platforms('schedule').test, all)
+    assert.deepEqual(platforms('schedule').packed, all)
   })
 
-  it('runs macOS and Windows on main, nightly and on demand, not on pull requests (D25)', () => {
+  it('runs Linux on pull requests, adds Windows on main, macOS only nightly and on demand (D25, D30)', () => {
+    const expected = {
+      pull_request: ['ubuntu-latest'],
+      push: ['ubuntu-latest', 'windows-latest'],
+      schedule: ['macos-latest', 'ubuntu-latest', 'windows-latest'],
+      workflow_dispatch: ['macos-latest', 'ubuntu-latest', 'windows-latest'],
+    }
+    for (const event of EVENTS) {
+      assert.deepEqual(platforms(event), { test: expected[event], packed: expected[event] }, event)
+    }
     const workflow = tests()
     assert.deepEqual(workflow.on.push.branches, ['main'])
-    assert.ok('pull_request' in workflow.on)
-    assert.ok('workflow_dispatch' in workflow.on)
+    assert.ok('pull_request' in workflow.on && 'workflow_dispatch' in workflow.on)
     assert.match(workflow.on.schedule[0].cron, /^\S+ \S+ \* \* \*$/, 'a daily schedule')
-    assert.equal(workflow.jobs['other-platforms'].if, "github.event_name != 'pull_request'")
-    assert.equal(workflow.jobs.linux.if, undefined)
-    assert.equal(workflow.jobs.lint.if, undefined)
+    assert.equal(workflow.jobs.lint.if, undefined, 'lint runs on every event')
   })
 
   it('cancels superseded pull request runs but never cancels on main (D25)', () => {
@@ -67,14 +100,9 @@ describe('GitHub YAML (NFR-3)', () => {
     assert.equal(concurrency['cancel-in-progress'], "${{ github.event_name == 'pull_request' }}")
   })
 
-  it('runs the packed smoke test, Linux-only on pull requests (NFR-2, D25)', () => {
-    const { packed } = parseYaml(path.join(githubDir, 'workflows', 'TESTS.yml')).jobs
+  it('runs the packed smoke test (NFR-2)', () => {
+    const { packed } = tests().jobs
     assert.ok(packed.steps.some(({ run }) => run === 'npm run test:packed'))
-    const os = packed.strategy.matrix.os
-    assert.match(os, /github\.event_name == 'pull_request' && '\["ubuntu-latest"\]'/)
-    for (const platform of ['ubuntu-latest', 'windows-latest', 'macos-latest']) {
-      assert.ok(os.includes(`"${platform}"`), platform)
-    }
     assert.equal(readPackageJson().scripts['test:packed'], 'node test/packed-smoke.js')
   })
 })
