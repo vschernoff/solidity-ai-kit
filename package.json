@@ -2,7 +2,7 @@
   "name": "solidity-ai-kit",
   "version": "0.0.0",
   "private": true,
-  "description": "Set up Claude Code, Codex or Cursor for Solidity: pinned MCP servers (Solhint lint) plus build, test and lint rules for Foundry and Hardhat",
+  "description": "Set up Codex, Cursor or Claude Code for Solidity: pinned MCP servers (Solhint lint) plus build, test and lint rules for Foundry and Hardhat",
   "type": "module",
   "bin": {
     "solidity-ai-kit": "src/bin.js"
@@ -28,9 +28,9 @@
     "model-context-protocol",
     "ai-agent",
     "ai-coding-agent",
-    "claude-code",
     "codex",
     "cursor",
+    "claude-code",
     "cli",
     "developer-tools"
   ],
