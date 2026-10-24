@@ -106,6 +106,16 @@ Risk notes, including what a component cannot protect against, are in `kit.manif
   comes back with exactly one trailing newline.
 - Windows is tested in CI, but no client has been run end-to-end on Windows with the kit.
 
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report a vulnerability and what the kit's attack
+surface is.
+
+## Requirement IDs
+
+Requirement IDs in code and tests (FR-, NFR-, D-) refer to the project's internal
+specification.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE) and, for the third-party components the kit configures,
