@@ -69,12 +69,10 @@ export function rulesBlock(project, components) {
 // Returns the file with the block inserted or replaced. A file with a damaged block (one
 // marker without the other, markers out of order, or more than one block) is an error:
 // guessing where the user's text ends could delete it.
-export function withBlock(file, text, block) {
-  const eol = text?.includes('\r\n') ? '\r\n' : '\n'
-  const blockText = block.join(eol)
-  if (text === null || text === '') return `${blockText}${eol}`
-
-  const lines = text.split(/\r?\n/)
+// Where the kit's block is in `lines`: null when there is none. A damaged block (one
+// marker without the other, markers out of order, or more than one block) is an error:
+// guessing where the user's text ends could delete it.
+function findBlock(file, lines) {
   // Markers quoted inside a fenced code block are examples, not the kit's block.
   let fenced = false
   const markerAt = lines.map((line) => {
@@ -83,17 +81,44 @@ export function withBlock(file, text, block) {
   })
   const starts = markerAt.flatMap((marker, index) => (marker === START ? [index] : []))
   const ends = markerAt.flatMap((marker, index) => (marker === END ? [index] : []))
-  if (starts.length === 0 && ends.length === 0) {
-    const body = text.replace(/(\r?\n)*$/, '')
-    return `${body}${eol}${eol}${blockText}${eol}`
-  }
+  if (starts.length === 0 && ends.length === 0) return null
   if (starts.length !== 1 || ends.length !== 1 || ends[0] < starts[0]) {
     throw new Error(
       `${file} has a damaged solidity-ai-kit block (${starts.length} start, ${ends.length} end marker(s)). ` +
-        `Fix or remove the ${START} … ${END} lines, then run init again.`
+        `Fix or remove the ${START} … ${END} lines, then run the kit again.`
     )
   }
-  return [...lines.slice(0, starts[0]), ...block, ...lines.slice(ends[0] + 1)].join(eol)
+  return { start: starts[0], end: ends[0] }
+}
+
+// Returns the file with the block inserted or replaced.
+export function withBlock(file, text, block) {
+  const eol = text?.includes('\r\n') ? '\r\n' : '\n'
+  const blockText = block.join(eol)
+  if (text === null || text === '') return `${blockText}${eol}`
+
+  const lines = text.split(/\r?\n/)
+  const found = findBlock(file, lines)
+  if (found === null) {
+    const body = text.replace(/(\r?\n)*$/, '')
+    return `${body}${eol}${eol}${blockText}${eol}`
+  }
+  return [...lines.slice(0, found.start), ...block, ...lines.slice(found.end + 1)].join(eol)
+}
+
+// FR-9: the file without the block (and the blank line init put before it); `null` when
+// nothing else is left, `undefined` when there is no block.
+export function withoutBlock(file, text) {
+  if (text === null) return undefined
+  const eol = text.includes('\r\n') ? '\r\n' : '\n'
+  const lines = text.split(/\r?\n/)
+  const found = findBlock(file, lines)
+  if (found === null) return undefined
+  const before = lines.slice(0, found.start)
+  if (before.length > 0 && before.at(-1).trim() === '') before.pop()
+  const rest = [...before, ...lines.slice(found.end + 1)]
+  const joined = rest.join(eol).replace(/(\r?\n)*$/, '')
+  return joined.trim() === '' ? null : `${joined}${eol}`
 }
 
 // A common layout makes CLAUDE.md a symlink to AGENTS.md (or the other way round). When a
@@ -134,5 +159,22 @@ export function rulesGenerator(clients) {
       file,
       after: withBlock(file, readText(project.root, file), block),
     }))
+  }
+}
+
+export function rulesRemover(clients) {
+  const files = [...new Set(clients.map((client) => RULES_FILES[client]))]
+  return function rules(project, { notes }) {
+    const targets = new Set()
+    for (const file of files) {
+      const target = linkTarget(project.root, file)
+      if (target !== file)
+        notes.push(`${file} is a symlink to ${target}; the block is removed there.`)
+      targets.add(target)
+    }
+    return [...targets].flatMap((file) => {
+      const after = withoutBlock(file, readText(project.root, file))
+      return after === undefined ? [] : [{ file, after }]
+    })
   }
 }

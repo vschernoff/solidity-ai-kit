@@ -1,15 +1,17 @@
 import { parseArgs } from 'node:util'
-import { claudeCode } from './clients/claude-code.js'
-import { codex } from './clients/codex.js'
-import { cursor } from './clients/cursor.js'
+import { claudeCode, claudeCodeRemove } from './clients/claude-code.js'
+import { codex, codexRemove } from './clients/codex.js'
+import { cursor, cursorRemove } from './clients/cursor.js'
 import { label, selectComponents } from './components.js'
 import { DEFAULT_LIMITS, formatReport, runDoctor } from './doctor.js'
 import { runInit } from './init.js'
-import { rulesGenerator } from './rules.js'
+import { runRemove } from './remove.js'
+import { rulesGenerator, rulesRemover } from './rules.js'
 import { loadManifest, readPackageJson } from './manifest.js'
 
 // Clients init writes project-scoped config for.
 export const CLIENTS = { 'claude-code': claudeCode, codex, cursor }
+const REMOVERS = { 'claude-code': claudeCodeRemove, codex: codexRemove, cursor: cursorRemove }
 
 const COMMANDS = {
   init: 'Preview (or with --write, apply) MCP configs and workflow rules for this project',
@@ -45,18 +47,35 @@ function listOption(values) {
   return (values ?? []).flatMap((value) => value.split(',')).map((value) => value.trim())
 }
 
-function init(values, { cwd, stdout, stderr }) {
-  const requestedClients = listOption(values.client)
+function selectedClients(values) {
+  const requested = listOption(values.client)
   const clients =
-    requestedClients.length === 0 || requestedClients.includes('all')
-      ? Object.keys(CLIENTS)
-      : requestedClients
+    requested.length === 0 || requested.includes('all') ? Object.keys(CLIENTS) : requested
   const unknown = clients.filter((client) => !Object.hasOwn(CLIENTS, client))
   if (unknown.length > 0) {
     throw new Error(
       `Unknown client: ${unknown.join(', ')}. Known: ${Object.keys(CLIENTS).join(', ')}`
     )
   }
+  return clients
+}
+
+// Every component the manifest lists, whether or not it was opted in: anything init could
+// have written is removed.
+function remove(values, { cwd, stdout, stderr }) {
+  const clients = selectedClients(values)
+  return runRemove({
+    root: cwd,
+    write: values.write === true,
+    components: loadManifest().components,
+    removers: [...clients.map((client) => REMOVERS[client]), rulesRemover(clients)],
+    stdout,
+    stderr,
+  })
+}
+
+function init(values, { cwd, stdout, stderr }) {
+  const clients = selectedClients(values)
 
   const manifest = loadManifest()
   const components = selectComponents(manifest, listOption(values.with))
@@ -159,6 +178,14 @@ export function main(
       return init(values, { cwd, stdout, stderr })
     } catch (error) {
       stderr.write(`solidity-ai-kit init: ${error.message}\n`)
+      return 1
+    }
+  }
+  if (command === 'remove') {
+    try {
+      return remove(values, { cwd, stdout, stderr })
+    } catch (error) {
+      stderr.write(`solidity-ai-kit remove: ${error.message}\n`)
       return 1
     }
   }
