@@ -69,10 +69,16 @@ function main() {
       .split(/\r?\n/)
       .filter(Boolean)
     const allowed =
-      /^package\/(package\.json|README\.md|LICENSE|NOTICE|kit\.manifest(\.schema)?\.json|src\/.+\.js)$/
+      /^package\/(package\.json|README\.md|CHANGELOG\.md|SECURITY\.md|LICENSE|NOTICE|kit\.manifest(\.schema)?\.json|src\/.+\.js)$/
     const unexpected = contents.filter((file) => !allowed.test(file))
     assert.deepEqual(unexpected, [], 'unexpected files in the tarball')
-    for (const required of ['package/NOTICE', 'package/LICENSE', 'package/kit.manifest.json']) {
+    for (const required of [
+      'package/NOTICE',
+      'package/LICENSE',
+      'package/CHANGELOG.md',
+      'package/SECURITY.md',
+      'package/kit.manifest.json',
+    ]) {
       assert.ok(contents.includes(required), `${required} missing from the tarball`)
     }
     console.log(`Tarball ${tarball}: ${contents.length} files`)
