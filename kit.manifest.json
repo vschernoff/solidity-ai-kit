@@ -24,7 +24,7 @@
           "resolved": true
         },
         {
-          "note": "Linting a repository runs that repository's own Solhint plugins and JS config (.solhint.json plugins, .solhintrc.js, solhint.config.js, a project-installed Solhint): the same trust as running `npx solhint` there. No version of this component changes that; it is not safe for untrusted repositories.",
+          "note": "Linting, or reading the config with get_config, runs that repository's own Solhint plugins and JS config, the same trust as running `npx solhint` there. Not safe for untrusted repositories.",
           "security": false,
           "resolved": false
         },
