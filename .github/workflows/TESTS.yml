@@ -1,6 +1,8 @@
-# D25: GitHub Actions minutes are limited (macOS counts 10×, Windows 2×). Pull requests
-# run lint and Linux only; the full matrix runs on main, nightly and on demand. A macOS or
-# Windows failure found after merge is fixed forward with priority.
+# Actions minutes are limited, and macOS counts 10×, Windows 2×.
+# - Pull requests: lint and Linux (D25).
+# - Push to main: lint, Linux and Windows (D30).
+# - Nightly and on demand: everything, macOS included (D30).
+# A Windows or macOS failure found after merge is fixed forward with priority.
 name: Tests
 
 on:
@@ -41,14 +43,30 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  other-platforms:
-    name: ${{ matrix.os }} / Node ${{ matrix.node }}
+  windows:
+    name: windows-latest / Node ${{ matrix.node }}
     if: github.event_name != 'pull_request'
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  macos:
+    name: macos-latest / Node ${{ matrix.node }}
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
         node: [22, 24]
     steps:
       - uses: actions/checkout@v7
@@ -72,14 +90,14 @@ jobs:
 
   # NFR-2: the packed tarball, installed into a fresh project; init and doctor run from it,
   # and doctor starts every manifest component through the real npx. Linux on pull
-  # requests (D25); all three platforms on main, nightly and on demand.
+  # requests, Linux and Windows on main, all three nightly and on demand (D25, D30).
   packed:
     name: packed / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(github.event_name == 'pull_request' && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]') }}
+        os: ${{ fromJSON(github.event_name == 'pull_request' && '["ubuntu-latest"]' || (github.event_name == 'push' && '["ubuntu-latest", "windows-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]')) }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
