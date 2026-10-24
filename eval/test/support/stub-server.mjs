@@ -4,7 +4,7 @@
 //
 //   --pollute             print a banner to stdout before answering (C3)
 //   --interpolate-cwd     put process.cwd() into instructions (C2: varies by machine)
-//   --hang-tools-list     answer initialize, never answer tools/list (slither-mcp #35 pattern)
+//   --hang-tools-list     answer initialize, never answer tools/list (the trailofbits/slither-mcp#35 pattern)
 //   --exit-on-initialize  exit(3) when initialize arrives
 //   --paged               split tools/list into two pages with a cursor
 //   --tool-error          tools/call returns isError: true

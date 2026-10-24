@@ -228,7 +228,7 @@ describe('forge result comparison', () => {
     assert.deepEqual(statuses(compareStorageLayout(expected, good)), ['confirmed', 'confirmed'])
     const bad = { ...good, ImplV2: ran(layout(expected.ImplV1)) }
     assert.deepEqual(statuses(compareStorageLayout(expected, bad)), ['confirmed', 'mismatch'])
-    // Right output but a failed inspect still does not count (Reviewer, PR #6).
+    // Right output but a failed inspect still does not count.
     const failed = { ...good, ImplV2: ran(layout(expected.ImplV2), 1) }
     assert.deepEqual(statuses(compareStorageLayout(expected, failed)), ['confirmed', 'mismatch'])
     assert.deepEqual(statuses(compareStorageLayout(expected, { ImplV1: good.ImplV1 })), [
@@ -250,7 +250,7 @@ describe('forge result comparison', () => {
     assert.deepEqual(statuses(compareCreatedFiles(expect, dir)), ['mismatch'])
   })
 
-  // The four tests below close mutation gaps the Reviewer found on PR #6.
+  // The four tests below close mutation gaps found in review.
   it('flags a failing expectation when forge test exits 0, and a passing one when it exits 1', () => {
     const failing = compareTests(gt('F05-failing-assertion').test, {
       exitCode: 0,
