@@ -14,6 +14,7 @@
 //   --ignore-sigterm      ignore SIGTERM and stdin EOF (only SIGKILL stops it)
 //   --leak-key            put $PRIVATE_KEY into instructions (canary test)
 //   --leak-key-stderr     print $PRIVATE_KEY to stderr at start-up
+//   --leak-key-stdout     print six banner lines, then $PRIVATE_KEY, on stdout at start-up
 //   --leak-key-description  put $PRIVATE_KEY into a tool description
 //   --leak-key-schema     put $PRIVATE_KEY as an inputSchema default
 //   --long-instructions   instructions of exactly 900 characters
@@ -35,6 +36,10 @@ const tools = [
   { name: 'fix', description: 'Fix a file', inputSchema: { type: 'object' } },
 ]
 if (flags.has('--leak-key-stderr')) process.stderr.write(`loaded key ${key}\n`)
+if (flags.has('--leak-key-stdout')) {
+  for (let i = 1; i <= 6; i++) process.stdout.write(`banner line ${i}\n`)
+  process.stdout.write(`loaded key ${key}\n`)
+}
 
 if (flags.has('--ignore-sigterm')) {
   process.on('SIGTERM', () => {})

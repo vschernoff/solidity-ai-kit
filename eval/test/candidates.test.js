@@ -167,7 +167,10 @@ describe('probe findings', () => {
       c2.map((f) => [f.severity, f.finding]),
       [
         ['warning', 'instructions vary with the working directory: 693 / 719 chars'],
-        ['warning', 'instructions are 719 chars: exceeds the ~512 chars Codex retains'],
+        [
+          'warning',
+          "instructions are 719 chars: exceeds the ~512 chars Codex's guidance recommends",
+        ],
       ]
     )
     const short = { instructions: { chars: [182], variable: false }, errors: [], leaks: [] }
@@ -192,6 +195,8 @@ describe('probe.mjs end to end', () => {
     ['--leak-key-stderr', 'stderr'],
     ['--leak-key-description', 'tools/list'],
     ['--leak-key-schema', 'tools/list'],
+    // Past the five 200-char samples kept for the report (review of #8).
+    ['--leak-key-stdout', 'stdout'],
   ]) {
     it(`catches the canary private key in ${where} (${flag}, G7)`, async () => {
       const report = await probeScript([flag])
@@ -204,10 +209,12 @@ describe('probe.mjs end to end', () => {
     })
   }
 
-  it('warns when instructions are longer than Codex keeps (C2)', async () => {
+  it("warns when instructions are longer than Codex's guidance recommends (C2)", async () => {
     const report = await probeScript(['--long-instructions'])
     assert.ok(
-      report.findings.some((f) => f.finding.includes('900 chars: exceeds the ~512 chars Codex'))
+      report.findings.some((f) =>
+        f.finding.includes("900 chars: exceeds the ~512 chars Codex's guidance")
+      )
     )
   })
 
