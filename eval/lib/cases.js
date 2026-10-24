@@ -40,6 +40,11 @@ export function fillPlaceholders(args, markers, projectDir) {
   return JSON.parse(json)
 }
 
+/** A case pattern: a JS regular expression source, `(?i)` prefix for case-insensitive. */
+export function toRegExp(source) {
+  return source.startsWith('(?i)') ? new RegExp(source.slice(4), 'i') : new RegExp(source)
+}
+
 /** All text a tool returned, joined. */
 export function resultText(call) {
   return (call?.content ?? [])
@@ -74,6 +79,10 @@ export function evaluateCase(expect, call, { markerFired = false, pollutionBytes
       !text.includes(needle),
       text.includes(needle) ? 'present' : 'absent'
     )
+  }
+  for (const source of expect.matches ?? []) {
+    const hit = toRegExp(source).test(text)
+    add(`matches /${source}/`, hit, hit ? 'matched' : 'no line matched')
   }
   if (expect.stdoutClean) {
     add('nothing but JSON-RPC on stdout', pollutionBytes === 0, `${pollutionBytes} stray bytes`)

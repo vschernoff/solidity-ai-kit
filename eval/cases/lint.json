@@ -1,5 +1,5 @@
 {
-  "$comment": "Lint-stage cases (SRS §8.2 step 2, C4, NFR-11). Requirements on any lint MCP server, not on one implementation. `files` are written into the project copy before the server starts (never committed). Placeholders: $MARKER_JS (absolute path of a JS file that writes a marker when required), $MARKER_REL (the same file, relative to the project), $MARKER_DIR (its directory).",
+  "$comment": "Lint-stage cases (SRS §8.2 step 2, C4, NFR-11). Requirements on any lint MCP server, not on one implementation. `files` are written into the project copy before the server starts (never committed). `matches` are regular expressions (a leading (?i) means case-insensitive). Placeholders: $MARKER_JS (absolute path of a JS file that writes a marker when required), $MARKER_REL (the same file, relative to the project), $MARKER_DIR (its directory).",
   "stage": "lint",
   "cases": [
     {
@@ -39,9 +39,11 @@
       "tool": "lint_project",
       "args": {},
       "expect": {
-        "includes": ["sak-missing"]
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure."
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
     },
     {
       "id": "F14-lint_project-FORCE_COLOR",
@@ -49,9 +51,11 @@
       "tool": "lint_project",
       "args": {},
       "expect": {
-        "includes": ["sak-missing"]
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure.",
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
       "env": {
         "FORCE_COLOR": "1"
       }
@@ -62,10 +66,12 @@
       "tool": "get_config",
       "args": {},
       "expect": {
-        "includes": ["sak-missing"],
-        "excludes": ["✅"]
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure."
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
     },
     {
       "id": "F14-get_config-FORCE_COLOR",
@@ -73,10 +79,12 @@
       "tool": "get_config",
       "args": {},
       "expect": {
-        "includes": ["sak-missing"],
-        "excludes": ["✅"]
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-missing|sak\\-missing[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-missing` must say so; a clean-looking result is a run-health failure.",
+      "why": "C4: a run that skipped `sak-missing` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
       "env": {
         "FORCE_COLOR": "1"
       }
@@ -87,9 +95,11 @@
       "tool": "lint_project",
       "args": {},
       "expect": {
-        "includes": ["sak-no-such-rule"]
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure."
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
     },
     {
       "id": "F15-lint_project-FORCE_COLOR",
@@ -97,9 +107,11 @@
       "tool": "lint_project",
       "args": {},
       "expect": {
-        "includes": ["sak-no-such-rule"]
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure.",
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
       "env": {
         "FORCE_COLOR": "1"
       }
@@ -110,10 +122,12 @@
       "tool": "get_config",
       "args": {},
       "expect": {
-        "includes": ["sak-no-such-rule"],
-        "excludes": ["✅"]
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure."
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway."
     },
     {
       "id": "F15-get_config-FORCE_COLOR",
@@ -121,10 +135,12 @@
       "tool": "get_config",
       "args": {},
       "expect": {
-        "includes": ["sak-no-such-rule"],
-        "excludes": ["✅"]
+        "excludes": ["✅"],
+        "matches": [
+          "(?i)(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)[^\\n]{0,120}sak\\-no\\-such\\-rule|sak\\-no\\-such\\-rule[^\\n]{0,120}(could not load|couldn't load|failed to load|not installed|cannot find|can't find|does ?n[o']t exist|not found|unknown|not recogni[sz]ed|did not (run|load)|was not loaded|skipped)"
+        ]
       },
-      "why": "C4: a run that skipped `sak-no-such-rule` must say so; a clean-looking result is a run-health failure.",
+      "why": "C4: a run that skipped `sak-no-such-rule` must say so, naming it next to what went wrong on the same line. A bare mention is not enough: get_config echoes the project config, which contains the name anyway.",
       "env": {
         "FORCE_COLOR": "1"
       }
@@ -175,7 +191,7 @@
         "isError": true,
         "markerAbsent": true
       },
-      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
     },
     {
       "id": "sec-extends-relative",
@@ -191,7 +207,7 @@
         "isError": true,
         "markerAbsent": true
       },
-      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
     },
     {
       "id": "sec-plugins-path",
@@ -208,7 +224,7 @@
         "isError": true,
         "markerAbsent": true
       },
-      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
     },
     {
       "id": "sec-plugins-with-pluginPaths",
@@ -226,7 +242,7 @@
         "isError": true,
         "markerAbsent": true
       },
-      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written."
+      "why": "NFR-11(a): agent-supplied config must never load code; the marker file must not be written. Regression guard: Solhint itself already refuses this form (0.1.3 did not load it either), so it guards against future loosening rather than separating fixed from unfixed versions."
     },
     {
       "id": "sec-fix-extends-absolute",

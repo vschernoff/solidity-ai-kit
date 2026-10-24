@@ -52,9 +52,14 @@ describe('lint cases file', () => {
       const { messageContains } = readJson(path.join(FIXTURES_DIR, fx, 'GROUND_TRUTH.json')).expect
         .lint
       for (const c of cases.filter((x) => x.fixture === fx)) {
+        assert.equal(
+          c.expect.includes,
+          undefined,
+          `${c.id}: a bare mention can be met by the config echo`
+        )
         assert.ok(
-          c.expect.includes.includes(messageContains),
-          `${c.id} must mention ${messageContains}`
+          c.expect.matches.every((m) => m.replaceAll('\\', '').includes(messageContains)),
+          `${c.id} must look for ${messageContains}`
         )
       }
     }
@@ -67,6 +72,50 @@ describe('case evaluation', () => {
     assert.equal(evaluateCase(expect, text('⚠️ degraded: sak-missing did not load')).passed, true)
     assert.equal(evaluateCase(expect, text('No violations ✅')).passed, false)
     assert.equal(evaluateCase(expect, text('sak-missing', true)).passed, false)
+  })
+
+  it('does not let the get_config echo of the project config satisfy a C4 case (review of #28)', () => {
+    const lintCases = readCases('lint')
+    for (const [fx, config] of [
+      ['F14-missing-plugin', { extends: 'solhint:recommended', plugins: ['sak-missing'] }],
+      [
+        'F15-unknown-rule',
+        { extends: 'solhint:recommended', rules: { 'sak-no-such-rule': 'error' } },
+      ],
+    ]) {
+      // What a server that reports nothing still prints: the config, verbatim.
+      const echo = text(
+        `**Found:** \`.solhint.json\`\n\n\`\`\`json\n${JSON.stringify(config, null, 2)}\n\`\`\``
+      )
+      for (const c of lintCases.filter((x) => x.fixture === fx)) {
+        assert.equal(evaluateCase(c.expect, echo).passed, false, `${c.id} passed on the bare echo`)
+      }
+    }
+  })
+
+  it('accepts the diagnostics a reporting server gives (Solhint wording and a paraphrase)', () => {
+    const [f14] = readCases('lint').filter((x) => x.id === 'F14-lint_project')
+    const [f15] = readCases('lint').filter((x) => x.id === 'F15-lint_project')
+    const solhint14 =
+      "[solhint] Warning: Could not load solhint-plugin-sak-missing, make sure it's installed"
+    assert.equal(evaluateCase(f14.expect, text(solhint14)).passed, true)
+    assert.equal(evaluateCase(f14.expect, text('plugin sak-missing was not loaded')).passed, true)
+    assert.equal(
+      evaluateCase(f15.expect, text("[solhint] Warning: Rule 'sak-no-such-rule' doesn't exist"))
+        .passed,
+      true
+    )
+    assert.equal(evaluateCase(f15.expect, text('Unknown rule: sak-no-such-rule')).passed, true)
+  })
+
+  it('fails excludes when the forbidden text is present', () => {
+    const expect = { excludes: ['✅'] }
+    assert.equal(evaluateCase(expect, text('config looks sound')).passed, true)
+    assert.equal(
+      evaluateCase(expect, text('✅ Effective config already enables the recommended checks'))
+        .passed,
+      false
+    )
   })
 
   it('fails stdoutClean when stray bytes reached stdout', () => {
