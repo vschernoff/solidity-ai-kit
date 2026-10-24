@@ -1,6 +1,13 @@
 import path from 'node:path'
 import { label, launchSpec } from '../components.js'
-import { objectAt, parseJsonObject, readText, setServer, stringifyLike } from './json.js'
+import {
+  objectAt,
+  parseJsonObject,
+  readText,
+  setServer,
+  stringifyLike,
+  withoutServers,
+} from './json.js'
 
 // Format checked against https://cursor.com/docs/context/mcp on 2026-10-23: project servers
 // live in `.cursor/mcp.json`. Its field table marks `type` required for stdio while its
@@ -43,4 +50,14 @@ export function cursor(project, { components, warnings }) {
     )
   }
   return [{ file: MCP_FILE, after: stringifyLike(text, config) }]
+}
+
+export function cursorRemove(project, { components }) {
+  const text = readText(project.root, MCP_FILE)
+  const after = withoutServers(
+    MCP_FILE,
+    text,
+    components.map(({ id }) => id)
+  )
+  return after === undefined ? [] : [{ file: MCP_FILE, after }]
 }
