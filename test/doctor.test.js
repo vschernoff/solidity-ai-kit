@@ -7,7 +7,7 @@ import path from 'node:path'
 import { after, describe, it } from 'node:test'
 import { promisify } from 'node:util'
 import { STATUS, configuredInProject, formatReport, runDoctor } from '../src/doctor.js'
-import { PACKAGE_ROOT, readPackageJson } from '../src/manifest.js'
+import { PACKAGE_ROOT, loadManifest, readPackageJson } from '../src/manifest.js'
 import { probe, resolveNpx } from '../src/mcp-probe.js'
 
 const packageJson = readPackageJson()
@@ -386,12 +386,25 @@ describe('doctor through the CLI', () => {
     const result = await cliWith({ PATH: '' }, project(), 'doctor')
     assert.equal(result.code, 1)
     assert.match(result.stdout, /missing {9}forge: not on PATH/)
-    assert.match(result.stdout, /3 problem\(s\)/)
+    // forge, anvil and cast, plus each default component (npx is not on an empty PATH).
+    const defaults = loadManifest().components.filter((c) => c.enabledByDefault).length
+    assert.match(result.stdout, new RegExp(`${3 + defaults} problem\\(s\\)`))
   })
 
-  it('says when nothing is configured', async () => {
-    const result = await cli(project({}, { foundry: false }), 'doctor')
-    assert.match(result.stdout, /none configured here/)
+  // Without configs, doctor checks the manifest's defaults; with none, it says so. Both cases
+  // use stand-in manifests, so no real server is fetched.
+  it('says when nothing is configured and nothing is on by default', async () => {
+    const report = await doctor(project({}, { foundry: false }), [stubComponent('opt', 'fixed', 1)])
+    assert.match(formatReport(report).text, /none configured here/)
+  })
+
+  it('checks the default components when nothing is configured', async () => {
+    const onByDefault = { ...stubComponent('def', 'fixed', 1), enabledByDefault: true }
+    const report = await doctor(project({}, { foundry: false }), [onByDefault])
+    assert.deepEqual(
+      report.components.map(({ name, status }) => [name, status]),
+      [['def', STATUS.healthy]]
+    )
   })
 
   it('rejects a bad --limit or --timeout', async () => {

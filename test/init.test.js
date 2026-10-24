@@ -75,7 +75,7 @@ describe('init preview and --write (FR-2)', () => {
     const before = hashTree(dir)
     const result = await cli(dir, 'init')
     assert.equal(result.code, 0, result.stderr)
-    assert.match(result.stdout, /^Project: foundry \(foundry\.toml\)/)
+    assert.match(result.stdout, /^Project: foundry \(foundry\.toml\)/m)
     assert.equal(hashTree(dir), before)
   })
 

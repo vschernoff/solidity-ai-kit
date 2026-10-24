@@ -6,32 +6,32 @@
       "id": "solhint",
       "stage": "lint",
       "package": "solhint-mcp",
-      "version": "0.1.5",
+      "version": "0.1.7",
       "transport": "stdio",
       "license": "MIT",
       "source": "https://github.com/vschernoff/solhint-mcp",
-      "evaluatedAt": null,
-      "score": null,
-      "scorecardRef": null,
-      "enabledByDefault": false,
+      "evaluatedAt": "2026-10-24",
+      "score": 1,
+      "scorecardRef": "SCORECARD.md §1 (Lint row); §2.4d (lint-stage cases: 21/21 on 0.1.7, Eval run 40075075328)",
+      "enabledByDefault": true,
       "experimental": false,
       "requiresBinaries": [],
       "deniedTools": [],
       "riskNotes": [
         {
-          "note": "Agent-supplied `config` with an absolute-path `extends` executed arbitrary JS in 0.1.3; fixed in 0.1.4. Verified by execution (lint_solidity, absolute path) and at source (array, solhint:../, plugins, fix_solidity). Unchanged in 0.1.5.",
+          "note": "Agent-supplied `config` with an absolute-path `extends` executed arbitrary JS in 0.1.3; fixed in 0.1.4. Verified by execution (lint_solidity, absolute path) and at source (array, solhint:../, plugins, fix_solidity). Unchanged in 0.1.7.",
           "security": true,
           "resolved": true
         },
         {
-          "note": "Linting a repository runs that repository's own Solhint plugins and JS config (.solhint.json plugins, .solhintrc.js, solhint.config.js, a project-installed Solhint): the same trust as running `npx solhint` there. No version of this component changes that; it is not safe for untrusted repositories.",
+          "note": "Linting, or reading the config with get_config, runs that repository's own Solhint plugins and JS config, the same trust as running `npx solhint` there. Not safe for untrusted repositories.",
           "security": false,
           "resolved": false
         },
         {
-          "note": "Does not report whether the lint fully ran: a plugin that fails to load or an unknown rule name degrades silently, and get_config shows '✅ … recommended checks' whenever three named rules are on, whatever else is broken.",
+          "note": "Run health (C4) resolved in 0.1.7: a plugin that fails to load or an unknown rule id is reported as a \"⚠️ This run was degraded\" banner naming each problem, above the findings, also with FORCE_COLOR set; get_config no longer claims the config is sound. A degraded run is not isError (by design: findings from the rules that did load stay usable), so the agent must read the banner. Verified by execution: lint-stage cases 21/21 (kit PR #27, Eval run 40075075328).",
           "security": false,
-          "resolved": false
+          "resolved": true
         }
       ]
     }
