@@ -180,8 +180,10 @@
             "not-a-foundry-project",
             "not-applicable",
             "property-holds",
-            "property-fails"
-          ]
+            "property-fails",
+            "degraded"
+          ],
+          "description": "degraded = the tool ran but checked less than configured; it must say so and name what did not run (C4)."
         },
         "label": {
           "$ref": "#/$defs/label"

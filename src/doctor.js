@@ -182,6 +182,8 @@ export async function runDoctor({
   requested = [],
   limits = DEFAULT_LIMITS,
   timeoutMs = 30_000,
+  // Where the second-measurement directory is made; a parameter so tests can watch it.
+  tempRoot = os.tmpdir(),
   runner = runVersion,
   prober = probe,
 }) {
@@ -224,7 +226,7 @@ export async function runDoctor({
   }
 
   const leftovers = []
-  const deepDir = fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-doctor-'))
+  const deepDir = fs.mkdtempSync(path.join(tempRoot, 'solidity-ai-kit-doctor-'))
   const nested = path.join(deepDir, 'a', 'deeper', 'working', 'directory')
   fs.mkdirSync(nested, { recursive: true })
   let checks

@@ -1,0 +1,38 @@
+{
+  "$schema": "../ground-truth.schema.json",
+  "id": "F14",
+  "name": "missing-plugin",
+  "solc": "0.8.37",
+  "layout": "foundry",
+  "purpose": "Valid project whose .solhint.json names a plugin that is not installed. A lint tool must say the plugin's rules did not run; a result that looks clean is a run-health failure (C4).",
+  "planted": [],
+  "expect": {
+    "build": {
+      "outcome": "success",
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "test": {
+      "outcome": "pass",
+      "passing": ["CounterTest.test_increment()"],
+      "failing": [],
+      "label": "confirmed-by:forge@1.8.5"
+    },
+    "lint": {
+      "outcome": "degraded",
+      "messageContains": "sak-missing",
+      "label": "planted",
+      "note": "Solhint warns 'Could not load solhint-plugin-sak-missing' and lints without it."
+    },
+    "static": {
+      "outcome": "findings",
+      "mustNotFind": {
+        "impact": ["High", "Medium"]
+      },
+      "label": "to-confirm"
+    },
+    "fuzz": {
+      "outcome": "not-applicable",
+      "label": "planted"
+    }
+  }
+}

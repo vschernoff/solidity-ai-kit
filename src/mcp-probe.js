@@ -26,6 +26,10 @@ async function groupGone(child, limitMs) {
 
 export const PROTOCOL_VERSION = '2025-11-25'
 const GRACE_MS = 2000
+// After SIGKILL, how long to wait for the system to reap the group. Separate from the grace
+// period: a short grace (as in tests) must not shorten this, or a loaded machine can report
+// a server gone while it is still being reaped.
+const REAP_MS = 2000
 const IS_WINDOWS = process.platform === 'win32'
 
 // Ends the server and everything it started (npx runs the real server as its child). On
@@ -95,7 +99,7 @@ export function probe({ command, args, cwd, timeoutMs, env = process.env, graceM
         const release = async () => {
           for (const timer of timers) clearTimeout(timer)
           killTree(child, 'SIGKILL')
-          await groupGone(child, graceMs)
+          await groupGone(child, Math.max(graceMs, REAP_MS))
           child.stdin.destroy()
           child.stdout.destroy()
           child.stderr.destroy()
