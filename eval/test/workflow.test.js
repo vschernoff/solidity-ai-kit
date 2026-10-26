@@ -55,7 +55,8 @@ describe('EVAL.yml', () => {
     const npmIds = listCandidates()
       .filter((c) => c.install.type === 'npm')
       .map((c) => c.id)
-    assert.deepEqual([...probe.strategy.matrix.candidate].sort(), npmIds.sort())
+    const include = probe.strategy.matrix.include
+    assert.deepEqual([...new Set(include.map((i) => i.candidate))].sort(), npmIds.sort())
     const { image, digest } = deps.probeImage
     assert.equal(probe.env.PROBE_IMAGE, `${image}@${digest}`)
     const script = probe.steps.map((s) => s.run ?? '').join('\n')
@@ -82,6 +83,33 @@ describe('EVAL.yml', () => {
         assert.ok(dockerRun.includes(flag), `docker run lacks ${flag}: ${dockerRun}`)
       }
     }
+  })
+
+  it('runs every candidate that needs forge once per pinned forge version, toolchain pinned', () => {
+    const probe = workflow.jobs.probe
+    const include = probe.strategy.matrix.include
+    const probed = listCandidates().filter((c) => c.install.type === 'npm')
+    for (const candidate of probed.filter((c) => c.requiresBinaries.includes('forge'))) {
+      const versions = include.filter((i) => i.candidate === candidate.id).map((i) => i.forge)
+      assert.deepEqual(versions.sort(), [...deps.foundry.caseVersions].sort(), candidate.id)
+    }
+    for (const i of include.filter((x) => x.forge)) {
+      assert.ok(
+        listCandidates()
+          .find((c) => c.id === i.candidate)
+          .requiresBinaries.includes('forge'),
+        `${i.candidate} gets forge without needing it`
+      )
+    }
+    const { toolchainAction } = deps.foundry
+    const toolchain = probe.steps.find((s) => s.uses?.startsWith(`${toolchainAction.repo}@`))
+    assert.equal(toolchain.uses, `${toolchainAction.repo}@${toolchainAction.commit}`)
+    assert.equal(toolchain.with.version, '${{ matrix.forge }}')
+    const script = probe.steps.map((s) => s.run ?? '').join('\n')
+    assert.match(script, /fetch-solc\.mjs/)
+    // The case runner reads SAK_SOLC ($ENV: in eval/cases/build-test.json) inside the container.
+    assert.match(script, /-e SAK_SOLC=\/toolchain\/solc/)
+    assert.match(script, /\$FORGE_DIR:\/foundry:ro/)
   })
 
   it('has read-only permissions', () => {

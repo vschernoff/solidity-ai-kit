@@ -4,8 +4,8 @@ Evidence for every component choice in `kit.manifest.json` (SRS §8). The kit's 
 curation; this directory is where the curation is checked. Scores and decisions are published
 in `SCORECARD.md`.
 
-**Status:** fixtures with forge-confirmed ground truth, the MCP probe, and lint-stage cases.
-Scoring and the other stages' cases land in later PRs.
+**Status:** fixtures with forge-confirmed ground truth, the MCP probe, and lint-stage and
+build/test-stage cases. Scoring and the other stages' cases land in later PRs.
 
 ## Fixtures
 
@@ -79,6 +79,30 @@ is a result in the report, not a harness failure.
   the MCP stdout channel;
 - code loading from an agent-supplied `config`: `extends` absolute, array, `solhint:../`
   traversal, relative; `plugins`; `plugins` + `pluginPaths`; `fix_solidity` (SRS NFR-11).
+
+`cases/build-test.json` covers, on forge 1.8.5 and 1.8.6:
+
+- results against each fixture's ground truth (`groundTruth`): exact passed/failed counts, and
+  each failing test named with its reason, kind, fuzz counterexample bound and invariant call
+  order (F01, F02, F05–F07, F09, F11, F12);
+- run health (C4): a compile error, a project without `foundry.toml`, a filter that matches
+  nothing and a missing forge are each an error with a code, never a clean result;
+- the size budget (FR-32): F13's 200 failures within the default and the smallest budget;
+- FFI (FR-38a): `ffi = true` planted in `foundry.toml`, and the FFI test's command never runs;
+- redaction (D24): secret-named values from the environment and `.env`, in every printed form.
+
+Every case also requires nothing but JSON-RPC on stdout and no process left behind. The cases
+need forge on `PATH` and a solc 0.8.37 binary, passed as `SAK_SOLC` (the file's shared `env`
+sets `FOUNDRY_SOLC` from it, so nothing is downloaded at run time):
+
+```bash
+node eval/scripts/install-candidate.mjs forge-test-mcp /tmp/ftm
+SAK_SOLC=/path/to/solc-0.8.37 node eval/scripts/run-cases.mjs forge-test-mcp /tmp/ftm
+```
+
+In CI, `scripts/fetch-solc.mjs` fetches the Linux solc pinned in `deps.json` (sha256-checked) and
+the forge versions in `deps.json` `foundry.caseVersions` each get a job. Dated results are kept
+in `results/build-test/`.
 
 ### Forge behaviour the comparer depends on (checked by execution)
 

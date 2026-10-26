@@ -2,6 +2,7 @@
   "$comment": "Pinned toolchain for the evaluation harness. CI and the scripts read versions from here; tests check they agree.",
   "foundry": {
     "version": "v1.8.5",
+    "caseVersions": ["v1.8.5", "v1.8.6"],
     "toolchainAction": {
       "repo": "foundry-rs/foundry-toolchain",
       "tag": "v1.9.1",
@@ -9,6 +10,12 @@
     }
   },
   "solc": "0.8.37",
+  "solcLinux": {
+    "version": "0.8.37",
+    "url": "https://binaries.soliditylang.org/linux-amd64/solc-linux-amd64-v0.8.37+commit.f401782d",
+    "sha256": "5de843c2c93563cc66425c99a4fb13fdbf32b4c4ae07469480faaf126e14404a",
+    "license": "GPL-3.0"
+  },
   "forgeStd": {
     "tag": "v1.17.0",
     "commit": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219",

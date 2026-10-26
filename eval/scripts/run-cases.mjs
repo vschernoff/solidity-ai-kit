@@ -60,6 +60,14 @@ if (!cases) {
   console.error(`run-cases: no cases for stage "${candidate.stage}" — nothing was checked`)
   process.exit(0)
 }
+// Every $ENV: reference must resolve before any case runs: a missing toolchain is a harness
+// error, never a case result.
+try {
+  for (const spec of cases) resolveEnv(caseFile.env, spec.env)
+} catch (error) {
+  console.error(`run-cases: ${error.message}`)
+  process.exit(2)
+}
 const { command, args: argv } = launchCommand(candidate, path.resolve(installDir))
 
 async function runCase(spec) {

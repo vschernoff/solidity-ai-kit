@@ -56,16 +56,24 @@ jobs:
     # One pinned candidate per job: install on the runner (network, integrity-checked, no
     # lifecycle scripts), then probe in a container with no network, a read-only root and a
     # read-only install, as a non-root user. The report is the evidence, kept as an artifact.
-    name: Probe ${{ matrix.candidate }}
+    name: Probe ${{ matrix.candidate }}${{ matrix.forge && format(' (forge {0})', matrix.forge) || '' }}
     # Pinned, not ubuntu-latest: the label moves to Ubuntu 26 from 2026-10-19 and the eval must
     # not change underneath a comparison (bump deliberately, with a re-run of the ground truth).
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        candidate: [solhint-mcp]
+        # A candidate that runs forge gets one job per forge version in eval/deps.json
+        # foundry.caseVersions (eval/test/workflow.test.js).
+        include:
+          - candidate: solhint-mcp
+          - candidate: forge-test-mcp
+            forge: v1.8.5
+          - candidate: forge-test-mcp
+            forge: v1.8.6
     env:
       CANDIDATE: ${{ matrix.candidate }}
+      FORGE_VERSION: ${{ matrix.forge }}
       # Must match eval/deps.json probeImage (eval/test/workflow.test.js).
       PROBE_IMAGE: node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
     steps:
@@ -75,12 +83,32 @@ jobs:
           node-version: 24
       - name: Install the pinned candidate
         run: node eval/scripts/install-candidate.mjs "$CANDIDATE" "$RUNNER_TEMP/candidate"
+      # Toolchain for candidates that run forge, fetched on the runner (network) and mounted
+      # read-only into the no-network container: forge, solc for FOUNDRY_SOLC, forge-std.
+      - if: matrix.forge
+        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1
+        with:
+          version: ${{ matrix.forge }}
+          cache: false
+      - name: Fetch solc and forge-std (sha256-checked)
+        if: matrix.forge
+        run: |
+          node eval/scripts/fetch-solc.mjs "$RUNNER_TEMP/toolchain"
+          node eval/scripts/fetch-deps.mjs
+          echo "FORGE_DIR=$(dirname "$(command -v forge)")" >> "$GITHUB_ENV"
+          forge --version
       - name: Probe with no network
         run: |
           mkdir -p "$RUNNER_TEMP/out" && chmod 777 "$RUNNER_TEMP/out"
+          TOOLCHAIN=()
+          if [ -n "$FORGE_VERSION" ]; then
+            TOOLCHAIN=(-v "$FORGE_DIR:/foundry:ro" -v "$RUNNER_TEMP/toolchain:/toolchain:ro"
+              -e PATH=/foundry:/usr/local/bin:/usr/bin:/bin -e SAK_SOLC=/toolchain/solc)
+          fi
           # --init: a real PID 1 that reaps orphaned children, so close() never mistakes a
           # zombie for a surviving process.
           docker run --rm --init --network none --read-only --tmpfs /tmp --user 1001:1001 \
+            "${TOOLCHAIN[@]}" \
             -v "$GITHUB_WORKSPACE:/repo:ro" \
             -v "$RUNNER_TEMP/candidate:/candidate:ro" \
             -v "$RUNNER_TEMP/out:/out" \
@@ -89,8 +117,14 @@ jobs:
           cp "$RUNNER_TEMP/candidate/install-report.json" "$RUNNER_TEMP/out/"
       - name: Run the stage cases with no network
         run: |
+          TOOLCHAIN=()
+          if [ -n "$FORGE_VERSION" ]; then
+            TOOLCHAIN=(-v "$FORGE_DIR:/foundry:ro" -v "$RUNNER_TEMP/toolchain:/toolchain:ro"
+              -e PATH=/foundry:/usr/local/bin:/usr/bin:/bin -e SAK_SOLC=/toolchain/solc)
+          fi
           # Same container and flags as the probe; each case gets its own server process.
           docker run --rm --init --network none --read-only --tmpfs /tmp --user 1001:1001 \
+            "${TOOLCHAIN[@]}" \
             -v "$GITHUB_WORKSPACE:/repo:ro" \
             -v "$RUNNER_TEMP/candidate:/candidate:ro" \
             -v "$RUNNER_TEMP/out:/out" \
@@ -107,6 +141,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: probe-${{ matrix.candidate }}
+          name: probe-${{ matrix.candidate }}${{ matrix.forge && format('-forge-{0}', matrix.forge) || '' }}
           path: ${{ runner.temp }}/out/
           if-no-files-found: error
