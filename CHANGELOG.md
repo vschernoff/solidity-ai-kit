@@ -3,7 +3,7 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
-## 0.1.0 — preview (unreleased)
+## 0.1.0 — preview (2026-10-27)
 
 First public version.
 
