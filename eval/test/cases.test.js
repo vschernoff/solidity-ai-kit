@@ -341,6 +341,49 @@ describe('case evaluation', () => {
 })
 
 describe('run-cases.mjs end to end', () => {
+  it('exits 2 without a report when a required binary does not run', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sak-runcases-bin-'))
+    const candidateFile = path.join(dir, 'candidate.json')
+    fs.writeFileSync(
+      candidateFile,
+      JSON.stringify({
+        id: 'stub-mcp',
+        manifestId: null,
+        stage: 'build-test',
+        install: {
+          type: 'npm',
+          package: 'stub-mcp',
+          version: '1.0.0',
+          integrity: 'sha512-AA==',
+          bin: 'x',
+        },
+        transport: 'stdio',
+        args: [],
+        network: 'none',
+        requiresBinaries: ['sak-no-such-binary'],
+        deniedTools: [],
+      })
+    )
+    const casesFile = path.join(dir, 'cases.json')
+    fs.writeFileSync(
+      casesFile,
+      JSON.stringify({
+        cases: [
+          { id: 'x', fixture: 'F01-erc20-clean', tool: 't', args: {}, expect: { isError: true } },
+        ],
+      })
+    )
+    const out = path.join(dir, 'report.json')
+    const script = path.join(EVAL_ROOT, 'scripts', 'run-cases.mjs')
+    const args = [script, 'stub-mcp', dir, '--candidate-file', candidateFile, '--cases', casesFile]
+    await assert.rejects(run(process.execPath, [...args, '--out', out]), (error) => {
+      assert.equal(error.code, 2)
+      assert.match(error.stderr, /required binary sak-no-such-binary does not run/)
+      return true
+    })
+    assert.equal(fs.existsSync(out), false)
+  })
+
   it('runs each case in its own server and records pass and fail', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sak-runcases-'))
     const pkgDir = path.join(dir, 'node_modules', 'stub-mcp')

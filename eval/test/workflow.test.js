@@ -110,6 +110,8 @@ describe('EVAL.yml', () => {
     // The case runner reads SAK_SOLC ($ENV: in eval/cases/build-test.json) inside the container.
     assert.match(script, /-e SAK_SOLC=\/toolchain\/solc/)
     assert.match(script, /\$FORGE_DIR:\/foundry:ro/)
+    // The mounted directory must hold the binary itself, not a symlink to elsewhere.
+    assert.match(script, /readlink -f "\$\(command -v forge\)"/)
   })
 
   it('has read-only permissions', () => {

@@ -6,6 +6,7 @@
 //
 //   node eval/scripts/run-cases.mjs <id> <install-dir> [--out file] [--candidate-file file]
 //                                   [--timeout-ms n] [--cases file]   default eval/cases/<stage>.json
+import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -67,6 +68,22 @@ try {
 } catch (error) {
   console.error(`run-cases: ${error.message}`)
   process.exit(2)
+}
+// The binaries the candidate needs must run in the case environment before any case does. A
+// missing toolchain is a harness failure (exit 2), never a set of failed or passed cases.
+{
+  const env = { ...candidateEnv(os.tmpdir()), ...resolveEnv(caseFile.env) }
+  // Plus any binary the cases file names through an env variable (e.g. FOUNDRY_SOLC).
+  const fromEnv = (caseFile.binariesInEnv ?? []).map((name) => env[name])
+  for (const binary of [...(candidate.requiresBinaries ?? []), ...fromEnv]) {
+    const check = spawnSync(binary, ['--version'], { env, encoding: 'utf8', timeout: 30_000 })
+    if (check.error || check.status !== 0) {
+      const why = check.error?.code ?? `exit ${check.status}: ${check.stderr?.trim()}`
+      console.error(`run-cases: required binary ${binary} does not run (${why})`)
+      process.exit(2)
+    }
+    console.error(`run-cases: ${binary}: ${check.stdout.split('\n')[0]}`)
+  }
 }
 const { command, args: argv } = launchCommand(candidate, path.resolve(installDir))
 

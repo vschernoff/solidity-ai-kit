@@ -93,7 +93,10 @@ is a result in the report, not a harness failure.
 
 Every case also requires nothing but JSON-RPC on stdout and no process left behind. The cases
 need forge on `PATH` and a solc 0.8.37 binary, passed as `SAK_SOLC` (the file's shared `env`
-sets `FOUNDRY_SOLC` from it, so nothing is downloaded at run time):
+sets `FOUNDRY_SOLC` from it, so nothing is downloaded at run time). Before any case runs,
+`run-cases.mjs` runs each of the candidate's `requiresBinaries` and each binary named in
+`binariesInEnv` with `--version`; if one does not run, it exits 2, so a broken toolchain fails the
+job instead of becoming case results:
 
 ```bash
 node eval/scripts/install-candidate.mjs forge-test-mcp /tmp/ftm

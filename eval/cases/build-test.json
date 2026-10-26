@@ -4,6 +4,7 @@
   "env": {
     "FOUNDRY_SOLC": "$ENV:SAK_SOLC"
   },
+  "binariesInEnv": ["FOUNDRY_SOLC"],
   "cases": [
     {
       "id": "F01-run_tests",

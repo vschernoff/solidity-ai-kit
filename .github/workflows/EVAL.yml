@@ -95,8 +95,11 @@ jobs:
         run: |
           node eval/scripts/fetch-solc.mjs "$RUNNER_TEMP/toolchain"
           node eval/scripts/fetch-deps.mjs
-          echo "FORGE_DIR=$(dirname "$(command -v forge)")" >> "$GITHUB_ENV"
-          forge --version
+          # foundryup installs ~/.foundry/bin/forge as a symlink into ~/.foundry/versions/; mount
+          # the real binary's directory, or the link dangles inside the container.
+          forge_bin=$(readlink -f "$(command -v forge)")
+          echo "FORGE_DIR=$(dirname "$forge_bin")" >> "$GITHUB_ENV"
+          "$forge_bin" --version
       - name: Probe with no network
         run: |
           mkdir -p "$RUNNER_TEMP/out" && chmod 777 "$RUNNER_TEMP/out"
