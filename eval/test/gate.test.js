@@ -73,7 +73,7 @@ describe('gate-cases.mjs', () => {
   })
 })
 
-describe('forge-std preflight', () => {
+describe('forge-std dependency check', () => {
   const { commit } = readDeps().forgeStd
   function fixture({ pin = commit, record = true } = {}) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sak-dep-'))

@@ -1,5 +1,5 @@
 {
-  "$comment": "Local run of eval/cases/build-test.json (pre-registered in an earlier commit than this file) against forge-test-mcp 0.1.0 from npm. Not the pinned CI container: a macOS arm64 laptop, network available but every forge call uses --offline. CI runs the same cases in the container on Linux. Re-run after review tightened the ground-truth matcher (name boundaries, counterexample outside trace lines, a single stated kind) and added the forge-std preflight.",
+  "$comment": "Local run of eval/cases/build-test.json (pre-registered in an earlier commit than this file) against forge-test-mcp 0.1.0 from npm. Not the pinned CI container: a macOS arm64 laptop, network available but every forge call uses --offline. CI runs the same cases in the container on Linux. Re-run after review tightened the ground-truth matcher (name boundaries, counterexample outside trace lines, a single stated kind) and added the forge-std dependency check.",
   "date": "2026-10-26",
   "where": {
     "os": "macOS 15.7.7",
