@@ -5,6 +5,7 @@
     "FOUNDRY_SOLC": "$ENV:SAK_SOLC"
   },
   "binariesInEnv": ["FOUNDRY_SOLC"],
+  "fixtureDeps": ["forge-std"],
   "cases": [
     {
       "id": "F01-run_tests",

@@ -21,7 +21,7 @@ import {
   resolveEnv,
   resultText,
 } from '../lib/cases.js'
-import { FIXTURES_DIR, flagValue, readJson } from '../lib/fixtures.js'
+import { FIXTURES_DIR, flagValue, forgeStdProblems, readJson } from '../lib/fixtures.js'
 
 const args = process.argv.slice(2)
 const [id, installDir] = args
@@ -83,6 +83,25 @@ try {
       process.exit(2)
     }
     console.error(`run-cases: ${binary}: ${check.stdout.split('\n')[0]}`)
+  }
+}
+// Fixture dependencies the cases file declares must be present and unchanged: a missing
+// forge-std makes every case a compile error, which is a broken harness, not a result.
+{
+  const known = { 'forge-std': forgeStdProblems }
+  const problems = []
+  for (const dep of caseFile.fixtureDeps ?? []) {
+    if (!known[dep]) problems.push(`unknown fixture dependency ${dep}`)
+    else {
+      const dirs = [...new Set(cases.map((c) => c.fixture))]
+        .map((name) => path.join(FIXTURES_DIR, name))
+        .filter((dir) => readJson(path.join(dir, 'GROUND_TRUTH.json')).layout !== 'hardhat')
+      problems.push(...known[dep](dirs))
+    }
+  }
+  if (problems.length) {
+    console.error(`run-cases: fixture dependencies not ready:\n  ${problems.join('\n  ')}`)
+    process.exit(2)
   }
 }
 const { command, args: argv } = launchCommand(candidate, path.resolve(installDir))

@@ -96,12 +96,20 @@ need forge on `PATH` and a solc 0.8.37 binary, passed as `SAK_SOLC` (the file's 
 sets `FOUNDRY_SOLC` from it, so nothing is downloaded at run time). Before any case runs,
 `run-cases.mjs` runs each of the candidate's `requiresBinaries` and each binary named in
 `binariesInEnv` with `--version`; if one does not run, it exits 2, so a broken toolchain fails the
-job instead of becoming case results:
+job instead of becoming case results. The same holds for fixture dependencies the cases file
+lists in `fixtureDeps`: forge-std must be at the pinned commit and unchanged since `fetch-deps.mjs`
+installed it from the sha256-checked tarball (it records a digest of the files):
 
 ```bash
 node eval/scripts/install-candidate.mjs forge-test-mcp /tmp/ftm
 SAK_SOLC=/path/to/solc-0.8.37 node eval/scripts/run-cases.mjs forge-test-mcp /tmp/ftm
 ```
+
+`run-cases.mjs` exits 0 whenever it wrote a report, because a failed case is a result. In CI,
+`scripts/gate-cases.mjs` then fails the job unless the failed cases are exactly the candidate's
+declared `expectedFailures` (each with a reason; empty for every current candidate). A declared
+failure that passes fails the gate too, so the list cannot go stale. The step summary and the
+artifacts are kept either way.
 
 In CI, `scripts/fetch-solc.mjs` fetches the Linux solc pinned in `deps.json` (sha256-checked) and
 the forge versions in `deps.json` `foundry.caseVersions` each get a job. Dated results are kept

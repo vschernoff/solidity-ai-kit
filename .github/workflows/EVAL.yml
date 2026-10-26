@@ -140,6 +140,10 @@ jobs:
             -v "$RUNNER_TEMP/out:/out" \
             "$PROBE_IMAGE" \
             node /repo/eval/scripts/run-cases.mjs "$CANDIDATE" /candidate --out /out/cases.json
+      # run-cases.mjs exits 0 whenever it wrote a report; this is what turns a failed case red.
+      # Only the candidate file's expectedFailures may fail, and each of them must.
+      - name: Gate on the stage cases
+        run: node eval/scripts/gate-cases.mjs "$RUNNER_TEMP/out/cases.json"
       - name: Findings in the step summary
         if: always()
         run: |

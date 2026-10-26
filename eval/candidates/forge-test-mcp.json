@@ -14,5 +14,6 @@
   "args": [],
   "network": "none",
   "requiresBinaries": ["forge"],
-  "deniedTools": []
+  "deniedTools": [],
+  "expectedFailures": []
 }

@@ -14,5 +14,6 @@
   "args": [],
   "network": "none",
   "requiresBinaries": [],
-  "deniedTools": []
+  "deniedTools": [],
+  "expectedFailures": []
 }

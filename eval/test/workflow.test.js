@@ -119,6 +119,20 @@ describe('EVAL.yml', () => {
     assert.match(script, /readlink -f "\$\(command -v forge\)"/)
   })
 
+  it('fails the job when a stage case fails, and still keeps the evidence (gate)', () => {
+    const steps = workflow.jobs.probe.steps
+    const casesAt = steps.findIndex((s) => s.run?.includes('scripts/run-cases.mjs'))
+    const gateAt = steps.findIndex((s) => s.run?.includes('eval/scripts/gate-cases.mjs'))
+    assert.ok(casesAt >= 0 && gateAt > casesAt, 'the gate runs after the cases')
+    const gate = steps[gateAt]
+    assert.match(gate.run, /gate-cases\.mjs "\$RUNNER_TEMP\/out\/cases\.json"/)
+    assert.equal(gate['continue-on-error'], undefined)
+    assert.equal(gate.if, undefined)
+    for (const step of steps.slice(gateAt + 1)) {
+      assert.equal(step.if, 'always()', `${step.name ?? step.uses} must run after a red gate`)
+    }
+  })
+
   it('has read-only permissions', () => {
     assert.deepEqual(workflow.permissions, { contents: 'read' })
   })
