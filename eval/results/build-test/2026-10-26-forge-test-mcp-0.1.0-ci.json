@@ -1,10 +1,11 @@
 {
-  "$comment": "CI run of eval/cases/build-test.json against forge-test-mcp 0.1.0 from npm, in the pinned no-network container (EVAL.yml probe job), one job per forge version. Each run object is that job's cases.json artifact, unchanged. An earlier run on this branch (40359297437, commit aab64dc) reported 4/22 because forge was not reachable inside the container (a dangling symlink in the harness setup); that run is not evidence about the candidate, and the harness now exits 2 instead of reporting cases when a required binary does not run.",
+  "$comment": "CI run of eval/cases/build-test.json against forge-test-mcp 0.1.0 from npm, in the pinned no-network container (EVAL.yml probe job), one job per forge version, with the ground-truth matcher as tightened in review, the forge-std dependency check and the gate. Each run object is that job's cases.json artifact, unchanged. Earlier runs on this branch are not evidence about the candidate: 40359297437 (aab64dc) reported 4/22 because forge was not reachable inside the container; 40362747831 (c269f63) was a deliberate red demonstration (forge-std not fetched: exit 2 in the dependency check, no case report; a solhint-mcp case that could not pass: gate exit 1), reverted in 2ccc8e7.",
   "date": "2026-10-26",
   "run": {
-    "id": 40359911893,
-    "url": "https://github.com/vschernoff/solidity-ai-kit/actions/runs/40359911893",
-    "commit": "9e437a29e58a559d1fb1feb3bc4f40fd86874969"
+    "id": 40363013461,
+    "url": "https://github.com/vschernoff/solidity-ai-kit/actions/runs/40363013461",
+    "commit": "2ccc8e71532fb36835c2e3bec1f87f76d8a31b0d",
+    "gate": "ok on all three jobs"
   },
   "candidate": {
     "type": "npm",
@@ -22,7 +23,7 @@
       "forge": "v1.8.5",
       "probe": {
         "version": "0.1.0",
-        "probedAt": "2026-10-26T16:31:42.382Z",
+        "probedAt": "2026-10-26T16:51:10.984Z",
         "node": "v24.19.0",
         "instructions": {
           "chars": [453, 453],
@@ -39,7 +40,7 @@
         "id": "forge-test-mcp",
         "version": "0.1.0",
         "stage": "build-test",
-        "ranAt": "2026-10-26T16:32:01.286Z",
+        "ranAt": "2026-10-26T16:51:36.606Z",
         "node": "v24.19.0",
         "passed": 22,
         "failed": 0,
@@ -94,7 +95,7 @@
               }
             ],
             "isError": false,
-            "ms": 649,
+            "ms": 888,
             "text": "{\"status\":\"passed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":4,\"failed\":0,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[],\"truncated\":null}",
             "orphans": false
           },
@@ -138,7 +139,7 @@
               }
             ],
             "isError": false,
-            "ms": 1063,
+            "ms": 1435,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"VaultTest.test_attackerCannotDrain()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"vault drained: 7000000000000000000 != 10000000000000000000\",\"trace\":[\"[372536] VaultTest::test_attackerCannotDrain()\",\"  ├─ [0] VM::assertEq(7000000000000000000 [7e18], 10000000000000000000 [1e19], \\\"vault drained\\\") [staticcall]\",\"  │   └─ ← [Revert] vault drained: 7000000000000000000 != 10000000000000000000\",\"  └─ ← [Revert] vault drained: 7000000000000000000 != 10000000000000000000\"],\"traceLinesOmitted\":27,\"backtrace\":[\"VM.assertEq\",\"VaultTest.test_attackerCannotDrain\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -182,7 +183,7 @@
               }
             ],
             "isError": false,
-            "ms": 1055,
+            "ms": 1429,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"BankTest.test_transfer()\",\"file\":\"test/Bank.t.sol\",\"kind\":\"unit\",\"reason\":\"balance mismatch: 99 != 100\",\"trace\":[\"[70351] BankTest::test_transfer()\",\"  ├─ [0] VM::assertEq(99, 100, \\\"balance mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] balance mismatch: 99 != 100\",\"  └─ ← [Revert] balance mismatch: 99 != 100\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"BankTest.test_transfer\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -231,7 +232,7 @@
               }
             ],
             "isError": false,
-            "ms": 1029,
+            "ms": 1435,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"MathTest.testFuzz_squareIsMonotonic(uint256)\",\"file\":\"test/Math.t.sol\",\"kind\":\"fuzz\",\"reason\":\"panic: arithmetic underflow or overflow (0x11)\",\"counterexample\":{\"args\":\"1299078393434814380004300956350588541753\",\"calldata\":\"0x08e9b94000000000000000000000000000000003d15165d65e64d827ab3a1d6962ca5b39\",\"seed\":\"0x5eed\"},\"trace\":[\"[6129] MathTest::testFuzz_squareIsMonotonic(1299078393434814380004300956350588541753 [1.299e39])\",\"  ├─ [656] MathHarness::square(1299078393434814380004300956350588541753 [1.299e39]) [staticcall]\",\"  │   └─ ← [Revert] panic: arithmetic underflow or overflow (0x11)\",\"  └─ ← [Revert] panic: arithmetic underflow or overflow (0x11)\"],\"backtrace\":[\"MathHarness.square\",\"MathTest.testFuzz_squareIsMonotonic\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -280,7 +281,7 @@
               }
             ],
             "isError": false,
-            "ms": 1201,
+            "ms": 1648,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"SupplyInvariantTest.invariant_supplyMatches()\",\"file\":\"test/Supply.t.sol\",\"kind\":\"invariant\",\"reason\":\"supply mismatch: 6683 != 6355\",\"sequence\":{\"calls\":[{\"call\":\"Handler.mint(uint256)\",\"args\":\"6683\",\"sender\":\"0x000000000000000000000000000000000000022f\"},{\"call\":\"Handler.burnFrom(uint256)\",\"args\":\"328\",\"sender\":\"0x000000000000000000000000000000000000054e\"}],\"shrunkFrom\":4},\"trace\":[\"[21670] SupplyInvariantTest::invariant_supplyMatches()\",\"  ├─ [0] VM::assertEq(6683, 6355, \\\"supply mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] supply mismatch: 6683 != 6355\",\"  └─ ← [Revert] supply mismatch: 6683 != 6355\"],\"traceLinesOmitted\":14}],\"truncated\":null}",
             "orphans": false
           },
@@ -324,7 +325,7 @@
               }
             ],
             "isError": false,
-            "ms": 1071,
+            "ms": 1433,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"MarketTest.test_quoteIsOnePercent()\",\"file\":\"test/Market.t.sol\",\"kind\":\"unit\",\"reason\":\"fee mismatch: 10 != 100\",\"trace\":[\"[10456] MarketTest::test_quoteIsOnePercent()\",\"  ├─ [0] VM::assertEq(10, 100, \\\"fee mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] fee mismatch: 10 != 100\",\"  └─ ← [Revert] fee mismatch: 10 != 100\"],\"traceLinesOmitted\":2,\"backtrace\":[\"VM.assertEq\",\"MarketTest.test_quoteIsOnePercent\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -398,7 +399,7 @@
               }
             ],
             "isError": false,
-            "ms": 1087,
+            "ms": 1467,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":7,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"traces\":\"5 of 7 failures traced (the first 5 are re-run for traces)\",\"failures\":[{\"test\":\"VaultTest.test_expectRevertButNone()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"next call did not revert as expected\",\"trace\":[\"[58380] VaultTest::test_expectRevertButNone()\",\"  └─ ← [Revert] next call did not revert as expected\"],\"traceLinesOmitted\":4,\"backtrace\":[\"VaultTest.test_expectRevertButNone\"]},{\"test\":\"VaultTest.test_expectRevertMismatch()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"Error != expected error: Paused() != InsufficientBalance(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0, 1)\",\"trace\":[\"[77304] VaultTest::test_expectRevertMismatch()\",\"  ├─ [23816] Vault::withdraw(1)\",\"  │   └─ ← [Revert] Paused()\",\"  └─ ← [Revert] Error != expected error: Paused() != InsufficientBalance(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0, 1)\"],\"traceLinesOmitted\":4,\"backtrace\":[\"Vault.withdraw\",\"VaultTest.test_expectRevertMismatch\"]},{\"test\":\"VaultTest.test_panicDivZero()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"panic: division or modulo by zero (0x12)\",\"trace\":[\"[6417] VaultTest::test_panicDivZero()\",\"  ├─ [808] Vault::divide(1, 0) [staticcall]\",\"  │   └─ ← [Revert] panic: division or modulo by zero (0x12)\",\"  └─ ← [Revert] panic: division or modulo by zero (0x12)\"],\"backtrace\":[\"Vault.divide\",\"VaultTes… [2655 chars]",
             "orphans": false
           },
@@ -447,7 +448,7 @@
               }
             ],
             "isError": false,
-            "ms": 1339,
+            "ms": 1845,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":4,\"passed\":1,\"failed\":200,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"traces\":\"5 of 200 failures traced (the first 5 are re-run for traces)\",\"failures\":[{\"test\":\"ManyFailures0Test.test_fail000()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"trace\":[\"[80035] ManyFailures0Test::test_fail000()\",\"  ├─ [0] VM::assertEq(1, 0, \\\"case 0: expected the counter to keep its initial value after increment\\\") [staticcall]\",\"  │   └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"  └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"ManyFailures0Test.test_fail000\"]},{\"test\":\"ManyFailures0Test.test_fail001()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 1: expected the counter to keep its initial value after increment: 2 != 1\",\"trace\":[\"[82825] ManyFailures0Test::test_fail001()\",\"  ├─ [0] VM::assertEq(2, 1, \\\"case 1: expected the counter to keep its initial value after increment\\\") [staticcall]\",\"  │   └─ ← [Revert] case 1: expected the counter to keep its initial value after increment: 2 != 1\",\"  └─ ← [Revert] case 1: expected the counter to keep its initial value after increment: 2 != 1\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"ManyFailures0Test.test_fail001\"]… [8063 chars]",
             "orphans": false
           },
@@ -491,7 +492,7 @@
               }
             ],
             "isError": false,
-            "ms": 1340,
+            "ms": 1801,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":4,\"passed\":1,\"failed\":200,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"traces\":\"5 of 200 failures traced (the first 5 are re-run for traces)\",\"failures\":[{\"test\":\"ManyFailures0Test.test_fail000()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"trace\":[\"[80035] ManyFailures0Test::test_fail000()\",\"  ├─ [0] VM::assertEq(1, 0, \\\"case 0: expected the counter to keep its initial value after increment\\\") [staticcall]\",\"  │   └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"  └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"ManyFailures0Test.test_fail000\"]},{\"test\":\"ManyFailures0Test.test_fail001()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 1: expected the counter to keep its initial value after increment: 2 != 1\",\"traceLinesOmitted\":6},{\"test\":\"ManyFailures0Test.test_fail002()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 2: expected the counter to keep its initial value after increment: 3 != 2\",\"traceLinesOmitted\":6}],\"truncated\":{\"budgetBytes\":2048,\"shownInFull\":1,\"shownWithoutTraceOrLogs\":2,\"namesOnly\":[\"ManyFailures0Test.test_fail003()\",\"ManyFailures0Test.test_fail004()\",\"ManyFailures0Test.test_fail005()\",\"ManyFailures0Test.test_fail006()\",\"Many… [1980 chars]",
             "orphans": false
           },
@@ -535,7 +536,7 @@
               }
             ],
             "isError": true,
-            "ms": 829,
+            "ms": 1149,
             "text": "{\"error\":{\"code\":\"COMPILE_FAILED\",\"message\":\"The project does not compile, so no tests ran.\",\"hint\":\"Fix the compiler errors (call build for the full list), then run the tests again.\"},\"exitCode\":1,\"stderr\":\"Error: Compiler run failed:\\nError (9574): Type literal_string \\\"not a number\\\" is not implicitly convertible to expected type uint256.\\n  --> src/Broken.sol:13:9:\\n   |\\n13 |         uint256 x = \\\"not a number\\\"; // @gt:compile-error\\n   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^\",\"compilerErrors\":[{\"file\":\"src/Broken.sol\",\"line\":13,\"column\":9,\"severity\":\"error\",\"type\":\"TypeError\",\"code\":\"9574\",\"message\":\"Type literal_string \\\"not a number\\\" is not implicitly convertible to expected type uint256.\"}],\"compilerErrorsTotal\":1,\"forge\":\"1.8.5\",\"ffi\":\"disabled\"}",
             "orphans": false
           },
@@ -574,7 +575,7 @@
               }
             ],
             "isError": false,
-            "ms": 494,
+            "ms": 679,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"compiled\":\"fresh\",\"summary\":{\"errors\":1,\"warnings\":0},\"errors\":[{\"file\":\"src/Broken.sol\",\"line\":13,\"column\":9,\"severity\":\"error\",\"type\":\"TypeError\",\"code\":\"9574\",\"message\":\"Type literal_string \\\"not a number\\\" is not implicitly convertible to expected type uint256.\"}],\"warnings\":[],\"truncated\":null}",
             "orphans": false
           },
@@ -608,7 +609,7 @@
               }
             ],
             "isError": true,
-            "ms": 141,
+            "ms": 199,
             "text": "{\"error\":{\"code\":\"NOT_A_FOUNDRY_PROJECT\",\"message\":\"No foundry.toml in the server’s directory or above it (within the git repository), so nothing was run.\",\"hint\":\"Start the server in a Foundry project (a directory with foundry.toml, or below one inside the same git repository).\"}}",
             "orphans": false
           },
@@ -642,7 +643,7 @@
               }
             ],
             "isError": true,
-            "ms": 142,
+            "ms": 203,
             "text": "{\"error\":{\"code\":\"NOT_A_FOUNDRY_PROJECT\",\"message\":\"No foundry.toml in the server’s directory or above it (within the git repository), so nothing was run.\",\"hint\":\"Start the server in a Foundry project (a directory with foundry.toml, or below one inside the same git repository).\"}}",
             "orphans": false
           },
@@ -676,7 +677,7 @@
               }
             ],
             "isError": true,
-            "ms": 568,
+            "ms": 776,
             "text": "{\"error\":{\"code\":\"NO_TESTS_RAN\",\"message\":\"No tests ran.\",\"hint\":\"No test was executed. Check the match_* filters, or that the project has test functions.\"},\"exitCode\":0,\"stderr\":\"Warning: no tests match the provided pattern:\\n\\tmatch-test: `^does_not_exist$`\",\"counts\":{\"suites\":0,\"passed\":0,\"failed\":0,\"skipped\":0},\"forgeSays\":\"no tests match the provided pattern:\\n\\tmatch-test: `^does_not_exist$`\",\"forge\":\"1.8.5\",\"ffi\":\"disabled\"}",
             "orphans": false
           },
@@ -712,7 +713,7 @@
               }
             ],
             "isError": true,
-            "ms": 156,
+            "ms": 208,
             "text": "{\"error\":{\"code\":\"FORGE_NOT_FOUND\",\"message\":\"Could not start forge (ENOENT).\",\"hint\":\"Install Foundry (https://getfoundry.sh) so `forge` is on PATH, or start the server with --forge <path>. This server never installs it.\"}}",
             "orphans": false
           },
@@ -771,7 +772,7 @@
               }
             ],
             "isError": false,
-            "ms": 1092,
+            "ms": 1444,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled-by-server\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"FfiTest.test_ffiWritesMarker()\",\"file\":\"test/Ffi.t.sol\",\"kind\":\"unit\",\"reason\":\"vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"trace\":[\"[5494] FfiTest::test_ffiWritesMarker()\",\"  ├─ [0] VM::ffi([\\\"sh\\\", \\\"-c\\\", \\\"touch ffi-marker.txt && printf 0x01\\\"])\",\"  │   └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"  └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\"],\"backtrace\":[\"VM.ffi\",\"FfiTest.test_ffiWritesMarker\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -810,7 +811,7 @@
               }
             ],
             "isError": true,
-            "ms": 1058,
+            "ms": 1420,
             "text": "{\"error\":{\"code\":\"NO_TESTS_RAN\",\"message\":\"No tests ran.\",\"hint\":\"No test was executed. Check the match_* filters, or that the project has test functions.\"},\"exitCode\":0,\"stderr\":\"Warning: no tests match the provided pattern:\\n\\tmatch-test: `--ffi`\",\"counts\":{\"suites\":0,\"passed\":0,\"failed\":0,\"skipped\":0},\"forgeSays\":\"no tests match the provided pattern:\\n\\tmatch-test: `--ffi`\",\"forge\":\"1.8.5\",\"ffi\":\"disabled-by-server\"}",
             "orphans": false
           },
@@ -854,7 +855,7 @@
               }
             ],
             "isError": false,
-            "ms": 1053,
+            "ms": 1430,
             "text": "{\"test\":\"FfiTest.test_ffiWritesMarker()\",\"status\":\"failed\",\"forge\":\"1.8.5\",\"ffi\":\"disabled-by-server\",\"reason\":\"vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"backtrace\":[\"VM.ffi\",\"FfiTest.test_ffiWritesMarker\"],\"trace\":[\"[5494] FfiTest::test_ffiWritesMarker()\",\"  ├─ [0] VM::ffi([\\\"sh\\\", \\\"-c\\\", \\\"touch ffi-marker.txt && printf 0x01\\\"])\",\"  │   └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"  └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\"]}",
             "orphans": false
           },
@@ -933,7 +934,7 @@
               }
             ],
             "isError": false,
-            "ms": 1082,
+            "ms": 1446,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.5\",\"summary\":{\"suites\":1,\"passed\":0,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"LeakTest.test_leak()\",\"file\":\"test/Leak.t.sol\",\"kind\":\"unit\",\"reason\":\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\",\"logs\":[\"[redacted:PRIVATE_KEY]\",\"[redacted:ETHERSCAN_API_KEY]\",\"[redacted:RPC_URL]\",\"[redacted:SAK_DOTENV_TOKEN]\",\"[redacted:PRIVATE_KEY]\"],\"trace\":[\"[32076] LeakTest::test_leak()\",\"  ├─ [0] VM::assertTrue(false, \\\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\\\") [staticcall]\",\"  │   └─ ← [Revert] leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\",\"  └─ ← [Revert] leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\"],\"traceLinesOmitted\":20,\"backtrace\":[\"VM.assertTrue\",\"LeakTest.test_leak\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -997,7 +998,7 @@
               }
             ],
             "isError": false,
-            "ms": 1015,
+            "ms": 1384,
             "text": "{\"test\":\"LeakTest.test_leak()\",\"status\":\"failed\",\"forge\":\"1.8.5\",\"ffi\":\"disabled\",\"reason\":\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\",\"logs\":[\"[redacted:PRIVATE_KEY]\",\"[redacted:ETHERSCAN_API_KEY]\",\"[redacted:RPC_URL]\",\"[redacted:SAK_DOTENV_TOKEN]\",\"[redacted:PRIVATE_KEY]\"],\"backtrace\":[\"VM.assertTrue\",\"LeakTest.test_leak\"],\"trace\":[\"[32076] LeakTest::test_leak()\",\"  ├─ [0] VM::envString(\\\"PRIVATE_KEY\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] VM::envString(\\\"ETHERSCAN_API_KEY\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] VM::envString(\\\"RPC_URL\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] VM::envString(\\\"SAK_DOTENV_TOKEN\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] console::log(\\\"[redacted:PRIVATE_KEY]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] console::log(\\\"[redacted:ETHERSCAN_API_KEY]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] console::log(\\\"[redacted:RPC_URL]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] console::log(\\\"[redacted:SAK_DOTENV_TOKEN]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] VM::envUint(\\\"PRIVATE_KEY\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] console::log([redacted:PRIVATE_KEY]) [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] VM::assertTrue(false, \\\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\\\") [staticcall]\",\"  │   └─ ← [Reve… [1732 chars]",
             "orphans": false
           },
@@ -1031,7 +1032,7 @@
               }
             ],
             "isError": false,
-            "ms": 1028,
+            "ms": 1366,
             "text": "{\"test\":\"BankTest.test_transfer()\",\"status\":\"failed\",\"forge\":\"1.8.5\",\"ffi\":\"disabled\",\"reason\":\"balance mismatch: 99 != 100\",\"backtrace\":[\"VM.assertEq\",\"BankTest.test_transfer\"],\"trace\":[\"[56069] BankTest::setUp()\",\"  ├─ [0] VM::deployCode(\\\"src/Bank.sol:Bank\\\")\",\"  │   ├─ [310785] → new Bank@0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f\",\"  │   │   └─ ← [Return] 1195 bytes of code\",\"  │   └─ ← [Return] Bank: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f]\",\"  ├─ [44419] Bank::credit(0x00000000000000000000000000000000000A11cE, 1000)\",\"  │   └─ ← [Stop]\",\"  └─ ← [Stop]\",\"\",\"[70351] BankTest::test_transfer()\",\"  ├─ [0] VM::prank(0x00000000000000000000000000000000000A11cE)\",\"  │   └─ ← [Return]\",\"  ├─ [50067] Bank::transfer(0x0000000000000000000000000000000000000B0b, 100)\",\"  │   └─ ← [Stop]\",\"  ├─ [2779] Bank::balanceOf(0x0000000000000000000000000000000000000B0b) [staticcall]\",\"  │   └─ ← [Return] 99\",\"  ├─ [0] VM::assertEq(99, 100, \\\"balance mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] balance mismatch: 99 != 100\",\"  └─ ← [Revert] balance mismatch: 99 != 100\"]}",
             "orphans": false
           },
@@ -1070,7 +1071,7 @@
               }
             ],
             "isError": true,
-            "ms": 143,
+            "ms": 204,
             "text": "{\"error\":{\"code\":\"INVALID_ARGUMENTS\",\"message\":\"Give the test as \\\"Contract.test_name()\\\" or \\\"test_name\\\".\",\"hint\":\"Check the tool arguments.\"}}",
             "orphans": false
           }
@@ -1081,7 +1082,7 @@
       "forge": "v1.8.6",
       "probe": {
         "version": "0.1.0",
-        "probedAt": "2026-10-26T16:31:40.471Z",
+        "probedAt": "2026-10-26T16:51:15.368Z",
         "node": "v24.19.0",
         "instructions": {
           "chars": [453, 453],
@@ -1098,7 +1099,7 @@
         "id": "forge-test-mcp",
         "version": "0.1.0",
         "stage": "build-test",
-        "ranAt": "2026-10-26T16:31:55.833Z",
+        "ranAt": "2026-10-26T16:51:34.522Z",
         "node": "v24.19.0",
         "passed": 22,
         "failed": 0,
@@ -1153,7 +1154,7 @@
               }
             ],
             "isError": false,
-            "ms": 533,
+            "ms": 648,
             "text": "{\"status\":\"passed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":4,\"failed\":0,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[],\"truncated\":null}",
             "orphans": false
           },
@@ -1197,7 +1198,7 @@
               }
             ],
             "isError": false,
-            "ms": 864,
+            "ms": 1065,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"VaultTest.test_attackerCannotDrain()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"vault drained: 7000000000000000000 != 10000000000000000000\",\"trace\":[\"[372536] VaultTest::test_attackerCannotDrain()\",\"  ├─ [0] VM::assertEq(7000000000000000000 [7e18], 10000000000000000000 [1e19], \\\"vault drained\\\") [staticcall]\",\"  │   └─ ← [Revert] vault drained: 7000000000000000000 != 10000000000000000000\",\"  └─ ← [Revert] vault drained: 7000000000000000000 != 10000000000000000000\"],\"traceLinesOmitted\":27,\"backtrace\":[\"VM.assertEq\",\"VaultTest.test_attackerCannotDrain\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -1241,7 +1242,7 @@
               }
             ],
             "isError": false,
-            "ms": 842,
+            "ms": 1052,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"BankTest.test_transfer()\",\"file\":\"test/Bank.t.sol\",\"kind\":\"unit\",\"reason\":\"balance mismatch: 99 != 100\",\"trace\":[\"[70351] BankTest::test_transfer()\",\"  ├─ [0] VM::assertEq(99, 100, \\\"balance mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] balance mismatch: 99 != 100\",\"  └─ ← [Revert] balance mismatch: 99 != 100\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"BankTest.test_transfer\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -1290,8 +1291,8 @@
               }
             ],
             "isError": false,
-            "ms": 850,
-            "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"MathTest.testFuzz_squareIsMonotonic(uint256)\",\"file\":\"test/Math.t.sol\",\"kind\":\"fuzz\",\"reason\":\"panic: arithmetic underflow or overflow (0x11)\",\"counterexample\":{\"args\":\"1299078393434814380004300956350588541753\",\"calldata\":\"0x08e9b94000000000000000000000000000000003d15165d65e64d827ab3a1d6962ca5b39\",\"seed\":\"0x5eed\"},\"trace\":[\"[6129] MathTest::testFuzz_squareIsMonotonic(213729726027702730350869000190837432576775079704891110203129 [2.137e59])\",\"  ├─ [656] MathHarness::square(213729726027702730350869000190837432576775079704891110203129 [2.137e59]) [staticcall]\",\"  │   └─ ← [Revert] panic: arithmetic underflow or overflow (0x11)\",\"  └─ ← [Revert] panic: arithmetic underflow or overflow (0x11)\"],\"backtrace\":[\"MathHarness.square\",\"MathTest.testFuzz_squareIsMonotonic\"]}],\"truncated\":null}",
+            "ms": 1065,
+            "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"MathTest.testFuzz_squareIsMonotonic(uint256)\",\"file\":\"test/Math.t.sol\",\"kind\":\"fuzz\",\"reason\":\"panic: arithmetic underflow or overflow (0x11)\",\"counterexample\":{\"args\":\"1299078393434814380004300956350588541753\",\"calldata\":\"0x08e9b94000000000000000000000000000000003d15165d65e64d827ab3a1d6962ca5b39\",\"seed\":\"0x5eed\"},\"trace\":[\"[6129] MathTest::testFuzz_squareIsMonotonic(1299078393434814380004300956350588541753 [1.299e39])\",\"  ├─ [656] MathHarness::square(1299078393434814380004300956350588541753 [1.299e39]) [staticcall]\",\"  │   └─ ← [Revert] panic: arithmetic underflow or overflow (0x11)\",\"  └─ ← [Revert] panic: arithmetic underflow or overflow (0x11)\"],\"backtrace\":[\"MathHarness.square\",\"MathTest.testFuzz_squareIsMonotonic\"]}],\"truncated\":null}",
             "orphans": false
           },
           {
@@ -1339,7 +1340,7 @@
               }
             ],
             "isError": false,
-            "ms": 1000,
+            "ms": 1300,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"SupplyInvariantTest.invariant_supplyMatches()\",\"file\":\"test/Supply.t.sol\",\"kind\":\"invariant\",\"reason\":\"supply mismatch: 6683 != 6355\",\"sequence\":{\"calls\":[{\"call\":\"Handler.mint(uint256)\",\"args\":\"6683\",\"sender\":\"0x000000000000000000000000000000000000022f\"},{\"call\":\"Handler.burnFrom(uint256)\",\"args\":\"328\",\"sender\":\"0x000000000000000000000000000000000000054e\"}],\"shrunkFrom\":4},\"trace\":[\"[21670] SupplyInvariantTest::invariant_supplyMatches()\",\"  ├─ [0] VM::assertEq(6683, 6355, \\\"supply mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] supply mismatch: 6683 != 6355\",\"  └─ ← [Revert] supply mismatch: 6683 != 6355\"],\"traceLinesOmitted\":14}],\"truncated\":null}",
             "orphans": false
           },
@@ -1383,7 +1384,7 @@
               }
             ],
             "isError": false,
-            "ms": 860,
+            "ms": 1069,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"MarketTest.test_quoteIsOnePercent()\",\"file\":\"test/Market.t.sol\",\"kind\":\"unit\",\"reason\":\"fee mismatch: 10 != 100\",\"trace\":[\"[10456] MarketTest::test_quoteIsOnePercent()\",\"  ├─ [0] VM::assertEq(10, 100, \\\"fee mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] fee mismatch: 10 != 100\",\"  └─ ← [Revert] fee mismatch: 10 != 100\"],\"traceLinesOmitted\":2,\"backtrace\":[\"VM.assertEq\",\"MarketTest.test_quoteIsOnePercent\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -1457,7 +1458,7 @@
               }
             ],
             "isError": false,
-            "ms": 867,
+            "ms": 1070,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":7,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"traces\":\"5 of 7 failures traced (the first 5 are re-run for traces)\",\"failures\":[{\"test\":\"VaultTest.test_expectRevertButNone()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"next call did not revert as expected\",\"trace\":[\"[58380] VaultTest::test_expectRevertButNone()\",\"  └─ ← [Revert] next call did not revert as expected\"],\"traceLinesOmitted\":4,\"backtrace\":[\"VaultTest.test_expectRevertButNone\"]},{\"test\":\"VaultTest.test_expectRevertMismatch()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"Error != expected error: Paused() != InsufficientBalance(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0, 1)\",\"trace\":[\"[77304] VaultTest::test_expectRevertMismatch()\",\"  ├─ [23816] Vault::withdraw(1)\",\"  │   └─ ← [Revert] Paused()\",\"  └─ ← [Revert] Error != expected error: Paused() != InsufficientBalance(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0, 1)\"],\"traceLinesOmitted\":4,\"backtrace\":[\"Vault.withdraw\",\"VaultTest.test_expectRevertMismatch\"]},{\"test\":\"VaultTest.test_panicDivZero()\",\"file\":\"test/Vault.t.sol\",\"kind\":\"unit\",\"reason\":\"panic: division or modulo by zero (0x12)\",\"trace\":[\"[6417] VaultTest::test_panicDivZero()\",\"  ├─ [808] Vault::divide(1, 0) [staticcall]\",\"  │   └─ ← [Revert] panic: division or modulo by zero (0x12)\",\"  └─ ← [Revert] panic: division or modulo by zero (0x12)\"],\"backtrace\":[\"Vault.divide\",\"VaultTes… [2655 chars]",
             "orphans": false
           },
@@ -1506,7 +1507,7 @@
               }
             ],
             "isError": false,
-            "ms": 1065,
+            "ms": 1341,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":4,\"passed\":1,\"failed\":200,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"traces\":\"5 of 200 failures traced (the first 5 are re-run for traces)\",\"failures\":[{\"test\":\"ManyFailures0Test.test_fail000()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"trace\":[\"[80035] ManyFailures0Test::test_fail000()\",\"  ├─ [0] VM::assertEq(1, 0, \\\"case 0: expected the counter to keep its initial value after increment\\\") [staticcall]\",\"  │   └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"  └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"ManyFailures0Test.test_fail000\"]},{\"test\":\"ManyFailures0Test.test_fail001()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 1: expected the counter to keep its initial value after increment: 2 != 1\",\"trace\":[\"[82825] ManyFailures0Test::test_fail001()\",\"  ├─ [0] VM::assertEq(2, 1, \\\"case 1: expected the counter to keep its initial value after increment\\\") [staticcall]\",\"  │   └─ ← [Revert] case 1: expected the counter to keep its initial value after increment: 2 != 1\",\"  └─ ← [Revert] case 1: expected the counter to keep its initial value after increment: 2 != 1\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"ManyFailures0Test.test_fail001\"]… [8063 chars]",
             "orphans": false
           },
@@ -1550,7 +1551,7 @@
               }
             ],
             "isError": false,
-            "ms": 1085,
+            "ms": 1382,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":4,\"passed\":1,\"failed\":200,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"traces\":\"5 of 200 failures traced (the first 5 are re-run for traces)\",\"failures\":[{\"test\":\"ManyFailures0Test.test_fail000()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"trace\":[\"[80035] ManyFailures0Test::test_fail000()\",\"  ├─ [0] VM::assertEq(1, 0, \\\"case 0: expected the counter to keep its initial value after increment\\\") [staticcall]\",\"  │   └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\",\"  └─ ← [Revert] case 0: expected the counter to keep its initial value after increment: 1 != 0\"],\"traceLinesOmitted\":6,\"backtrace\":[\"VM.assertEq\",\"ManyFailures0Test.test_fail000\"]},{\"test\":\"ManyFailures0Test.test_fail001()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 1: expected the counter to keep its initial value after increment: 2 != 1\",\"traceLinesOmitted\":6},{\"test\":\"ManyFailures0Test.test_fail002()\",\"file\":\"test/Many.t.sol\",\"kind\":\"unit\",\"reason\":\"case 2: expected the counter to keep its initial value after increment: 3 != 2\",\"traceLinesOmitted\":6}],\"truncated\":{\"budgetBytes\":2048,\"shownInFull\":1,\"shownWithoutTraceOrLogs\":2,\"namesOnly\":[\"ManyFailures0Test.test_fail003()\",\"ManyFailures0Test.test_fail004()\",\"ManyFailures0Test.test_fail005()\",\"ManyFailures0Test.test_fail006()\",\"Many… [1980 chars]",
             "orphans": false
           },
@@ -1594,7 +1595,7 @@
               }
             ],
             "isError": true,
-            "ms": 696,
+            "ms": 882,
             "text": "{\"error\":{\"code\":\"COMPILE_FAILED\",\"message\":\"The project does not compile, so no tests ran.\",\"hint\":\"Fix the compiler errors (call build for the full list), then run the tests again.\"},\"exitCode\":1,\"stderr\":\"Error: Compiler run failed:\\nError (9574): Type literal_string \\\"not a number\\\" is not implicitly convertible to expected type uint256.\\n  --> src/Broken.sol:13:9:\\n   |\\n13 |         uint256 x = \\\"not a number\\\"; // @gt:compile-error\\n   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^\",\"compilerErrors\":[{\"file\":\"src/Broken.sol\",\"line\":13,\"column\":9,\"severity\":\"error\",\"type\":\"TypeError\",\"code\":\"9574\",\"message\":\"Type literal_string \\\"not a number\\\" is not implicitly convertible to expected type uint256.\"}],\"compilerErrorsTotal\":1,\"forge\":\"1.8.6\",\"ffi\":\"disabled\"}",
             "orphans": false
           },
@@ -1633,7 +1634,7 @@
               }
             ],
             "isError": false,
-            "ms": 457,
+            "ms": 546,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"compiled\":\"fresh\",\"summary\":{\"errors\":1,\"warnings\":0},\"errors\":[{\"file\":\"src/Broken.sol\",\"line\":13,\"column\":9,\"severity\":\"error\",\"type\":\"TypeError\",\"code\":\"9574\",\"message\":\"Type literal_string \\\"not a number\\\" is not implicitly convertible to expected type uint256.\"}],\"warnings\":[],\"truncated\":null}",
             "orphans": false
           },
@@ -1667,7 +1668,7 @@
               }
             ],
             "isError": true,
-            "ms": 122,
+            "ms": 159,
             "text": "{\"error\":{\"code\":\"NOT_A_FOUNDRY_PROJECT\",\"message\":\"No foundry.toml in the server’s directory or above it (within the git repository), so nothing was run.\",\"hint\":\"Start the server in a Foundry project (a directory with foundry.toml, or below one inside the same git repository).\"}}",
             "orphans": false
           },
@@ -1701,7 +1702,7 @@
               }
             ],
             "isError": true,
-            "ms": 123,
+            "ms": 151,
             "text": "{\"error\":{\"code\":\"NOT_A_FOUNDRY_PROJECT\",\"message\":\"No foundry.toml in the server’s directory or above it (within the git repository), so nothing was run.\",\"hint\":\"Start the server in a Foundry project (a directory with foundry.toml, or below one inside the same git repository).\"}}",
             "orphans": false
           },
@@ -1735,7 +1736,7 @@
               }
             ],
             "isError": true,
-            "ms": 467,
+            "ms": 572,
             "text": "{\"error\":{\"code\":\"NO_TESTS_RAN\",\"message\":\"No tests ran.\",\"hint\":\"No test was executed. Check the match_* filters, or that the project has test functions.\"},\"exitCode\":0,\"stderr\":\"Warning: no tests match the provided pattern:\\n\\tmatch-test: `^does_not_exist$`\",\"counts\":{\"suites\":0,\"passed\":0,\"failed\":0,\"skipped\":0},\"forgeSays\":\"no tests match the provided pattern:\\n\\tmatch-test: `^does_not_exist$`\",\"forge\":\"1.8.6\",\"ffi\":\"disabled\"}",
             "orphans": false
           },
@@ -1771,7 +1772,7 @@
               }
             ],
             "isError": true,
-            "ms": 126,
+            "ms": 144,
             "text": "{\"error\":{\"code\":\"FORGE_NOT_FOUND\",\"message\":\"Could not start forge (ENOENT).\",\"hint\":\"Install Foundry (https://getfoundry.sh) so `forge` is on PATH, or start the server with --forge <path>. This server never installs it.\"}}",
             "orphans": false
           },
@@ -1830,7 +1831,7 @@
               }
             ],
             "isError": false,
-            "ms": 881,
+            "ms": 1073,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":1,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled-by-server\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"FfiTest.test_ffiWritesMarker()\",\"file\":\"test/Ffi.t.sol\",\"kind\":\"unit\",\"reason\":\"vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"trace\":[\"[5494] FfiTest::test_ffiWritesMarker()\",\"  ├─ [0] VM::ffi([\\\"sh\\\", \\\"-c\\\", \\\"touch ffi-marker.txt && printf 0x01\\\"])\",\"  │   └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"  └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\"],\"backtrace\":[\"VM.ffi\",\"FfiTest.test_ffiWritesMarker\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -1869,7 +1870,7 @@
               }
             ],
             "isError": true,
-            "ms": 837,
+            "ms": 1072,
             "text": "{\"error\":{\"code\":\"NO_TESTS_RAN\",\"message\":\"No tests ran.\",\"hint\":\"No test was executed. Check the match_* filters, or that the project has test functions.\"},\"exitCode\":0,\"stderr\":\"Warning: no tests match the provided pattern:\\n\\tmatch-test: `--ffi`\",\"counts\":{\"suites\":0,\"passed\":0,\"failed\":0,\"skipped\":0},\"forgeSays\":\"no tests match the provided pattern:\\n\\tmatch-test: `--ffi`\",\"forge\":\"1.8.6\",\"ffi\":\"disabled-by-server\"}",
             "orphans": false
           },
@@ -1913,7 +1914,7 @@
               }
             ],
             "isError": false,
-            "ms": 834,
+            "ms": 1021,
             "text": "{\"test\":\"FfiTest.test_ffiWritesMarker()\",\"status\":\"failed\",\"forge\":\"1.8.6\",\"ffi\":\"disabled-by-server\",\"reason\":\"vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"backtrace\":[\"VM.ffi\",\"FfiTest.test_ffiWritesMarker\"],\"trace\":[\"[5494] FfiTest::test_ffiWritesMarker()\",\"  ├─ [0] VM::ffi([\\\"sh\\\", \\\"-c\\\", \\\"touch ffi-marker.txt && printf 0x01\\\"])\",\"  │   └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\",\"  └─ ← [Revert] vm.ffi: FFI is disabled; add the `--ffi` flag to allow tests to call external commands\"]}",
             "orphans": false
           },
@@ -1992,7 +1993,7 @@
               }
             ],
             "isError": false,
-            "ms": 874,
+            "ms": 1084,
             "text": "{\"status\":\"failed\",\"forge\":\"1.8.6\",\"summary\":{\"suites\":1,\"passed\":0,\"failed\":1,\"skipped\":0},\"ffi\":\"disabled\",\"fuzzRuns\":{\"configured\":256,\"used\":256},\"notRun\":[],\"failures\":[{\"test\":\"LeakTest.test_leak()\",\"file\":\"test/Leak.t.sol\",\"kind\":\"unit\",\"reason\":\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\",\"logs\":[\"[redacted:PRIVATE_KEY]\",\"[redacted:ETHERSCAN_API_KEY]\",\"[redacted:RPC_URL]\",\"[redacted:SAK_DOTENV_TOKEN]\",\"[redacted:PRIVATE_KEY]\"],\"trace\":[\"[32076] LeakTest::test_leak()\",\"  ├─ [0] VM::assertTrue(false, \\\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\\\") [staticcall]\",\"  │   └─ ← [Revert] leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\",\"  └─ ← [Revert] leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\"],\"traceLinesOmitted\":20,\"backtrace\":[\"VM.assertTrue\",\"LeakTest.test_leak\"]}],\"truncated\":null}",
             "orphans": false
           },
@@ -2056,7 +2057,7 @@
               }
             ],
             "isError": false,
-            "ms": 834,
+            "ms": 1059,
             "text": "{\"test\":\"LeakTest.test_leak()\",\"status\":\"failed\",\"forge\":\"1.8.6\",\"ffi\":\"disabled\",\"reason\":\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\",\"logs\":[\"[redacted:PRIVATE_KEY]\",\"[redacted:ETHERSCAN_API_KEY]\",\"[redacted:RPC_URL]\",\"[redacted:SAK_DOTENV_TOKEN]\",\"[redacted:PRIVATE_KEY]\"],\"backtrace\":[\"VM.assertTrue\",\"LeakTest.test_leak\"],\"trace\":[\"[32076] LeakTest::test_leak()\",\"  ├─ [0] VM::envString(\\\"PRIVATE_KEY\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] VM::envString(\\\"ETHERSCAN_API_KEY\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] VM::envString(\\\"RPC_URL\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] VM::envString(\\\"SAK_DOTENV_TOKEN\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] console::log(\\\"[redacted:PRIVATE_KEY]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] console::log(\\\"[redacted:ETHERSCAN_API_KEY]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] console::log(\\\"[redacted:RPC_URL]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] console::log(\\\"[redacted:SAK_DOTENV_TOKEN]\\\") [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] VM::envUint(\\\"PRIVATE_KEY\\\") [staticcall]\",\"  │   └─ ← [Return] <env var value>\",\"  ├─ [0] console::log([redacted:PRIVATE_KEY]) [staticcall]\",\"  │   └─ ← [Stop]\",\"  ├─ [0] VM::assertTrue(false, \\\"leak [redacted:PRIVATE_KEY] [redacted:ETHERSCAN_API_KEY] [redacted:RPC_URL] [redacted:SAK_DOTENV_TOKEN]\\\") [staticcall]\",\"  │   └─ ← [Reve… [1732 chars]",
             "orphans": false
           },
@@ -2090,7 +2091,7 @@
               }
             ],
             "isError": false,
-            "ms": 802,
+            "ms": 999,
             "text": "{\"test\":\"BankTest.test_transfer()\",\"status\":\"failed\",\"forge\":\"1.8.6\",\"ffi\":\"disabled\",\"reason\":\"balance mismatch: 99 != 100\",\"backtrace\":[\"VM.assertEq\",\"BankTest.test_transfer\"],\"trace\":[\"[56069] BankTest::setUp()\",\"  ├─ [0] VM::deployCode(\\\"src/Bank.sol:Bank\\\")\",\"  │   ├─ [310785] → new Bank@0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f\",\"  │   │   └─ ← [Return] 1195 bytes of code\",\"  │   └─ ← [Return] Bank: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f]\",\"  ├─ [44419] Bank::credit(0x00000000000000000000000000000000000A11cE, 1000)\",\"  │   └─ ← [Stop]\",\"  └─ ← [Stop]\",\"\",\"[70351] BankTest::test_transfer()\",\"  ├─ [0] VM::prank(0x00000000000000000000000000000000000A11cE)\",\"  │   └─ ← [Return]\",\"  ├─ [50067] Bank::transfer(0x0000000000000000000000000000000000000B0b, 100)\",\"  │   └─ ← [Stop]\",\"  ├─ [2779] Bank::balanceOf(0x0000000000000000000000000000000000000B0b) [staticcall]\",\"  │   └─ ← [Return] 99\",\"  ├─ [0] VM::assertEq(99, 100, \\\"balance mismatch\\\") [staticcall]\",\"  │   └─ ← [Revert] balance mismatch: 99 != 100\",\"  └─ ← [Revert] balance mismatch: 99 != 100\"]}",
             "orphans": false
           },
@@ -2129,7 +2130,7 @@
               }
             ],
             "isError": true,
-            "ms": 125,
+            "ms": 144,
             "text": "{\"error\":{\"code\":\"INVALID_ARGUMENTS\",\"message\":\"Give the test as \\\"Contract.test_name()\\\" or \\\"test_name\\\".\",\"hint\":\"Check the tool arguments.\"}}",
             "orphans": false
           }
