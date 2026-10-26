@@ -255,6 +255,32 @@ describe('schema: who may be enabled by default (FR-16, FR-17)', () => {
   }
 })
 
+describe('schema: defaultFor', () => {
+  it('accepts a non-empty list of project kinds', () => {
+    for (const defaultFor of [
+      ['foundry'],
+      ['foundry', 'both'],
+      ['foundry', 'hardhat', 'both', 'none'],
+    ]) {
+      assert.deepEqual(
+        errorsOf(manifestWith(evaluatedComponent({ defaultFor }))),
+        [],
+        defaultFor.join()
+      )
+    }
+  })
+
+  it('rejects an empty list, a repeated kind, an unknown kind or a string', () => {
+    for (const defaultFor of [[], ['foundry', 'foundry'], ['truffle'], 'foundry']) {
+      assert.notDeepEqual(
+        errorsOf(manifestWith(evaluatedComponent({ defaultFor }))),
+        [],
+        JSON.stringify(defaultFor)
+      )
+    }
+  })
+})
+
 describe('schema: licences (D20)', () => {
   const osi = schema.$defs.osiLicense
   const riskNote = { note: 'custom licence, revocable', security: false, resolved: false }

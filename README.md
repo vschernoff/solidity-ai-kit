@@ -77,6 +77,8 @@ Every component is listed in [`kit.manifest.json`](kit.manifest.json), pinned to
 version, with its licence, source, evaluation record and risk notes. The agent never picks
 between competing servers at runtime. A component is enabled by default only once its
 evaluation is recorded, and only with an OSI-approved licence; until then it is opt-in.
+A default can be limited to some kinds of project (for example, a Foundry test runner only
+where there is a `foundry.toml`); `--with <id>` still adds it anywhere.
 
 <!-- components:start (generated from kit.manifest.json by npm run readme) -->
 <!-- prettier-ignore-start -->

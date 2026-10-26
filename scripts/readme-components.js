@@ -15,7 +15,17 @@ function launch(component) {
   return `\`${component.command}\` ${component.version}`
 }
 
+const PROJECT_KINDS = {
+  foundry: 'Foundry',
+  hardhat: 'Hardhat',
+  both: 'Foundry + Hardhat',
+  none: 'other',
+}
+
 function status(component) {
+  if (component.enabledByDefault && component.defaultFor) {
+    return `on by default in ${component.defaultFor.map((kind) => PROJECT_KINDS[kind]).join(', ')} projects`
+  }
   if (component.enabledByDefault) return 'on by default'
   return component.experimental ? 'opt-in, experimental' : 'opt-in'
 }
