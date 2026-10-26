@@ -1,0 +1,18 @@
+{
+  "$schema": "./candidate.schema.json",
+  "id": "forge-test-mcp",
+  "manifestId": null,
+  "stage": "build-test",
+  "install": {
+    "type": "npm",
+    "package": "forge-test-mcp",
+    "version": "0.1.0",
+    "integrity": "sha512-W3Ygi/ut5CLa7sErcdoGUYtDSCnKE5oABUMhHmGVvwb67CWMRTeXUjcTD3N/P3CVvx6XD90cMa3m2gReIXO6Zw==",
+    "bin": "forge-test-mcp"
+  },
+  "transport": "stdio",
+  "args": [],
+  "network": "none",
+  "requiresBinaries": ["forge"],
+  "deniedTools": []
+}

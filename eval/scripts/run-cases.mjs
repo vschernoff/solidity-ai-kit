@@ -16,10 +16,11 @@ import {
   fillPlaceholders,
   markerPaths,
   plantMarkers,
-  readCases,
+  readCaseFile,
+  resolveEnv,
   resultText,
 } from '../lib/cases.js'
-import { FIXTURES_DIR, flagValue } from '../lib/fixtures.js'
+import { FIXTURES_DIR, flagValue, readJson } from '../lib/fixtures.js'
 
 const args = process.argv.slice(2)
 const [id, installDir] = args
@@ -43,9 +44,8 @@ try {
 const candidate = candidateFile
   ? JSON.parse(fs.readFileSync(candidateFile, 'utf8'))
   : readCandidate(id)
-const cases = casesFile
-  ? JSON.parse(fs.readFileSync(casesFile, 'utf8')).cases
-  : readCases(candidate.stage)
+const caseFile = casesFile ? readJson(casesFile) : readCaseFile(candidate.stage)
+const cases = caseFile?.cases
 if (!cases) {
   // Not an error: a stage without cases yet. Said explicitly in the report, never as a pass.
   const report = {
@@ -77,7 +77,7 @@ async function runCase(spec) {
   }
   const markers = markerPaths(work, spec.id)
   plantMarkers(markers)
-  const env = { ...candidateEnv(home), ...(spec.env ?? {}) }
+  const env = { ...candidateEnv(home), ...resolveEnv(caseFile.env, spec.env) }
   const session = startStdio({ command, args: argv, cwd: project, env })
   let call
   const started = performance.now()
@@ -98,6 +98,13 @@ async function runCase(spec) {
   const verdict = evaluateCase(spec.expect, call, {
     markerFired,
     pollutionBytes: session.stats.pollutionBytes,
+    orphans: session.stats.orphans,
+    presentFiles: (spec.expect.filesAbsent ?? []).filter((f) =>
+      fs.existsSync(path.join(project, f))
+    ),
+    groundTruth: spec.expect.groundTruth
+      ? readJson(path.join(FIXTURES_DIR, spec.fixture, 'GROUND_TRUTH.json')).expect.test
+      : null,
   })
   const text = call.error ? '' : resultText(call)
   fs.rmSync(work, { recursive: true, force: true })
