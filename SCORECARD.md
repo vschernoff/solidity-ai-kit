@@ -40,6 +40,10 @@ component version and the outcome, so the page stands on its own; runs from befo
 was published are recorded, not linked. "At
 source" means read in the published code. Anything else is marked _not verified_.
 
+**IDs.** `D20`, `D39` and similar are decisions, and `FR-`/`NFR-` are requirements, in the
+project's internal specification (see the README). This page states each one in full where it
+uses it.
+
 **Disclosure.** Where a candidate's failing gate is a security issue not yet public upstream,
 this page names only the gate. Details are reported privately to the maintainers first.
 
