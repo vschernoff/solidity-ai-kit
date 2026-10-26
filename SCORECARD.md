@@ -19,16 +19,16 @@ run.
 **Gates.** A candidate is excluded if it fails any of these. They are checked by reading the
 source at the exact published version, and by execution where the harness can:
 
-| Gate | Requirement                                                                                                                                                                                                                                                        |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| G1   | A licence. Enabled by default only with an OSI-approved SPDX licence (D20); anything else is opt-in at most                                                                                                                                                        |
-| G2   | Public source matching the published artefact                                                                                                                                                                                                                      |
-| G3   | No network access beyond the tool's stated purpose                                                                                                                                                                                                                 |
-| G4   | No shell interpolation of tool inputs, no file access outside the project                                                                                                                                                                                          |
-| G5   | No install-time scripts                                                                                                                                                                                                                                            |
-| G6   | No telemetry on by default                                                                                                                                                                                                                                         |
-| G7   | No key handling, signing or transaction sending that a client cannot deny per tool                                                                                                                                                                                 |
-| G8   | forge writes `out/` and `cache/` in the project. When the project enables FFI, a temporary configuration with FFI off is written under the system temp directory, not in the project, and removed after the run (removal known at source). Nothing written to HOME | At source; HOME by execution (probe) |
+| Gate | Requirement                                                                                                 |
+| ---- | ----------------------------------------------------------------------------------------------------------- |
+| G1   | A licence. Enabled by default only with an OSI-approved SPDX licence (D20); anything else is opt-in at most |
+| G2   | Public source matching the published artefact                                                               |
+| G3   | No network access beyond the tool's stated purpose                                                          |
+| G4   | No shell interpolation of tool inputs, no file access outside the project                                   |
+| G5   | No install-time scripts                                                                                     |
+| G6   | No telemetry on by default                                                                                  |
+| G7   | No key handling, signing or transaction sending that a client cannot deny per tool                          |
+| G8   | Disk writes stated (informational)                                                                          |
 
 Beyond the gates: **C2** `instructions` length, measured live from two working directories; **C3**
 nothing but the protocol on stdout; **C4** run health, meaning a tool that did not fully run says
@@ -150,16 +150,16 @@ names as its `gitHead`.
 
 #### 2.5a Gates
 
-| Gate | Result                                                                                                                                                                    | How known                           |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| G1   | MIT. Dependencies: `@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.3.1 (Apache-2.0), `zod` (MIT)                                                        | At source                           |
-| G2   | The npm tarball is byte-identical to the tagged source                                                                                                                    | File-by-file comparison             |
-| G3   | No network code; every forge call passes `--offline`                                                                                                                      | At source                           |
-| G4   | forge starts from an argument array, never a shell; each agent-supplied filter becomes one `--flag=value` argument, so a filter that looks like a flag is matched as text | At source, and by execution (§2.5b) |
-| G5   | No install-time scripts in the four-package tree                                                                                                                          | By execution (CI install)           |
-| G6   | No telemetry                                                                                                                                                              | At source                           |
-| G7   | Three tools, `run_tests`, `explain_failure` and `build`; none signs, sends transactions or accepts keys                                                                   | At source                           |
-| G8   | forge writes `out/` and `cache/` in the project; when the project enables FFI, a temporary configuration with FFI off, removed after the run; nothing written to HOME     | At source, and by execution (probe) |
+| Gate | Result                                                                                                                                                                                                                                                             | How known                            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| G1   | MIT. Dependencies: `@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.3.1 (Apache-2.0), `zod` (MIT)                                                                                                                                                 | At source                            |
+| G2   | The npm tarball is byte-identical to the tagged source                                                                                                                                                                                                             | File-by-file comparison              |
+| G3   | No network code; every forge call passes `--offline`                                                                                                                                                                                                               | At source                            |
+| G4   | forge starts from an argument array, never a shell; each agent-supplied filter becomes one `--flag=value` argument, so a filter that looks like a flag is matched as text                                                                                          | At source, and by execution (§2.5b)  |
+| G5   | No install-time scripts in the four-package tree                                                                                                                                                                                                                   | By execution (CI install)            |
+| G6   | No telemetry                                                                                                                                                                                                                                                       | At source                            |
+| G7   | Three tools, `run_tests`, `explain_failure` and `build`; none signs, sends transactions or accepts keys                                                                                                                                                            | At source                            |
+| G8   | forge writes `out/` and `cache/` in the project. When the project enables FFI, a temporary configuration with FFI off is written under the system temp directory, not in the project, and removed after the run (removal known at source). Nothing written to HOME | At source; HOME by execution (probe) |
 
 C2: the `instructions` field is a fixed 453-character string, `[453, 453]` from a shallow and a
 deep working directory. C3: no byte outside the protocol on stdout, in the probe or in any case.
