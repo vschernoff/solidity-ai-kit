@@ -26,8 +26,27 @@ function serverName(component) {
   return `the \`${component.id}\` MCP server`
 }
 
+// Build and test through a build-test server where it can run them: Foundry projects (the
+// server runs forge). Tool names as forge-test-mcp 0.1.0 lists them.
+function buildAndTest(project, buildTest) {
+  if (buildTest.length === 0 || (project.kind !== 'foundry' && project.kind !== 'both')) {
+    return [
+      `After changing Solidity, build and run the relevant tests with ${BUILD_AND_TEST[project.kind]}. Fix failures first.`,
+    ]
+  }
+  const hardhat =
+    project.kind === 'both'
+      ? ' For Hardhat tests use `npx hardhat compile` and `npx hardhat test`.'
+      : ''
+  return [
+    `After changing Solidity, build and run the relevant tests with the \`build\` and \`run_tests\` tools of ${buildTest.map(serverName).join(' and ')}; use \`forge build\` or \`forge test\` in a shell only when the tool cannot run.${hardhat} Fix failures first.`,
+    'When a test tool reports an error, the tests did not run: fix the cause and run them again. Never report that as passing, even if it shows 0 failed.',
+  ]
+}
+
 export function rulesBlock(project, components) {
   const byStage = (stage) => components.filter((component) => component.stage === stage)
+  const buildTest = byStage('build-test')
   const lint = byStage('lint')
   const fuzz = byStage('fuzz')
   const installed =
@@ -35,9 +54,7 @@ export function rulesBlock(project, components) {
       ? components.map((component) => `\`${label(component)}\` (${component.stage})`).join(', ')
       : 'none'
 
-  const steps = [
-    `After changing Solidity, build and run the relevant tests with ${BUILD_AND_TEST[project.kind]}. Fix failures first.`,
-  ]
+  const steps = buildAndTest(project, buildTest)
   if (lint.length > 0) {
     steps.push(
       `Then lint with ${lint.map(serverName).join(' and ')}. Use its fix tools for auto-fixable findings.`
