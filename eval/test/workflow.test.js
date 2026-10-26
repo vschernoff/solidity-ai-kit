@@ -110,6 +110,11 @@ describe('EVAL.yml', () => {
     // The case runner reads SAK_SOLC ($ENV: in eval/cases/build-test.json) inside the container.
     assert.match(script, /-e SAK_SOLC=\/toolchain\/solc/)
     assert.match(script, /\$FORGE_DIR:\/foundry:ro/)
+    // Every forge version a job installs has a pinned binary digest, and the job checks it.
+    for (const version of deps.foundry.caseVersions)
+      assert.match(deps.foundry.forgeLinuxAmd64Sha256[version] ?? '', /^[0-9a-f]{64}$/, version)
+    assert.match(script, /forgeLinuxAmd64Sha256\[process\.env\.FORGE_VERSION\]/)
+    assert.match(script, /sha256sum "\$forge_bin"/)
     // The mounted directory must hold the binary itself, not a symlink to elsewhere.
     assert.match(script, /readlink -f "\$\(command -v forge\)"/)
   })

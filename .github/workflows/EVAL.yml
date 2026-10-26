@@ -98,6 +98,13 @@ jobs:
           # foundryup installs ~/.foundry/bin/forge as a symlink into ~/.foundry/versions/; mount
           # the real binary's directory, or the link dangles inside the container.
           forge_bin=$(readlink -f "$(command -v forge)")
+          # The binary must be the one pinned in eval/deps.json for this version.
+          expected=$(node -p "require('./eval/deps.json').foundry.forgeLinuxAmd64Sha256[process.env.FORGE_VERSION]")
+          actual=$(sha256sum "$forge_bin" | cut -d' ' -f1)
+          if [ "$actual" != "$expected" ]; then
+            echo "forge $FORGE_VERSION sha256 $actual, expected $expected" >&2
+            exit 1
+          fi
           echo "FORGE_DIR=$(dirname "$forge_bin")" >> "$GITHUB_ENV"
           "$forge_bin" --version
       - name: Probe with no network

@@ -191,6 +191,37 @@ describe('ground-truth evaluation', () => {
     assert.equal(judge(result([failure(), extra])).passed, false)
   })
 
+  it('catches a passing test listed as failing under another spelling, by name boundary', () => {
+    for (const test of ['MathTest::test_squareOfThree()', 'MathTest.test_squareOfThree']) {
+      const extra = failure({ test, reason: 'x' })
+      assert.equal(judge(result([failure(), extra])).passed, false, test)
+    }
+    // A longer name that starts with the passing one is a different test.
+    const longer = {
+      passing: ['V.test_a()'],
+      failing: [{ contract: 'V', test: 'test_ab()', kind: 'unit', reasonContains: 'r' }],
+    }
+    const call = result([{ test: 'V.test_ab()', kind: 'unit', reason: 'r' }])
+    assert.equal(judge(call, longer).passed, true)
+    // And the failing test itself must be named on a boundary too.
+    const wrong = result([{ test: 'V.test_abc()', kind: 'unit', reason: 'r' }])
+    assert.equal(judge(wrong, longer).passed, false)
+  })
+
+  it('takes the counterexample from the result, not from trace lines', () => {
+    const trace = [
+      '[1] MathTest::testFuzz_squareIsMonotonic(340282366920938463463374607431768211456)',
+    ]
+    assert.equal(judge(result([failure({ counterexample: { args: '5' }, trace })])).passed, false)
+    const none = failure({ trace })
+    delete none.counterexample
+    assert.equal(judge(result([none])).passed, false)
+  })
+
+  it('requires the kind to be the only kind the failure states', () => {
+    assert.equal(judge(result([failure({ kind: 'unit', note: 'fuzz' })])).passed, false)
+  })
+
   it('checks a call sequence in order', () => {
     const seq = {
       passing: [],

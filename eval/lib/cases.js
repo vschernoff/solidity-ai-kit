@@ -154,13 +154,40 @@ function objectsIn(value, out = []) {
   return out
 }
 
-/** Every string and number anywhere in a value, as strings. */
+/**
+ * Every string and number in a value, as strings, except inside arrays of strings: those are
+ * printed lines (traces, backtraces, logs), which repeat call arguments and would let a
+ * counterexample check pass on a trace alone.
+ */
 function leavesOf(value, out = []) {
-  if (Array.isArray(value)) for (const item of value) leavesOf(item, out)
-  else if (value && typeof value === 'object')
+  if (Array.isArray(value)) {
+    if (value.length > 0 && value.every((item) => typeof item === 'string')) return out
+    for (const item of value) leavesOf(item, out)
+  } else if (value && typeof value === 'object') {
     for (const v of Object.values(value)) leavesOf(v, out)
-  else if (typeof value === 'string' || typeof value === 'number') out.push(String(value))
+  } else if (typeof value === 'string' || typeof value === 'number') out.push(String(value))
   return out
+}
+
+const KINDS = ['unit', 'fuzz', 'invariant', 'setup']
+
+/**
+ * A test named as `Contract.fn` or `Contract::fn`, followed by `(`, a non-identifier character
+ * or the end, so `VaultTest.test_deposit` does not match `VaultTest.test_depositAndWithdraw`.
+ */
+function namesTest(contract, signature) {
+  const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const fn = signature.split('(')[0]
+  const re = new RegExp(
+    `(^|[^A-Za-z0-9_$])${escape(contract)}(\\.|::)${escape(fn)}(?=\\(|[^A-Za-z0-9_$]|$)`
+  )
+  return (text) => re.test(text)
+}
+
+/** `Contract.fn(args)` → [contract, signature]. */
+function splitId(id) {
+  const dot = id.indexOf('.')
+  return [id.slice(0, dot), id.slice(dot + 1)]
 }
 
 /**
@@ -194,12 +221,15 @@ function checkGroundTruth(spec, truth, text, add) {
   if (spec.failures === 'none') return
   for (const f of failing) {
     const id = `${f.contract}.${f.test}`
+    const named = namesTest(f.contract, f.test)
     const match = objects.find((o) => {
       const own = Object.values(o).filter((v) => typeof v === 'string')
+      // The kind must be the only kind the object states, not one string among several.
+      const kinds = own.filter((v) => KINDS.includes(v))
       return (
-        own.some((v) => v.includes(id)) &&
+        own.some(named) &&
         own.some((v) => v.includes(f.reasonContains)) &&
-        (!f.kind || own.includes(f.kind))
+        (!f.kind || (kinds.length === 1 && kinds[0] === f.kind))
       )
     })
     add(
@@ -233,8 +263,9 @@ function checkGroundTruth(spec, truth, text, add) {
     }
   }
   for (const id of passing) {
+    const named = namesTest(...splitId(id))
     const listed = objects.some((o) =>
-      Object.values(o).some((v) => typeof v === 'string' && v === id)
+      Object.values(o).some((v) => typeof v === 'string' && named(v))
     )
     add(`${id} is not reported as failing`, !listed, listed ? 'listed' : 'not listed')
   }
