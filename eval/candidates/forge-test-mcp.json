@@ -1,7 +1,7 @@
 {
   "$schema": "./candidate.schema.json",
   "id": "forge-test-mcp",
-  "manifestId": null,
+  "manifestId": "forge-test",
   "stage": "build-test",
   "install": {
     "type": "npm",
