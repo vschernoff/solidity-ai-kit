@@ -310,16 +310,6 @@
       "env": {
         "FORCE_COLOR": "1"
       }
-    },
-    {
-      "id": "zz-throwaway-red-demo",
-      "fixture": "F01-erc20-clean",
-      "tool": "lint_project",
-      "args": {},
-      "expect": {
-        "includes": ["TEXT THAT NO LINT RESULT CONTAINS"]
-      },
-      "why": "Throwaway (reverted in the next commit): proves the gate turns the job red on a failing case."
     }
   ]
 }

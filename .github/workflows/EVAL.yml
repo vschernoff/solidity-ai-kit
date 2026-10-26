@@ -94,8 +94,7 @@ jobs:
         if: matrix.forge
         run: |
           node eval/scripts/fetch-solc.mjs "$RUNNER_TEMP/toolchain"
-          # Throwaway (reverted in the next commit): forge-std is not fetched, to prove the
-          # dependency check stops the cases with exit 2.
+          node eval/scripts/fetch-deps.mjs
           # foundryup installs ~/.foundry/bin/forge as a symlink into ~/.foundry/versions/; mount
           # the real binary's directory, or the link dangles inside the container.
           forge_bin=$(readlink -f "$(command -v forge)")
