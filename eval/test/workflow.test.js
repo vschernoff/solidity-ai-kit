@@ -55,7 +55,8 @@ describe('EVAL.yml', () => {
     const npmIds = listCandidates()
       .filter((c) => c.install.type === 'npm')
       .map((c) => c.id)
-    assert.deepEqual([...probe.strategy.matrix.candidate].sort(), npmIds.sort())
+    const include = probe.strategy.matrix.include
+    assert.deepEqual([...new Set(include.map((i) => i.candidate))].sort(), npmIds.sort())
     const { image, digest } = deps.probeImage
     assert.equal(probe.env.PROBE_IMAGE, `${image}@${digest}`)
     const script = probe.steps.map((s) => s.run ?? '').join('\n')
@@ -81,6 +82,54 @@ describe('EVAL.yml', () => {
       ]) {
         assert.ok(dockerRun.includes(flag), `docker run lacks ${flag}: ${dockerRun}`)
       }
+    }
+  })
+
+  it('runs every candidate that needs forge once per pinned forge version, toolchain pinned', () => {
+    const probe = workflow.jobs.probe
+    const include = probe.strategy.matrix.include
+    const probed = listCandidates().filter((c) => c.install.type === 'npm')
+    for (const candidate of probed.filter((c) => c.requiresBinaries.includes('forge'))) {
+      const versions = include.filter((i) => i.candidate === candidate.id).map((i) => i.forge)
+      assert.deepEqual(versions.sort(), [...deps.foundry.caseVersions].sort(), candidate.id)
+    }
+    for (const i of include.filter((x) => x.forge)) {
+      assert.ok(
+        listCandidates()
+          .find((c) => c.id === i.candidate)
+          .requiresBinaries.includes('forge'),
+        `${i.candidate} gets forge without needing it`
+      )
+    }
+    const { toolchainAction } = deps.foundry
+    const toolchain = probe.steps.find((s) => s.uses?.startsWith(`${toolchainAction.repo}@`))
+    assert.equal(toolchain.uses, `${toolchainAction.repo}@${toolchainAction.commit}`)
+    assert.equal(toolchain.with.version, '${{ matrix.forge }}')
+    const script = probe.steps.map((s) => s.run ?? '').join('\n')
+    assert.match(script, /fetch-solc\.mjs/)
+    // The case runner reads SAK_SOLC ($ENV: in eval/cases/build-test.json) inside the container.
+    assert.match(script, /-e SAK_SOLC=\/toolchain\/solc/)
+    assert.match(script, /\$FORGE_DIR:\/foundry:ro/)
+    // Every forge version a job installs has a pinned binary digest, and the job checks it.
+    for (const version of deps.foundry.caseVersions)
+      assert.match(deps.foundry.forgeLinuxAmd64Sha256[version] ?? '', /^[0-9a-f]{64}$/, version)
+    assert.match(script, /forgeLinuxAmd64Sha256\[process\.env\.FORGE_VERSION\]/)
+    assert.match(script, /sha256sum "\$forge_bin"/)
+    // The mounted directory must hold the binary itself, not a symlink to elsewhere.
+    assert.match(script, /readlink -f "\$\(command -v forge\)"/)
+  })
+
+  it('fails the job when a stage case fails, and still keeps the evidence (gate)', () => {
+    const steps = workflow.jobs.probe.steps
+    const casesAt = steps.findIndex((s) => s.run?.includes('scripts/run-cases.mjs'))
+    const gateAt = steps.findIndex((s) => s.run?.includes('eval/scripts/gate-cases.mjs'))
+    assert.ok(casesAt >= 0 && gateAt > casesAt, 'the gate runs after the cases')
+    const gate = steps[gateAt]
+    assert.match(gate.run, /gate-cases\.mjs "\$RUNNER_TEMP\/out\/cases\.json"/)
+    assert.equal(gate['continue-on-error'], undefined)
+    assert.equal(gate.if, undefined)
+    for (const step of steps.slice(gateAt + 1)) {
+      assert.equal(step.if, 'always()', `${step.name ?? step.uses} must run after a red gate`)
     }
   })
 

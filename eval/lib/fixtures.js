@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -60,4 +61,54 @@ export function flagValue(argv, name, fallback = null) {
   const value = argv[at + 1]
   if (value === undefined || value.startsWith('--')) throw new Error(`${name} needs a value`)
   return value
+}
+
+export const FORGE_STD_PIN_FILE = '.pinned-commit'
+export const FORGE_STD_TREE_FILE = '.tree-sha256'
+
+/** sha256 over every file under `dir` (relative path and content, sorted), marker files excluded. */
+export function treeDigest(dir) {
+  const hash = createHash('sha256')
+  const files = []
+  const walk = (current) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const full = path.join(current, entry.name)
+      if (entry.isDirectory()) walk(full)
+      else if (![FORGE_STD_PIN_FILE, FORGE_STD_TREE_FILE].includes(entry.name)) files.push(full)
+    }
+  }
+  walk(dir)
+  for (const file of files.map((f) => path.relative(dir, f)).sort()) {
+    hash
+      .update(`${file}\0`)
+      .update(fs.readFileSync(path.join(dir, file)))
+      .update('\0')
+  }
+  return hash.digest('hex')
+}
+
+/**
+ * What is wrong with lib/forge-std in each fixture directory: missing, at another commit, or
+ * changed since fetch-deps.mjs installed it from the sha256-checked tarball. Empty when sound.
+ */
+export function forgeStdProblems(dirs, commit = readDeps().forgeStd.commit) {
+  const problems = []
+  for (const dir of dirs) {
+    const name = path.basename(dir)
+    const lib = path.join(dir, 'lib', 'forge-std')
+    const read = (file) =>
+      fs.existsSync(path.join(lib, file))
+        ? fs.readFileSync(path.join(lib, file), 'utf8').trim()
+        : null
+    const pin = read(FORGE_STD_PIN_FILE)
+    if (pin !== commit) {
+      problems.push(`${name}: forge-std ${pin ?? 'missing'}, expected ${commit}`)
+      continue
+    }
+    const recorded = read(FORGE_STD_TREE_FILE)
+    if (!recorded || recorded !== treeDigest(lib)) {
+      problems.push(`${name}: forge-std files differ from what fetch-deps installed`)
+    }
+  }
+  return problems
 }

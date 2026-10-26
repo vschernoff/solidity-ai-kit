@@ -6,6 +6,7 @@
 //
 //   node eval/scripts/run-cases.mjs <id> <install-dir> [--out file] [--candidate-file file]
 //                                   [--timeout-ms n] [--cases file]   default eval/cases/<stage>.json
+import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -16,10 +17,11 @@ import {
   fillPlaceholders,
   markerPaths,
   plantMarkers,
-  readCases,
+  readCaseFile,
+  resolveEnv,
   resultText,
 } from '../lib/cases.js'
-import { FIXTURES_DIR, flagValue } from '../lib/fixtures.js'
+import { FIXTURES_DIR, flagValue, forgeStdProblems, readJson } from '../lib/fixtures.js'
 
 const args = process.argv.slice(2)
 const [id, installDir] = args
@@ -43,9 +45,8 @@ try {
 const candidate = candidateFile
   ? JSON.parse(fs.readFileSync(candidateFile, 'utf8'))
   : readCandidate(id)
-const cases = casesFile
-  ? JSON.parse(fs.readFileSync(casesFile, 'utf8')).cases
-  : readCases(candidate.stage)
+const caseFile = casesFile ? readJson(casesFile) : readCaseFile(candidate.stage)
+const cases = caseFile?.cases
 if (!cases) {
   // Not an error: a stage without cases yet. Said explicitly in the report, never as a pass.
   const report = {
@@ -59,6 +60,49 @@ if (!cases) {
   if (outFile) fs.writeFileSync(outFile, `${JSON.stringify(report, null, 2)}\n`)
   console.error(`run-cases: no cases for stage "${candidate.stage}" — nothing was checked`)
   process.exit(0)
+}
+// Every $ENV: reference must resolve before any case runs: a missing toolchain is a harness
+// error, never a case result.
+try {
+  for (const spec of cases) resolveEnv(caseFile.env, spec.env)
+} catch (error) {
+  console.error(`run-cases: ${error.message}`)
+  process.exit(2)
+}
+// The binaries the candidate needs must run in the case environment before any case does. A
+// missing toolchain is a harness failure (exit 2), never a set of failed or passed cases.
+{
+  const env = { ...candidateEnv(os.tmpdir()), ...resolveEnv(caseFile.env) }
+  // Plus any binary the cases file names through an env variable (e.g. FOUNDRY_SOLC).
+  const fromEnv = (caseFile.binariesInEnv ?? []).map((name) => env[name])
+  for (const binary of [...(candidate.requiresBinaries ?? []), ...fromEnv]) {
+    const check = spawnSync(binary, ['--version'], { env, encoding: 'utf8', timeout: 30_000 })
+    if (check.error || check.status !== 0) {
+      const why = check.error?.code ?? `exit ${check.status}: ${check.stderr?.trim()}`
+      console.error(`run-cases: required binary ${binary} does not run (${why})`)
+      process.exit(2)
+    }
+    console.error(`run-cases: ${binary}: ${check.stdout.split('\n')[0]}`)
+  }
+}
+// Fixture dependencies the cases file declares must be present and unchanged: a missing
+// forge-std makes every case a compile error, which is a broken harness, not a result.
+{
+  const known = { 'forge-std': forgeStdProblems }
+  const problems = []
+  for (const dep of caseFile.fixtureDeps ?? []) {
+    if (!known[dep]) problems.push(`unknown fixture dependency ${dep}`)
+    else {
+      const dirs = [...new Set(cases.map((c) => c.fixture))]
+        .map((name) => path.join(FIXTURES_DIR, name))
+        .filter((dir) => readJson(path.join(dir, 'GROUND_TRUTH.json')).layout !== 'hardhat')
+      problems.push(...known[dep](dirs))
+    }
+  }
+  if (problems.length) {
+    console.error(`run-cases: fixture dependencies not ready:\n  ${problems.join('\n  ')}`)
+    process.exit(2)
+  }
 }
 const { command, args: argv } = launchCommand(candidate, path.resolve(installDir))
 
@@ -77,7 +121,7 @@ async function runCase(spec) {
   }
   const markers = markerPaths(work, spec.id)
   plantMarkers(markers)
-  const env = { ...candidateEnv(home), ...(spec.env ?? {}) }
+  const env = { ...candidateEnv(home), ...resolveEnv(caseFile.env, spec.env) }
   const session = startStdio({ command, args: argv, cwd: project, env })
   let call
   const started = performance.now()
@@ -98,6 +142,13 @@ async function runCase(spec) {
   const verdict = evaluateCase(spec.expect, call, {
     markerFired,
     pollutionBytes: session.stats.pollutionBytes,
+    orphans: session.stats.orphans,
+    presentFiles: (spec.expect.filesAbsent ?? []).filter((f) =>
+      fs.existsSync(path.join(project, f))
+    ),
+    groundTruth: spec.expect.groundTruth
+      ? readJson(path.join(FIXTURES_DIR, spec.fixture, 'GROUND_TRUTH.json')).expect.test
+      : null,
   })
   const text = call.error ? '' : resultText(call)
   fs.rmSync(work, { recursive: true, force: true })
