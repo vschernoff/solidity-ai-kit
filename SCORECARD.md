@@ -19,16 +19,16 @@ run.
 **Gates.** A candidate is excluded if it fails any of these. They are checked by reading the
 source at the exact published version, and by execution where the harness can:
 
-| Gate | Requirement                                                                                                 |
-| ---- | ----------------------------------------------------------------------------------------------------------- |
-| G1   | A licence. Enabled by default only with an OSI-approved SPDX licence (D20); anything else is opt-in at most |
-| G2   | Public source matching the published artefact                                                               |
-| G3   | No network access beyond the tool's stated purpose                                                          |
-| G4   | No shell interpolation of tool inputs, no file access outside the project                                   |
-| G5   | No install-time scripts                                                                                     |
-| G6   | No telemetry on by default                                                                                  |
-| G7   | No key handling, signing or transaction sending that a client cannot deny per tool                          |
-| G8   | Disk writes stated (informational)                                                                          |
+| Gate | Requirement                                                                                                                                                                                                                                                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| G1   | A licence. Enabled by default only with an OSI-approved SPDX licence (D20); anything else is opt-in at most                                                                                                                                                        |
+| G2   | Public source matching the published artefact                                                                                                                                                                                                                      |
+| G3   | No network access beyond the tool's stated purpose                                                                                                                                                                                                                 |
+| G4   | No shell interpolation of tool inputs, no file access outside the project                                                                                                                                                                                          |
+| G5   | No install-time scripts                                                                                                                                                                                                                                            |
+| G6   | No telemetry on by default                                                                                                                                                                                                                                         |
+| G7   | No key handling, signing or transaction sending that a client cannot deny per tool                                                                                                                                                                                 |
+| G8   | forge writes `out/` and `cache/` in the project. When the project enables FFI, a temporary configuration with FFI off is written under the system temp directory, not in the project, and removed after the run (removal known at source). Nothing written to HOME | At source; HOME by execution (probe) |
 
 Beyond the gates: **C2** `instructions` length, measured live from two working directories; **C3**
 nothing but the protocol on stdout; **C4** run health, meaning a tool that did not fully run says
@@ -198,8 +198,9 @@ not run.
 
 #### 2.5c Not verified
 
-- forge versions other than 1.8.5 and 1.8.6. The server refuses forge older than 1.8.5, and reports
-  1.9 and later, or a pre-release build, as untested.
+- forge versions other than 1.8.5 and 1.8.6. The server refuses forge older than 1.8.5. It reports
+  1.9 and later as untested, and a pre-release build too, unless the build's commit is that of a
+  tested release (for example 1.8.6-dev built from the 1.8.6 commit).
 - Windows and macOS in CI (the evaluation runs on Linux only), the timeout path and the output cap.
 - Agent trials are not recorded here.
 
