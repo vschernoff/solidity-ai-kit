@@ -182,6 +182,16 @@ describe('preview with components selected (FR-2)', () => {
   })
 })
 
+describe('the note init prints for Claude Code', () => {
+  it('says approval may be asked for and points to /mcp, without promising a prompt', async () => {
+    const result = await cli(project(), 'init', '--client', 'claude-code')
+    assert.equal(result.code, 0, result.stderr)
+    assert.match(result.stdout, /^Note: Claude Code may ask you to approve the project servers/m)
+    assert.match(result.stdout, /Run \/mcp in Claude Code/)
+    assert.doesNotMatch(result.stdout, /asks you to approve[^\n]*the first time/)
+  })
+})
+
 describe('http components (FR-3)', () => {
   const remote = {
     id: 'remote',

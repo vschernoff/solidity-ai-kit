@@ -51,9 +51,13 @@ export function claudeCode(project, { components, notes }) {
     edits.push({ file: SETTINGS_FILE, after: stringifyLike(settingsText, settings) })
   }
 
+  // Claude Code's MCP docs (checked 2026-10-27): interactive sessions prompt before using
+  // .mcp.json servers, `claude -p` loads them without asking, and /mcp shows each server's
+  // status. The desktop app did not ask in the kit's end-to-end run, so this says "may".
   notes.push(
-    'In interactive sessions Claude Code asks you to approve the project servers in .mcp.json ' +
-      'the first time; non-interactive runs (claude -p) load them without asking.'
+    'Claude Code may ask you to approve the project servers in .mcp.json before using them ' +
+      '(claude -p loads them without asking). Run /mcp in Claude Code to see whether each one ' +
+      'is connected or waiting for approval.'
   )
   return edits
 }
