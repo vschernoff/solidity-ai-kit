@@ -4,6 +4,7 @@ import { codex, codexRemove } from './clients/codex.js'
 import { cursor, cursorRemove } from './clients/cursor.js'
 import { label, selectComponents } from './components.js'
 import { detectProject } from './detect.js'
+import { hardhatNotes } from './hardhat-notes.js'
 import { DEFAULT_LIMITS, formatReport, runDoctor } from './doctor.js'
 import { runInit } from './init.js'
 import { runRemove } from './remove.js'
@@ -78,7 +79,8 @@ function remove(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
 function init(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
   const clients = selectedClients(values)
 
-  const components = selectComponents(manifest, listOption(values.with), detectProject(cwd))
+  const project = detectProject(cwd)
+  const components = selectComponents(manifest, listOption(values.with), project)
   if (components.length === 0) {
     const optIn = manifest.components.map(label).join(', ')
     stderr.write(
@@ -87,6 +89,8 @@ function init(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
   } else {
     stdout.write(`Components: ${components.map(label).join(', ')}\n`)
   }
+  for (const note of hardhatNotes({ manifest, components, project, clients }))
+    stdout.write(`Note: ${note}\n`)
   return runInit({
     root: cwd,
     write: values.write === true,
