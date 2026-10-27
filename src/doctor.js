@@ -211,29 +211,24 @@ export async function runDoctor({
   const components = manifest.components.filter(({ id }) => ids.has(id))
   const clients = new Set([...found.values()].flatMap((set) => [...set]))
 
+  // Each binary is checked once: required when the project or any checked component needs it.
   const foundry = project.kind === 'foundry' || project.kind === 'both'
-  const toolchain = [await checkNode({ engines })]
+  const binaries = new Map()
   for (const binary of ['forge', 'anvil', 'cast']) {
-    toolchain.push(
-      await checkBinary(binary, {
-        required: foundry,
-        fix: `Install Foundry: ${FOUNDRY_INSTALL}`,
-        timeoutMs,
-        runner,
-      })
-    )
+    binaries.set(binary, { required: foundry, fix: `Install Foundry: ${FOUNDRY_INSTALL}` })
   }
   for (const component of components) {
     for (const binary of component.requiresBinaries) {
-      toolchain.push(
-        await checkBinary(binary, {
-          required: true,
-          fix: `Needed by ${label(component)}; see ${component.source}.`,
-          timeoutMs,
-          runner,
-        })
-      )
+      if (binaries.get(binary)?.required) continue
+      binaries.set(binary, {
+        required: true,
+        fix: `Needed by ${label(component)}; see ${component.source}.`,
+      })
     }
+  }
+  const toolchain = [await checkNode({ engines })]
+  for (const [binary, { required, fix }] of binaries) {
+    toolchain.push(await checkBinary(binary, { required, fix, timeoutMs, runner }))
   }
 
   const leftovers = []

@@ -19,6 +19,7 @@ const foundry = { kind: 'foundry' }
 // Stand-ins for stages the real manifest does not cover yet.
 const fuzzer = { id: 'fuzzer', stage: 'fuzz', experimental: true, deniedTools: [] }
 const linter = { id: 'linter', stage: 'lint', experimental: false, deniedTools: [] }
+const tester = { id: 'tester', stage: 'build-test', experimental: false, deniedTools: [] }
 
 let counter = 0
 function project(files = {}) {
@@ -122,8 +123,40 @@ describe('workflow rules text (FR-18…FR-23)', () => {
     assert.match(text([], { kind: 'none' }), /the project's build and test commands/)
   })
 
+  it('builds and tests through a build-test server in Foundry projects, shell as fallback', () => {
+    for (const kind of ['foundry', 'both']) {
+      const block = text([tester, linter], { kind })
+      assert.match(block, /with the `build` and `run_tests` tools of the `tester` MCP server/, kind)
+      assert.match(block, /`forge test` in a shell only when the tool cannot run/, kind)
+      assert.match(
+        block,
+        /tests did not run[^\n]*Never report that as passing, even if it shows 0 failed/,
+        kind
+      )
+      assert.ok(block.indexOf('run_tests') < block.indexOf('Then lint'), kind)
+    }
+    assert.match(
+      text([tester], { kind: 'both' }),
+      /For Hardhat tests use `npx hardhat compile` and `npx hardhat test`/
+    )
+    // Without the server, or where it cannot run forge, the rule names the project's commands.
+    for (const [components, kind] of [
+      [[], 'foundry'],
+      [[tester], 'hardhat'],
+      [[tester], 'none'],
+    ]) {
+      const block = text(components, { kind })
+      assert.doesNotMatch(block, /run_tests|0 failed/, `${components.length} ${kind}`)
+    }
+  })
+
   it('stays client-neutral and within 25 lines', () => {
-    for (const components of [[], manifest.components, [linter, fuzzer]]) {
+    for (const components of [
+      [],
+      manifest.components,
+      [linter, fuzzer],
+      [tester, linter, fuzzer],
+    ]) {
       const block = rulesBlock(foundry, components)
       assert.ok(block.length <= 25, `${block.length} lines`)
       assert.doesNotMatch(block.join('\n'), /Claude|Codex|Cursor/)

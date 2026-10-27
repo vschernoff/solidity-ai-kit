@@ -13,6 +13,7 @@ import {
   runDoctor,
   serverEnvironment,
 } from '../src/doctor.js'
+import { isDefaultFor } from '../src/components.js'
 import { PACKAGE_ROOT, loadManifest, readPackageJson } from '../src/manifest.js'
 import { probe, resolveNpx } from '../src/mcp-probe.js'
 
@@ -262,6 +263,31 @@ describe('doctor checks and report (FR-10, FR-11)', () => {
     assert.match(echidna.fix, /Needed by fuzz/)
   })
 
+  it('checks a binary once, as required, when a component needs one the project may not', async () => {
+    const needsForge = { ...stubComponent('tests', 'fixed', 1), requiresBinaries: ['forge'] }
+    const noForge = async (name) => (name === 'forge' ? { found: false } : runner(name))
+    const forgeRows = (report) => report.toolchain.filter(({ name }) => name === 'forge')
+
+    const inFoundry = await doctor(project({ '.mcp.json': mcpJson('tests') }), [needsForge], {
+      runner: noForge,
+    })
+    assert.equal(forgeRows(inFoundry).length, 1)
+    assert.match(forgeRows(inFoundry)[0].fix, /Install Foundry/)
+
+    const hardhat = project(
+      { '.mcp.json': mcpJson('tests'), 'hardhat.config.ts': '' },
+      {
+        foundry: false,
+      }
+    )
+    const inHardhat = await doctor(hardhat, [needsForge], { runner: noForge })
+    assert.deepEqual(
+      forgeRows(inHardhat).map(({ status }) => status),
+      [STATUS.missing]
+    )
+    assert.match(forgeRows(inHardhat)[0].fix, /Needed by tests/)
+  })
+
   it('reports an http component as not checked, which is not a pass', async () => {
     const http = {
       ...stubComponent('remote', 'fixed'),
@@ -392,8 +418,11 @@ describe('doctor through the CLI', () => {
     const result = await cliWith({ PATH: '' }, project(), 'doctor')
     assert.equal(result.code, 1)
     assert.match(result.stdout, /missing {9}forge: not on PATH/)
-    // forge, anvil and cast, plus each default component (npx is not on an empty PATH).
-    const defaults = loadManifest().components.filter((c) => c.enabledByDefault).length
+    // forge, anvil and cast, plus each default component for a Foundry project (npx is not
+    // on an empty PATH). A component that needs forge does not add a second forge check.
+    const defaults = loadManifest().components.filter((c) =>
+      isDefaultFor(c, { kind: 'foundry' })
+    ).length
     assert.match(result.stdout, new RegExp(`${3 + defaults} problem\\(s\\)`))
   })
 

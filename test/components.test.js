@@ -59,6 +59,19 @@ describe('which components init selects (defaultFor)', () => {
     }
   })
 
+  it('turns a component that needs forge on in Foundry and mixed projects, never Hardhat-only', () => {
+    const real = loadManifest()
+    const needsForge = real.components.filter(
+      (c) => c.enabledByDefault && c.requiresBinaries.includes('forge')
+    )
+    for (const { id } of needsForge) {
+      for (const kind of KINDS) {
+        const selected = ids(selectComponents(real, [], { kind })).includes(id)
+        assert.equal(selected, kind === 'foundry' || kind === 'both', `${id} in ${kind}`)
+      }
+    }
+  })
+
   it('treats a missing project as one of no known kind', () => {
     assert.deepEqual(ids(selectComponents(manifest)), ['everywhere'])
   })

@@ -34,6 +34,43 @@
           "resolved": true
         }
       ]
+    },
+    {
+      "id": "forge-test",
+      "stage": "build-test",
+      "package": "forge-test-mcp",
+      "version": "0.1.0",
+      "transport": "stdio",
+      "license": "MIT",
+      "source": "https://github.com/vschernoff/forge-test-mcp",
+      "evaluatedAt": "2026-10-26",
+      "score": 1,
+      "scorecardRef": "SCORECARD.md §1 (Build / test row); §2.5 (build/test-stage cases: 22/22 on forge 1.8.5 and 1.8.6, CI 2026-10-26)",
+      "enabledByDefault": true,
+      "defaultFor": ["foundry", "both"],
+      "experimental": false,
+      "requiresBinaries": ["forge"],
+      "deniedTools": [],
+      "riskNotes": [
+        {
+          "note": "Running tests runs the project's code: forge test executes its Solidity and cheatcodes with the user's privileges, the same trust as running forge test there. Not safe for untrusted repositories.",
+          "security": false,
+          "resolved": false,
+          "ref": "SCORECARD.md §2.5"
+        },
+        {
+          "note": "FFI is off unless the server is started with --allow-ffi (a user setting, not a tool argument), even when foundry.toml sets ffi = true. Verified by execution: the FFI command never runs (SCORECARD.md §2.5b). Tests can still reach the network through fork cheatcodes or rpc_endpoints if the project configures them.",
+          "security": false,
+          "resolved": false,
+          "ref": "SCORECARD.md §2.5b"
+        },
+        {
+          "note": "Results redact the exact values of variables named like PRIVATE_KEY, MNEMONIC, SECRET, TOKEN, API_KEY or RPC_URL, from the environment and the project's .env (hex with or without 0x, and decimal). A secret under another name, or one a test transforms before printing, is not caught.",
+          "security": false,
+          "resolved": false,
+          "ref": "SCORECARD.md §2.5b"
+        }
+      ]
     }
   ]
 }

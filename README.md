@@ -84,6 +84,7 @@ where there is a `foundry.toml`); `--with <id>` still adds it anywhere.
 | Id | Stage | Runs as | Licence | Default | Evaluation | Open risk notes | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `solhint` | lint | `npx -y solhint-mcp@0.1.7` | MIT | on by default | evaluated 2026-10-24 | 1 | [source](https://github.com/vschernoff/solhint-mcp) |
+| `forge-test` | build-test | `npx -y forge-test-mcp@0.1.0` | MIT | on by default in Foundry, Foundry + Hardhat projects | evaluated 2026-10-26 | 3 | [source](https://github.com/vschernoff/forge-test-mcp) |
 <!-- prettier-ignore-end -->
 
 Risk notes, including what a component cannot protect against, are in `kit.manifest.json`.
