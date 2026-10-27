@@ -7,7 +7,7 @@ import { MCP_FILE as CLAUDE_MCP_FILE } from './clients/claude-code.js'
 import { CONFIG_FILE as CODEX_FILE } from './clients/codex.js'
 import { MCP_FILE as CURSOR_MCP_FILE } from './clients/cursor.js'
 import { readText } from './clients/json.js'
-import { label, launchSpec } from './components.js'
+import { isDefaultFor, label, launchSpec } from './components.js'
 import { detectProject } from './detect.js'
 import { launchCommand, probe } from './mcp-probe.js'
 
@@ -202,11 +202,11 @@ export async function runDoctor({
   const { found, unreadable } = configuredInProject(project.root, manifest)
 
   // Components to check: those init configured here, plus any asked for with --with. With
-  // neither, the manifest's defaults.
+  // neither, the manifest's defaults for this kind of project, as init would choose them.
   const ids = new Set([...found.keys(), ...requested])
   if (ids.size === 0) {
     for (const component of manifest.components)
-      if (component.enabledByDefault) ids.add(component.id)
+      if (isDefaultFor(component, project)) ids.add(component.id)
   }
   const components = manifest.components.filter(({ id }) => ids.has(id))
   const clients = new Set([...found.values()].flatMap((set) => [...set]))

@@ -3,6 +3,7 @@ import { claudeCode, claudeCodeRemove } from './clients/claude-code.js'
 import { codex, codexRemove } from './clients/codex.js'
 import { cursor, cursorRemove } from './clients/cursor.js'
 import { label, selectComponents } from './components.js'
+import { detectProject } from './detect.js'
 import { DEFAULT_LIMITS, formatReport, runDoctor } from './doctor.js'
 import { runInit } from './init.js'
 import { runRemove } from './remove.js'
@@ -62,27 +63,26 @@ function selectedClients(values) {
 
 // Every component the manifest lists, whether or not it was opted in: anything init could
 // have written is removed.
-function remove(values, { cwd, stdout, stderr }) {
+function remove(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
   const clients = selectedClients(values)
   return runRemove({
     root: cwd,
     write: values.write === true,
-    components: loadManifest().components,
+    components: manifest.components,
     removers: [...clients.map((client) => REMOVERS[client]), rulesRemover(clients)],
     stdout,
     stderr,
   })
 }
 
-function init(values, { cwd, stdout, stderr }) {
+function init(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
   const clients = selectedClients(values)
 
-  const manifest = loadManifest()
-  const components = selectComponents(manifest, listOption(values.with))
+  const components = selectComponents(manifest, listOption(values.with), detectProject(cwd))
   if (components.length === 0) {
     const optIn = manifest.components.map(label).join(', ')
     stderr.write(
-      `No components are enabled by default yet. Opt in with --with <id> (available: ${optIn}).\n`
+      `No components are enabled by default for this project. Opt in with --with <id> (available: ${optIn}).\n`
     )
   } else {
     stdout.write(`Components: ${components.map(label).join(', ')}\n`)
@@ -109,12 +109,12 @@ function parseLimits(values) {
   return limits
 }
 
-async function doctor(values, { cwd, stdout, stderr }) {
+async function doctor(values, { cwd, stdout, stderr, manifest }) {
   try {
+    manifest ??= loadManifest()
     const seconds = values.timeout === undefined ? 30 : Number(values.timeout)
     if (!Number.isFinite(seconds) || seconds <= 0)
       throw new Error('--timeout must be a positive number')
-    const manifest = loadManifest()
     const requested = listOption(values.with)
     selectComponents(manifest, requested)
     const report = await runDoctor({
@@ -134,9 +134,10 @@ async function doctor(values, { cwd, stdout, stderr }) {
   }
 }
 
+// `manifest` replaces kit.manifest.json, for tests only.
 export function main(
   argv,
-  { stdout = process.stdout, stderr = process.stderr, cwd = process.cwd() } = {}
+  { stdout = process.stdout, stderr = process.stderr, cwd = process.cwd(), manifest } = {}
 ) {
   let parsed
   try {
@@ -175,7 +176,7 @@ export function main(
   }
   if (command === 'init') {
     try {
-      return init(values, { cwd, stdout, stderr })
+      return init(values, { cwd, stdout, stderr, manifest })
     } catch (error) {
       stderr.write(`solidity-ai-kit init: ${error.message}\n`)
       return 1
@@ -183,14 +184,14 @@ export function main(
   }
   if (command === 'remove') {
     try {
-      return remove(values, { cwd, stdout, stderr })
+      return remove(values, { cwd, stdout, stderr, manifest })
     } catch (error) {
       stderr.write(`solidity-ai-kit remove: ${error.message}\n`)
       return 1
     }
   }
   if (command === 'doctor') {
-    return doctor(values, { cwd, stdout, stderr })
+    return doctor(values, { cwd, stdout, stderr, manifest })
   }
   // Commands land in their own pull requests. Until then, say so plainly and fail, so
   // nothing can mistake a no-op for a successful run.

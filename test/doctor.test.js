@@ -413,6 +413,32 @@ describe('doctor through the CLI', () => {
     )
   })
 
+  it('checks a default limited to Foundry projects only in a Foundry project', async () => {
+    const foundryOnly = {
+      ...stubComponent('forge-only', 'fixed', 1),
+      enabledByDefault: true,
+      defaultFor: ['foundry', 'both'],
+    }
+    const inFoundry = await doctor(project(), [foundryOnly])
+    assert.deepEqual(
+      inFoundry.components.map(({ name }) => name),
+      ['forge-only']
+    )
+    const elsewhere = await doctor(project({ 'hardhat.config.ts': '' }, { foundry: false }), [
+      foundryOnly,
+    ])
+    assert.deepEqual(elsewhere.components, [])
+    const requested = await doctor(
+      project({ 'hardhat.config.ts': '' }, { foundry: false }),
+      [foundryOnly],
+      { requested: ['forge-only'] }
+    )
+    assert.deepEqual(
+      requested.components.map(({ name }) => name),
+      ['forge-only']
+    )
+  })
+
   it('rejects a bad --limit or --timeout', async () => {
     for (const args of [
       ['--limit', 'codex'],
