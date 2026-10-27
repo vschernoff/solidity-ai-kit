@@ -1,0 +1,385 @@
+{
+  "$comment": "Build/test-stage cases (SRS §8.2 step 2, C4, FR-32, FR-38a, D24). Pass criteria are fixed here before any run: a case passes only if every expectation holds. `groundTruth` checks the result against the fixture GROUND_TRUTH.json (`expect.test`): exact passed/failed counts, and with failures \"all\" each failing test named with its reason, kind, counterexample bound and call order. Every case also requires nothing but JSON-RPC on stdout and no process left behind. Patterns match the result JSON as documented by the candidate. `$ENV:NAME` takes a value from the harness environment.",
+  "stage": "build-test",
+  "env": {
+    "FOUNDRY_SOLC": "$ENV:SAK_SOLC"
+  },
+  "binariesInEnv": ["FOUNDRY_SOLC"],
+  "fixtureDeps": ["forge-std"],
+  "cases": [
+    {
+      "id": "F01-run_tests",
+      "fixture": "F01-erc20-clean",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "Baseline: every test of a clean project passes and is counted."
+    },
+    {
+      "id": "F02-run_tests",
+      "fixture": "F02-vault-reentrancy",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "A unit failure is named with its decoded reason."
+    },
+    {
+      "id": "F05-run_tests",
+      "fixture": "F05-failing-assertion",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "An assertion failure is named with its decoded reason."
+    },
+    {
+      "id": "F06-run_tests",
+      "fixture": "F06-failing-fuzz",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "A fuzz failure has kind fuzz, the panic code and a counterexample at or above 2**128."
+    },
+    {
+      "id": "F07-run_tests",
+      "fixture": "F07-failing-invariant",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "An invariant failure has kind invariant, its reason and the call sequence mint then burnFrom."
+    },
+    {
+      "id": "F09-run_tests",
+      "fixture": "F09-mixed-foundry-hardhat",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "A Foundry project next to Hardhat runs through its remapping."
+    },
+    {
+      "id": "F11-run_tests",
+      "fixture": "F11-custom-error",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "Custom errors, panics, expectRevert mismatches and an undeclared selector are decoded."
+    },
+    {
+      "id": "F13-run_tests",
+      "fixture": "F13-many-failures",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "none"
+        },
+        "maxTextBytes": 8192,
+        "matches": ["\"truncated\":\\s*\\{"],
+        "includes": ["ManyFailures0Test.test_fail000()"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "FR-32: 200 failures stay within the default 8 KiB budget, the counts stay exact, and the result says what it left out."
+    },
+    {
+      "id": "F13-run_tests-min-budget",
+      "fixture": "F13-many-failures",
+      "tool": "run_tests",
+      "args": {
+        "max_bytes": 2048
+      },
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "none"
+        },
+        "maxTextBytes": 2048,
+        "matches": ["\"truncated\":\\s*\\{"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "FR-32: the smallest budget is respected and the counts stay exact."
+    },
+    {
+      "id": "F04-run_tests",
+      "fixture": "F04-compile-error",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": true,
+        "includes": ["COMPILE_FAILED", "src/Broken.sol"],
+        "excludes": ["\"status\":\"passed\""],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "C4: a compile error is an error with a code naming the file, never zero tests passed."
+    },
+    {
+      "id": "F04-build",
+      "fixture": "F04-compile-error",
+      "tool": "build",
+      "args": {},
+      "expect": {
+        "matches": ["\"file\":\\s*\"src/Broken.sol\",\\s*\"line\":\\s*13", "TypeError"],
+        "excludes": ["\"status\":\"passed\""],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "The compiler error is located at src/Broken.sol:13 (ground truth), and the build is not reported clean."
+    },
+    {
+      "id": "F08-run_tests",
+      "fixture": "F08-hardhat-only",
+      "tool": "run_tests",
+      "args": {},
+      "expect": {
+        "isError": true,
+        "includes": ["NOT_A_FOUNDRY_PROJECT"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "C4: a project without foundry.toml is an error naming the cause, never an empty pass."
+    },
+    {
+      "id": "F08-build",
+      "fixture": "F08-hardhat-only",
+      "tool": "build",
+      "args": {},
+      "expect": {
+        "isError": true,
+        "includes": ["NOT_A_FOUNDRY_PROJECT"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "C4: the same for build."
+    },
+    {
+      "id": "F05-no-match",
+      "fixture": "F05-failing-assertion",
+      "tool": "run_tests",
+      "args": {
+        "match_test": "^does_not_exist$"
+      },
+      "expect": {
+        "isError": true,
+        "includes": ["NO_TESTS_RAN"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "C4: a filter that matches nothing is an error, never 0 passed / 0 failed."
+    },
+    {
+      "id": "F05-forge-missing",
+      "fixture": "F05-failing-assertion",
+      "tool": "run_tests",
+      "args": {},
+      "env": {
+        "PATH": "/nonexistent"
+      },
+      "expect": {
+        "isError": true,
+        "includes": ["FORGE_NOT_FOUND"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "C4: no forge on PATH is an error with a code."
+    },
+    {
+      "id": "F12-ffi-on-run_tests",
+      "fixture": "F12-ffi-disabled",
+      "tool": "run_tests",
+      "args": {},
+      "files": {
+        "foundry.toml": "# Shared by every Foundry fixture; tests assert each fixture's copy is identical\n# (except where its GROUND_TRUTH.json says why not).\n[profile.default]\nsrc = \"src\"\ntest = \"test\"\nout = \"out\"\nlibs = [\"lib\"]\nsolc_version = \"0.8.37\"\nauto_detect_solc = false\noptimizer = false\nffi = true\n\n[fuzz]\nruns = 256\nseed = \"0x5eed\"\n\n[invariant]\nruns = 64\ndepth = 16\nfail_on_revert = false\n"
+      },
+      "expect": {
+        "isError": false,
+        "groundTruth": {
+          "failures": "all"
+        },
+        "includes": ["disabled-by-server", "FFI is disabled"],
+        "filesAbsent": ["ffi-marker.txt"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "FR-38a: foundry.toml enables FFI; the server turns it off, the FFI test fails and its command never runs."
+    },
+    {
+      "id": "F12-ffi-on-flag-filter",
+      "fixture": "F12-ffi-disabled",
+      "tool": "run_tests",
+      "args": {
+        "match_test": "--ffi"
+      },
+      "files": {
+        "foundry.toml": "# Shared by every Foundry fixture; tests assert each fixture's copy is identical\n# (except where its GROUND_TRUTH.json says why not).\n[profile.default]\nsrc = \"src\"\ntest = \"test\"\nout = \"out\"\nlibs = [\"lib\"]\nsolc_version = \"0.8.37\"\nauto_detect_solc = false\noptimizer = false\nffi = true\n\n[fuzz]\nruns = 256\nseed = \"0x5eed\"\n\n[invariant]\nruns = 64\ndepth = 16\nfail_on_revert = false\n"
+      },
+      "expect": {
+        "isError": true,
+        "includes": ["NO_TESTS_RAN"],
+        "filesAbsent": ["ffi-marker.txt"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "A filter that looks like a flag is a literal pattern: nothing matches and FFI stays off."
+    },
+    {
+      "id": "F12-ffi-on-explain_failure",
+      "fixture": "F12-ffi-disabled",
+      "tool": "explain_failure",
+      "args": {
+        "test": "FfiTest.test_ffiWritesMarker()"
+      },
+      "files": {
+        "foundry.toml": "# Shared by every Foundry fixture; tests assert each fixture's copy is identical\n# (except where its GROUND_TRUTH.json says why not).\n[profile.default]\nsrc = \"src\"\ntest = \"test\"\nout = \"out\"\nlibs = [\"lib\"]\nsolc_version = \"0.8.37\"\nauto_detect_solc = false\noptimizer = false\nffi = true\n\n[fuzz]\nruns = 256\nseed = \"0x5eed\"\n\n[invariant]\nruns = 64\ndepth = 16\nfail_on_revert = false\n"
+      },
+      "expect": {
+        "isError": false,
+        "includes": ["disabled-by-server", "FFI is disabled"],
+        "filesAbsent": ["ffi-marker.txt"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "FR-38a: explain_failure re-runs with FFI off too."
+    },
+    {
+      "id": "F05-redaction-run_tests",
+      "fixture": "F05-failing-assertion",
+      "tool": "run_tests",
+      "args": {
+        "match_contract": "^LeakTest$"
+      },
+      "files": {
+        "test/Leak.t.sol": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.37;\n\nimport {Test, console} from \"forge-std/Test.sol\";\n\ncontract LeakTest is Test {\n    function test_leak() public {\n        string memory k = vm.envString(\"PRIVATE_KEY\");\n        string memory e = vm.envString(\"ETHERSCAN_API_KEY\");\n        string memory r = vm.envString(\"RPC_URL\");\n        string memory d = vm.envString(\"SAK_DOTENV_TOKEN\");\n        console.log(k);\n        console.log(e);\n        console.log(r);\n        console.log(d);\n        console.log(vm.envUint(\"PRIVATE_KEY\"));\n        assertTrue(false, string.concat(\"leak \", k, \" \", e, \" \", r, \" \", d));\n    }\n}\n",
+        ".env": "SAK_DOTENV_TOKEN=SAKDOTENVCANARY000000000\n"
+      },
+      "expect": {
+        "isError": false,
+        "includes": [
+          "[redacted:PRIVATE_KEY]",
+          "[redacted:ETHERSCAN_API_KEY]",
+          "[redacted:RPC_URL]",
+          "[redacted:SAK_DOTENV_TOKEN]"
+        ],
+        "excludes": [
+          "0xc0ffee000000000000000000000000000000000000000000000000000000ca5a",
+          "c0ffee000000000000000000000000000000000000000000000000000000ca5a",
+          "87296255545136170725903389091100597043546180256869082415914326268029729557082",
+          "SAKCANARYETHERSCANKEY0000000000000",
+          "sak-canary-rpc.invalid",
+          "SAKDOTENVCANARY000000000"
+        ],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "D24: values of secret-named variables, from the environment and .env, never appear: hex with and without 0x, decimal, URL, token."
+    },
+    {
+      "id": "F05-redaction-explain_failure",
+      "fixture": "F05-failing-assertion",
+      "tool": "explain_failure",
+      "args": {
+        "test": "LeakTest.test_leak()"
+      },
+      "files": {
+        "test/Leak.t.sol": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.37;\n\nimport {Test, console} from \"forge-std/Test.sol\";\n\ncontract LeakTest is Test {\n    function test_leak() public {\n        string memory k = vm.envString(\"PRIVATE_KEY\");\n        string memory e = vm.envString(\"ETHERSCAN_API_KEY\");\n        string memory r = vm.envString(\"RPC_URL\");\n        string memory d = vm.envString(\"SAK_DOTENV_TOKEN\");\n        console.log(k);\n        console.log(e);\n        console.log(r);\n        console.log(d);\n        console.log(vm.envUint(\"PRIVATE_KEY\"));\n        assertTrue(false, string.concat(\"leak \", k, \" \", e, \" \", r, \" \", d));\n    }\n}\n",
+        ".env": "SAK_DOTENV_TOKEN=SAKDOTENVCANARY000000000\n"
+      },
+      "expect": {
+        "isError": false,
+        "includes": ["[redacted:PRIVATE_KEY]"],
+        "excludes": [
+          "0xc0ffee000000000000000000000000000000000000000000000000000000ca5a",
+          "c0ffee000000000000000000000000000000000000000000000000000000ca5a",
+          "87296255545136170725903389091100597043546180256869082415914326268029729557082",
+          "SAKCANARYETHERSCANKEY0000000000000",
+          "sak-canary-rpc.invalid",
+          "SAKDOTENVCANARY000000000"
+        ],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "D24: the same in the high-verbosity trace."
+    },
+    {
+      "id": "F05-explain_failure",
+      "fixture": "F05-failing-assertion",
+      "tool": "explain_failure",
+      "args": {
+        "test": "BankTest.test_transfer()"
+      },
+      "expect": {
+        "isError": false,
+        "includes": ["balance mismatch: 99 != 100"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "One failing test with its reason (ground truth)."
+    },
+    {
+      "id": "explain_failure-bad-id",
+      "fixture": "F05-failing-assertion",
+      "tool": "explain_failure",
+      "args": {
+        "test": "x; touch pwned"
+      },
+      "expect": {
+        "isError": true,
+        "includes": ["INVALID_ARGUMENTS"],
+        "filesAbsent": ["pwned"],
+        "stdoutClean": true,
+        "noOrphans": true
+      },
+      "why": "A malformed test name is rejected before forge runs."
+    }
+  ]
+}

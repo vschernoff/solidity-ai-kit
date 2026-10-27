@@ -10,11 +10,17 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import { foundryFixtures, readDeps } from '../lib/fixtures.js'
+import {
+  FORGE_STD_PIN_FILE,
+  FORGE_STD_TREE_FILE,
+  forgeStdProblems,
+  foundryFixtures,
+  readDeps,
+  treeDigest,
+} from '../lib/fixtures.js'
 
 const run = promisify(execFile)
 const { forgeStd } = readDeps()
-const PIN_FILE = '.pinned-commit'
 const KEEP = ['src', 'LICENSE-MIT', 'LICENSE-APACHE']
 
 function fail(message) {
@@ -23,13 +29,11 @@ function fail(message) {
 }
 
 function check() {
-  const problems = []
-  for (const { name, dir } of foundryFixtures()) {
-    const pin = path.join(dir, 'lib', 'forge-std', PIN_FILE)
-    const found = fs.existsSync(pin) ? fs.readFileSync(pin, 'utf8').trim() : 'missing'
-    if (found !== forgeStd.commit) problems.push(`${name}: forge-std ${found}`)
-  }
-  if (problems.length) fail(`not at ${forgeStd.commit}:\n  ${problems.join('\n  ')}`)
+  const problems = forgeStdProblems(
+    foundryFixtures().map(({ dir }) => dir),
+    forgeStd.commit
+  )
+  if (problems.length) fail(`not as pinned:\n  ${problems.join('\n  ')}`)
   console.error(`fetch-deps: every Foundry fixture has forge-std ${forgeStd.tag}`)
 }
 
@@ -57,7 +61,9 @@ async function install() {
       for (const entry of KEEP) {
         fs.cpSync(path.join(root, entry), path.join(target, entry), { recursive: true })
       }
-      fs.writeFileSync(path.join(target, PIN_FILE), `${forgeStd.commit}\n`)
+      fs.writeFileSync(path.join(target, FORGE_STD_PIN_FILE), `${forgeStd.commit}\n`)
+      // Recorded so a later check (run-cases.mjs) can tell the files are still the verified ones.
+      fs.writeFileSync(path.join(target, FORGE_STD_TREE_FILE), `${treeDigest(target)}\n`)
       console.error(`fetch-deps: ${name} ← forge-std ${forgeStd.tag}`)
     }
   } finally {

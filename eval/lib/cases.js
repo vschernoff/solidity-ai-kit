@@ -7,8 +7,29 @@ import { EVAL_ROOT, readJson } from './fixtures.js'
 export const CASES_DIR = path.join(EVAL_ROOT, 'cases')
 
 export function readCases(stage) {
+  return readCaseFile(stage)?.cases ?? null
+}
+
+/** The whole cases file of a stage (cases plus shared settings such as `env`), or null. */
+export function readCaseFile(stage) {
   const file = path.join(CASES_DIR, `${stage}.json`)
-  return fs.existsSync(file) ? readJson(file).cases : null
+  return fs.existsSync(file) ? readJson(file) : null
+}
+
+/**
+ * A case's environment: the file's shared `env`, then the case's own. A value written as
+ * `$ENV:NAME` is taken from the harness's environment (`source`), e.g. the path of a toolchain
+ * binary that differs between CI and a laptop. A missing one is an error, never an empty value.
+ */
+export function resolveEnv(shared = {}, own = {}, source = process.env) {
+  const env = { ...shared, ...own }
+  for (const [name, value] of Object.entries(env)) {
+    const ref = typeof value === 'string' && value.match(/^\$ENV:([A-Za-z_][A-Za-z0-9_]*)$/)
+    if (!ref) continue
+    if (!source[ref[1]]) throw new Error(`${name} needs ${ref[1]} in the harness environment`)
+    env[name] = source[ref[1]]
+  }
+  return env
 }
 
 /** Marker files for one case: a module that writes `fired` when it is loaded. */
@@ -57,7 +78,17 @@ export function resultText(call) {
  * Check one call against a case's `expect`. `call` is { isError, content } or { error } when
  * the call itself failed (timeout, crash), which never satisfies an expectation.
  */
-export function evaluateCase(expect, call, { markerFired = false, pollutionBytes = 0 } = {}) {
+export function evaluateCase(
+  expect,
+  call,
+  {
+    markerFired = false,
+    pollutionBytes = 0,
+    orphans = false,
+    presentFiles = [],
+    groundTruth = null,
+  } = {}
+) {
   const checks = []
   const add = (check, ok, detail) => checks.push({ check, ok, detail })
   if (call.error) {
@@ -94,5 +125,148 @@ export function evaluateCase(expect, call, { markerFired = false, pollutionBytes
       markerFired ? 'marker written' : 'not written'
     )
   }
+  if (expect.maxTextBytes !== undefined) {
+    const bytes = Buffer.byteLength(text)
+    add(
+      `result text ≤ ${expect.maxTextBytes} bytes`,
+      bytes <= expect.maxTextBytes,
+      `${bytes} bytes`
+    )
+  }
+  for (const file of expect.filesAbsent ?? []) {
+    const present = presentFiles.includes(file)
+    add(`project has no ${file} afterwards`, !present, present ? 'created' : 'absent')
+  }
+  if (expect.noOrphans) {
+    add('no process outlives the server', !orphans, orphans ? 'orphans left' : 'none')
+  }
+  if (expect.groundTruth) checkGroundTruth(expect.groundTruth, groundTruth, text, add)
   return { passed: checks.every((c) => c.ok), checks }
+}
+
+/** Every object in a parsed JSON value, depth first. */
+function objectsIn(value, out = []) {
+  if (Array.isArray(value)) for (const item of value) objectsIn(item, out)
+  else if (value && typeof value === 'object') {
+    out.push(value)
+    for (const item of Object.values(value)) objectsIn(item, out)
+  }
+  return out
+}
+
+/**
+ * Every string and number in a value, as strings, except inside arrays of strings: those are
+ * printed lines (traces, backtraces, logs), which repeat call arguments and would let a
+ * counterexample check pass on a trace alone.
+ */
+function leavesOf(value, out = []) {
+  if (Array.isArray(value)) {
+    if (value.length > 0 && value.every((item) => typeof item === 'string')) return out
+    for (const item of value) leavesOf(item, out)
+  } else if (value && typeof value === 'object') {
+    for (const v of Object.values(value)) leavesOf(v, out)
+  } else if (typeof value === 'string' || typeof value === 'number') out.push(String(value))
+  return out
+}
+
+const KINDS = ['unit', 'fuzz', 'invariant', 'setup']
+
+/**
+ * A test named as `Contract.fn` or `Contract::fn`, followed by `(`, a non-identifier character
+ * or the end, so `VaultTest.test_deposit` does not match `VaultTest.test_depositAndWithdraw`.
+ */
+function namesTest(contract, signature) {
+  const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const fn = signature.split('(')[0]
+  const re = new RegExp(
+    `(^|[^A-Za-z0-9_$])${escape(contract)}(\\.|::)${escape(fn)}(?=\\(|[^A-Za-z0-9_$]|$)`
+  )
+  return (text) => re.test(text)
+}
+
+/** `Contract.fn(args)` → [contract, signature]. */
+function splitId(id) {
+  const dot = id.indexOf('.')
+  return [id.slice(0, dot), id.slice(dot + 1)]
+}
+
+/**
+ * Checks a test-stage result against the fixture's GROUND_TRUTH.json `expect.test`, without
+ * relying on field names beyond `passed`/`failed` counts: a failing test is found as an object
+ * whose values name the test, contain its reason and, if given, equal its kind.
+ * `spec.failures`: "all" checks each failing test; "none" checks the counts only (a result
+ * over its size budget may leave failures out, and must say so).
+ */
+function checkGroundTruth(spec, truth, text, add) {
+  if (!truth?.failing && !truth?.passing) {
+    add('ground truth', false, 'the fixture has no passing/failing test lists')
+    return
+  }
+  let result
+  try {
+    result = JSON.parse(text)
+  } catch {
+    add('result is JSON', false, 'not JSON')
+    return
+  }
+  const passing = truth.passing ?? []
+  const failing = truth.failing ?? []
+  const objects = objectsIn(result)
+  const counts = objects.some((o) => o.passed === passing.length && o.failed === failing.length)
+  add(
+    `reports ${passing.length} passed, ${failing.length} failed`,
+    counts,
+    counts ? 'found' : 'no object with those counts'
+  )
+  if (spec.failures === 'none') return
+  for (const f of failing) {
+    const id = `${f.contract}.${f.test}`
+    const named = namesTest(f.contract, f.test)
+    const match = objects.find((o) => {
+      const own = Object.values(o).filter((v) => typeof v === 'string')
+      // The kind must be the only kind the object states, not one string among several.
+      const kinds = own.filter((v) => KINDS.includes(v))
+      return (
+        own.some(named) &&
+        own.some((v) => v.includes(f.reasonContains)) &&
+        (!f.kind || (kinds.length === 1 && kinds[0] === f.kind))
+      )
+    })
+    add(
+      `${id}: ${f.kind ?? 'failure'} with "${f.reasonContains}"`,
+      Boolean(match),
+      match ? 'found' : 'no failure object names it with that reason and kind'
+    )
+    if (!match) continue
+    if (f.counterexample?.gte !== undefined) {
+      const min = BigInt(f.counterexample.gte)
+      const numbers = leavesOf(match)
+        .flatMap((s) => s.match(/\b\d+\b/g) ?? [])
+        .map((d) => BigInt(d))
+      const ok = numbers.some((n) => n >= min)
+      add(`${id}: a counterexample value ≥ ${f.counterexample.gte}`, ok, ok ? 'found' : 'none')
+    }
+    if (f.sequence?.containsInOrder) {
+      const flat = JSON.stringify(match)
+      let at = 0
+      const ok = f.sequence.containsInOrder.every((call) => {
+        const index = flat.indexOf(call, at)
+        if (index === -1) return false
+        at = index + call.length
+        return true
+      })
+      add(
+        `${id}: call sequence ${f.sequence.containsInOrder.join(' → ')}`,
+        ok,
+        ok ? 'in order' : 'missing or out of order'
+      )
+    }
+  }
+  for (const id of passing) {
+    const named = namesTest(...splitId(id))
+    const listed = objects.some((o) =>
+      Object.values(o).some((v) => typeof v === 'string' && named(v))
+    )
+    add(`${id} is not reported as failing`, !listed, listed ? 'listed' : 'not listed')
+  }
 }
