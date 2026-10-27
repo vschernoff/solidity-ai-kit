@@ -3,7 +3,7 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
-## Unreleased
+## 0.1.2 — 2026-10-27
 
 ### Commands
 
@@ -18,7 +18,6 @@ versioning; until 1.0, a minor version may change behaviour.
 
 - The README's Claude Code row says what the one end-to-end run covered (Claude desktop app,
   0.1.0 release candidate, a Foundry and a Foundry + Hardhat project) and what it did not.
-
 - The npm description and the README's first paragraph now start with the task the kit sets
   the agent up for (write Solidity, run the tests and Solhint, fix what fails, report what's
   left), then how. The warnings follow directly: tests and lint are not a security review,

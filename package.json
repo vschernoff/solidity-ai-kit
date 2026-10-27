@@ -1,6 +1,6 @@
 {
   "name": "solidity-ai-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sets up your AI coding agent to write Solidity, run Foundry tests and Solhint, fix what fails and report what's left. One command, for Codex, Cursor and Claude Code.",
   "type": "module",
   "bin": {
