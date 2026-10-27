@@ -1,10 +1,16 @@
 # solidity-ai-kit
 
-One command sets up curated, pinned MCP servers and workflow rules for AI coding agents
-working on Solidity in Foundry or Hardhat projects. The servers start with Solhint for
-linting and, in Foundry projects, forge-test-mcp for builds and tests; the rules tell the
-agent to build, test and lint in order, and not to make a check pass by weakening it unless
-you agree. Supported clients: Codex, Cursor and Claude Code.
+Your AI coding agent writes Solidity, runs the tests and Solhint, fixes what fails, and
+reports what's left. `solidity-ai-kit` sets that up in one command for Codex, Cursor and
+Claude Code, in Foundry and Hardhat projects: curated, pinned MCP servers (Solhint for
+linting and, in Foundry projects, forge-test-mcp for builds and tests) and workflow rules
+that tell the agent to build, test and lint in order, stop after five rounds, and never make
+a check pass by weakening it unless you agree.
+
+**Before you rely on it:** passing tests and a clean lint are not a security review or an
+audit. Both servers run the project's own code (Solhint plugins and config; Solidity tests
+and cheatcodes), so use them only on repositories you trust. A degraded Solhint run is a
+text banner, not an error, so the agent has to read it. Details are under Status below.
 
 ## Status: preview release (0.1.x)
 
