@@ -1,16 +1,17 @@
 # solidity-ai-kit
 
-Your AI coding agent writes Solidity, runs the tests and Solhint, fixes what fails, and
-reports what's left. `solidity-ai-kit` sets that up in one command for Codex, Cursor and
-Claude Code, in Foundry and Hardhat projects: curated, pinned MCP servers (Solhint for
-linting and, in Foundry projects, forge-test-mcp for builds and tests) and workflow rules
-that tell the agent to build, test and lint in order, stop after five rounds, and never make
-a check pass by weakening it unless you agree.
+`solidity-ai-kit` sets up your AI coding agent to write Solidity, run the tests and Solhint,
+fix what fails, and report what's left. One command does it for Codex, Cursor and Claude
+Code, in Foundry and Hardhat projects: it configures curated, pinned MCP servers (Solhint for
+linting and, in Foundry projects, forge-test-mcp for builds and tests) and adds workflow
+rules that tell the agent to build, test and lint in order, stop after five rounds, and never
+make a check pass by weakening it unless you agree.
 
 **Before you rely on it:** passing tests and a clean lint are not a security review or an
-audit. Both servers run the project's own code (Solhint plugins and config; Solidity tests
-and cheatcodes), so use them only on repositories you trust. A degraded Solhint run is a
-text banner, not an error, so the agent has to read it. Details are under Status below.
+audit. The servers run the project's own code (Solhint plugins and config; in Foundry
+projects, Solidity tests and cheatcodes), so use them only on repositories you trust. A
+degraded Solhint run is a text banner, not an error, so the agent has to read it. Details are
+under Status below.
 
 ## Status: preview release (0.1.x)
 
