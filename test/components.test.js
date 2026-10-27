@@ -167,4 +167,31 @@ describe('init in a Hardhat-only project says why forge-based defaults are left 
     const asked = needsForge.flatMap(({ id }) => ['--with', id])
     assert.doesNotMatch(initIn(['hardhat.config.ts'], ...asked).stdout, note)
   })
+
+  it('names only components that need forge, with the right grammar for one or more', () => {
+    const [base] = real.components
+    const forge = (id) => ({ ...base, id, package: `${id}-mcp`, requiresBinaries: ['forge'] })
+    const other = { ...base, id: 'no-forge', package: 'no-forge-mcp', requiresBinaries: [] }
+    const limit = (component) => ({ ...component, defaultFor: ['foundry', 'both'] })
+    const run = (components) => {
+      const dir = fs.mkdtempSync(path.join(tempRoot, 'q'))
+      fs.mkdirSync(path.join(dir, '.git'))
+      fs.writeFileSync(path.join(dir, 'hardhat.config.ts'), '')
+      let stdout = ''
+      main(['init'], {
+        cwd: dir,
+        manifest: { manifestVersion: 1, components },
+        stdout: { write: (text) => (stdout += text) },
+        stderr: { write: () => {} },
+      })
+      return stdout
+    }
+    const one = run([limit(forge('a')), limit(other)])
+    assert.match(one, /^Note: a-mcp was not set up: it needs Foundry\./m)
+    assert.doesNotMatch(one, /no-forge-mcp/)
+    assert.match(
+      run([limit(forge('a')), limit(forge('b'))]),
+      /^Note: a-mcp, b-mcp were not set up: they need Foundry\./m
+    )
+  })
 })

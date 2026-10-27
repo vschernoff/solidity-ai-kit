@@ -91,9 +91,10 @@ function foundryNotes(manifest, components, project) {
   )
   if (leftOut.length === 0) return []
   const names = leftOut.map((component) => component.package ?? component.id).join(', ')
+  const verb = leftOut.length === 1 ? 'was not set up: it needs' : 'were not set up: they need'
   return [
-    `${names} was not set up: it needs Foundry. To add Foundry to a Hardhat project, Hardhat's ` +
-      `hardhat-foundry plugin provides \`npx hardhat init-foundry\` (Hardhat 2: ${HARDHAT_FOUNDRY_DOCS}).`,
+    `${names} ${verb} Foundry. To add Foundry to a Hardhat project, Hardhat's hardhat-foundry ` +
+      `plugin provides \`npx hardhat init-foundry\` (Hardhat 2: ${HARDHAT_FOUNDRY_DOCS}).`,
   ]
 }
 
