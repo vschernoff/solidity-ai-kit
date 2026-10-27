@@ -3,6 +3,27 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
+## 0.1.1 — 2026-10-27
+
+### Components
+
+- `forge-test-mcp` 0.1.0 (build and test), on by default in Foundry projects, including
+  ones that also use Hardhat; not set up in Hardhat-only projects unless asked for with
+  `--with forge-test`. It needs `forge` on PATH. Running tests runs the project's code; see
+  its risk notes in `kit.manifest.json`.
+- The manifest can limit a default component to some kinds of project (`defaultFor`).
+  `init` and `doctor` choose defaults the same way; `--with` still adds a component anywhere.
+
+### Commands
+
+- The workflow rules tell the agent to build and test through forge-test-mcp's `build` and
+  `run_tests` tools when it is installed, with `forge` in a shell only as a fallback, and
+  that a tool error means the tests did not run, whatever the counts say.
+- `doctor` checks each binary once (it listed `forge` twice when a component needed it).
+- `init`'s note for Claude Code no longer promises an approval prompt for the servers in
+  `.mcp.json`: it says Claude Code may ask, and to run `/mcp` (or `claude mcp list`) to see
+  each server's status.
+
 ## 0.1.0 — preview (2026-10-27)
 
 First public version.

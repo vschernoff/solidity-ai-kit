@@ -2,23 +2,33 @@
 
 One command sets up curated, pinned MCP servers and workflow rules for AI coding agents
 working on Solidity in Foundry or Hardhat projects. The servers start with Solhint for
-linting; the rules tell the agent to build, test and lint in order, and not to make a check
-pass by weakening it unless you agree. Supported clients: Codex, Cursor and Claude Code.
+linting and, in Foundry projects, forge-test-mcp for builds and tests; the rules tell the
+agent to build, test and lint in order, and not to make a check pass by weakening it unless
+you agree. Supported clients: Codex, Cursor and Claude Code.
 
 ## Status: preview release (0.1.x)
 
 - **Preview.** `0.1.x` is the first public version. Run it from your Solidity project with
   `npx solidity-ai-kit`; it needs Node 22 or later.
-- **One component so far:** [`solhint-mcp`](https://github.com/vschernoff/solhint-mcp), the
-  Solhint linter, on by default since its evaluation (October 2026). Two things to know
-  before relying on it:
-  - **It runs the project's own code.** Linting, or reading the config with `get_config`,
-    loads that repository's Solhint plugins and JavaScript config, the same as running
-    `npx solhint` there. Do not use it on a repository you do not trust.
-  - **A degraded run is a text banner, not an error.** When a plugin fails to load or a
-    rule id is unknown, the result starts with a "⚠️ This run was degraded" banner naming
-    each problem, and the findings from the rules that did run still follow. The result
-    is not marked as an error, so the agent has to read the banner.
+- **Two components so far**, each on by default since its evaluation (October 2026). Know
+  this before relying on them:
+  - [`solhint-mcp`](https://github.com/vschernoff/solhint-mcp), the Solhint linter, in every
+    project.
+    - **It runs the project's own code.** Linting, or reading the config with `get_config`,
+      loads that repository's Solhint plugins and JavaScript config, the same as running
+      `npx solhint` there. Do not use it on a repository you do not trust.
+    - **A degraded run is a text banner, not an error.** When a plugin fails to load or a
+      rule id is unknown, the result starts with a "⚠️ This run was degraded" banner naming
+      each problem, and the findings from the rules that did run still follow. The result
+      is not marked as an error, so the agent has to read the banner.
+  - [`forge-test-mcp`](https://github.com/vschernoff/forge-test-mcp), Foundry builds and
+    tests, in Foundry projects (including ones that also use Hardhat). It needs `forge`.
+    - **It runs the project's own code.** Running tests executes the project's Solidity and
+      cheatcodes with your privileges, the same as running `forge test` there. Do not use it
+      on a repository you do not trust.
+    - **FFI is off; the network is not.** FFI stays off unless the server is started with
+      `--allow-ffi`, even when `foundry.toml` enables it. Tests can still reach the network
+      through fork cheatcodes or RPC endpoints the project configures.
 - **Interfaces may still change** before 1.0.
 
 ```sh
@@ -48,12 +58,12 @@ npx solidity-ai-kit remove --write  # undo init
 
 Each row says how far support has actually been checked.
 
-| Client               | What `init` writes                                             | How it was checked                                                                                                                                                                                                                                      |
-| -------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Claude Code          | `.mcp.json`, `.claude/settings.json` (deny rules), `CLAUDE.md` | Formats checked against Claude Code's documentation (Oct 2026). Not yet run end-to-end with the kit. In interactive sessions Claude Code asks you to approve project servers on first use; non-interactive runs (`claude -p`) load them without asking. |
-| Cursor               | `.cursor/mcp.json`, `AGENTS.md`                                | Formats checked against Cursor's documentation (Oct 2026). Not yet run end-to-end. Cursor has no per-tool deny list.                                                                                                                                    |
-| Codex                | `.codex/config.toml`, `AGENTS.md`                              | Formats checked against OpenAI's Codex documentation (Oct 2026). Not yet run end-to-end. Codex reads the project file only for projects you trust.                                                                                                      |
-| Any other MCP client | nothing yet                                                    | Use each component's own README.                                                                                                                                                                                                                        |
+| Client               | What `init` writes                                             | How it was checked                                                                                                                                                                                                                                                                |
+| -------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Code          | `.mcp.json`, `.claude/settings.json` (deny rules), `CLAUDE.md` | Formats checked against Claude Code's documentation (Oct 2026). Not yet run end-to-end with the kit. Claude Code may ask you to approve project servers before using them (`claude -p` loads them without asking); run `/mcp` (or `claude mcp list`) to see each server's status. |
+| Cursor               | `.cursor/mcp.json`, `AGENTS.md`                                | Formats checked against Cursor's documentation (Oct 2026). Not yet run end-to-end. Cursor has no per-tool deny list.                                                                                                                                                              |
+| Codex                | `.codex/config.toml`, `AGENTS.md`                              | Formats checked against OpenAI's Codex documentation (Oct 2026). Not yet run end-to-end. Codex reads the project file only for projects you trust.                                                                                                                                |
+| Any other MCP client | nothing yet                                                    | Use each component's own README.                                                                                                                                                                                                                                                  |
 
 ## Where it fits
 
