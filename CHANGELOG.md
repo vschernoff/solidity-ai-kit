@@ -3,6 +3,15 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
+## Unreleased
+
+### Documentation
+
+- The npm description and the README's first paragraph now start with the task the kit sets
+  the agent up for (write Solidity, run the tests and Solhint, fix what fails, report what's
+  left), then how. The warnings follow directly: tests and lint are not a security review,
+  the servers run the project's code, and a degraded Solhint run is a banner.
+
 ## 0.1.1 — 2026-10-27
 
 ### Components

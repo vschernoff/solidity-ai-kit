@@ -1,7 +1,7 @@
 {
   "name": "solidity-ai-kit",
   "version": "0.1.1",
-  "description": "Pinned MCP servers (Solhint lint, Foundry tests) and build, test and lint rules for AI coding agents on Solidity (Foundry, Hardhat). For Codex, Cursor and Claude Code",
+  "description": "Sets up your AI coding agent to write Solidity, run Foundry tests and Solhint, fix what fails and report what's left. One command, for Codex, Cursor and Claude Code.",
   "type": "module",
   "bin": {
     "solidity-ai-kit": "src/bin.js"
