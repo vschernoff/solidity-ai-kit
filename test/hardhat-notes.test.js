@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { execSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -55,6 +55,11 @@ const hardhat = (extra = {}) => ({
 })
 
 const skillsNote = /^Note: Hardhat 3 ships agent skills for its testing workflow \(MIT\)/m
+function runInShell(command, cwd) {
+  const result = spawnSync(command, { shell: true, cwd, stdio: 'pipe', encoding: 'utf8' })
+  assert.equal(result.status, 0, result.stderr)
+}
+
 const copyLines = (stdout) =>
   stdout
     .split('\n')
@@ -90,8 +95,8 @@ describe('the Hardhat agent-skills note (D56)', () => {
     fs.writeFileSync(path.join(dir, 'node_modules/hardhat/skills/hardhat/extra.md'), 'x\n')
     const lines = copyLines(initIn(dir).stdout)
     assert.equal(lines.length, 2)
-    // execSync runs each line the way a user would paste it: /bin/sh, or cmd.exe on Windows.
-    for (const line of lines) execSync(line, { cwd: dir, stdio: 'pipe' })
+    // Each line runs the way a user would paste it: in /bin/sh, or cmd.exe on Windows.
+    for (const line of lines) runInShell(line, dir)
     for (const target of ['.agents/skills', '.claude/skills']) {
       for (const file of [
         'hardhat/SKILL.md',
@@ -104,7 +109,7 @@ describe('the Hardhat agent-skills note (D56)', () => {
     }
     // Running it again after an upgrade overwrites the copies.
     fs.writeFileSync(path.join(dir, 'node_modules/hardhat/skills/hardhat/SKILL.md'), 'v2\n')
-    execSync(lines[0], { cwd: dir, stdio: 'pipe' })
+    runInShell(lines[0], dir)
     assert.equal(fs.readFileSync(path.join(dir, '.agents/skills/hardhat/SKILL.md'), 'utf8'), 'v2\n')
   })
 
@@ -113,6 +118,19 @@ describe('the Hardhat agent-skills note (D56)', () => {
     const quoted = command.slice('node -e "'.length, -1)
     assert.ok(command.startsWith('node -e "') && command.endsWith('"'))
     assert.doesNotMatch(quoted, /["$!%`\\]/)
+  })
+
+  it('leaves out a toolbox skill that is a dependency but not installed', () => {
+    const files = {
+      'hardhat.config.ts': '',
+      'package.json': packageJson({
+        hardhat: '^3.21.1',
+        '@nomicfoundation/hardhat-toolbox-viem': '^5.0.7',
+      }),
+      ...skillFiles(['hardhat']),
+    }
+    const lines = copyLines(initIn(project(files), '--client', 'codex').stdout)
+    assert.deepEqual(lines, [copyCommand(['hardhat'], '.agents/skills')])
   })
 
   it('reads the toolbox from dependencies as well as devDependencies', () => {
