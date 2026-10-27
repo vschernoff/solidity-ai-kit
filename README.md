@@ -5,11 +5,10 @@ working on Solidity in Foundry or Hardhat projects. The servers start with Solhi
 linting; the rules tell the agent to build, test and lint in order, and not to make a check
 pass by weakening it unless you agree. Supported clients: Codex, Cursor and Claude Code.
 
-## Status: pre-release, not published
+## Status: preview release (0.1.x)
 
-- **Not on npm yet.** `npx solidity-ai-kit` does not work yet. To try it, clone this
-  repository, run `npm ci`, and call `node <path-to-clone>/src/bin.js` from your Solidity
-  project.
+- **Preview.** `0.1.x` is the first public version. Run it from your Solidity project with
+  `npx solidity-ai-kit`; it needs Node 22 or later.
 - **One component so far:** [`solhint-mcp`](https://github.com/vschernoff/solhint-mcp), the
   Solhint linter, on by default since its evaluation (October 2026). Two things to know
   before relying on it:
@@ -20,13 +19,13 @@ pass by weakening it unless you agree. Supported clients: Codex, Cursor and Clau
     rule id is unknown, the result starts with a "⚠️ This run was degraded" banner naming
     each problem, and the findings from the rules that did run still follow. The result
     is not marked as an error, so the agent has to read the banner.
-- **Interfaces may still change** before the first release.
+- **Interfaces may still change** before 1.0.
 
 ```sh
-node <path-to-clone>/src/bin.js init            # preview what would change
-node <path-to-clone>/src/bin.js init --write    # write it
-node <path-to-clone>/src/bin.js doctor          # check the toolchain and each server
-node <path-to-clone>/src/bin.js remove --write  # undo init
+npx solidity-ai-kit init            # preview what would change
+npx solidity-ai-kit init --write    # write it
+npx solidity-ai-kit doctor          # check the toolchain and each server
+npx solidity-ai-kit remove --write  # undo init
 ```
 
 ## What the commands do
@@ -77,6 +76,8 @@ Every component is listed in [`kit.manifest.json`](kit.manifest.json), pinned to
 version, with its licence, source, evaluation record and risk notes. The agent never picks
 between competing servers at runtime. A component is enabled by default only once its
 evaluation is recorded, and only with an OSI-approved licence; until then it is opt-in.
+A default can be limited to some kinds of project (for example, a Foundry test runner only
+where there is a `foundry.toml`); `--with <id>` still adds it anywhere.
 
 <!-- components:start (generated from kit.manifest.json by npm run readme) -->
 <!-- prettier-ignore-start -->

@@ -40,6 +40,10 @@ describe('README component table (FR-14)', () => {
         /on by default \| evaluated 2026-10-30/,
       ],
       [
+        { enabledByDefault: true, defaultFor: ['foundry', 'both'], evaluatedAt: '2026-10-30' },
+        /on by default in Foundry, Foundry \+ Hardhat projects \| evaluated 2026-10-30/,
+      ],
+      [
         { enabledByDefault: false, experimental: true },
         /opt-in, experimental \| not yet evaluated/,
       ],

@@ -1,6 +1,14 @@
 // Which manifest components init installs, and how a client launches each one.
 
-export function selectComponents(manifest, requested = []) {
+// On by default in this project: enabledByDefault, limited to the project kinds in
+// defaultFor when the manifest gives them (kinds as src/detect.js reports them).
+export function isDefaultFor(component, project) {
+  if (!component.enabledByDefault) return false
+  return component.defaultFor === undefined || component.defaultFor.includes(project.kind)
+}
+
+// An explicit --with always wins over the project kind.
+export function selectComponents(manifest, requested = [], project = { kind: 'none' }) {
   const byId = new Map(manifest.components.map((component) => [component.id, component]))
   const unknown = requested.filter((id) => !byId.has(id))
   if (unknown.length > 0) {
@@ -8,7 +16,7 @@ export function selectComponents(manifest, requested = []) {
     throw new Error(`Unknown component: ${unknown.join(', ')}. In the manifest: ${known}`)
   }
   return manifest.components.filter(
-    (component) => component.enabledByDefault || requested.includes(component.id)
+    (component) => isDefaultFor(component, project) || requested.includes(component.id)
   )
 }
 

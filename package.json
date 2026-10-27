@@ -1,7 +1,6 @@
 {
   "name": "solidity-ai-kit",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
   "description": "Pinned MCP servers (Solhint lint) and build, test and lint rules for AI coding agents on Solidity (Foundry, Hardhat). For Codex, Cursor and Claude Code",
   "type": "module",
   "bin": {
@@ -49,9 +48,14 @@
     "kit.manifest.json",
     "kit.manifest.schema.json",
     "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
     "LICENSE",
     "NOTICE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=22"
   },
