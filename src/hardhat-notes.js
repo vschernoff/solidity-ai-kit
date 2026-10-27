@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import { resolveInside } from './changes.js'
 import { readText } from './clients/json.js'
 
 // D56: notes init prints for a Hardhat-only project. Suggestions only: init never changes
@@ -24,8 +26,10 @@ function foundryNote(manifest, components) {
   ]
 }
 
-// Hardhat 3 ships agent skills (MIT) in node_modules/hardhat/skills/: the core `hardhat`
-// skill and one per toolbox. Where each client reads project skills: Claude Code
+// Hardhat ships agent skills (MIT) in node_modules/hardhat/skills/ from 3.6.0 on: the core
+// `hardhat` skill and one per toolbox. The note is printed only when the installed Hardhat
+// has them (a version range in package.json cannot tell 3.5 from 3.6, and before npm
+// install nothing is there to copy). Where each client reads project skills: Claude Code
 // .claude/skills; Codex and Cursor .agents/skills (Codex and Cursor docs, checked
 // 2026-10-27). Only the Claude Code pickup was run.
 const SKILL_DIRS = {
@@ -38,43 +42,45 @@ const TOOLBOX_SKILLS = {
   '@nomicfoundation/hardhat-toolbox-mocha-ethers': 'hardhat-toolbox-mocha-ethers',
 }
 
-// The major version a dependency range pins, or null when it cannot be told for sure:
-// `3`, `3.21.1`, `^3.21.1`, `~3`, `=3.0.0`, `3.x`. Anything else (`>=2`, `*`, `latest`,
-// `workspace:*`, `npm:…`, a URL, `2 || 3`) is null, and no note is printed.
-export function majorOf(range) {
-  if (typeof range !== 'string') return null
-  const match = range.trim().match(/^[\^~=]?(\d+)(\.(\d+|x|\*)){0,2}(-[0-9A-Za-z.-]+)?$/)
-  return match ? Number(match[1]) : null
-}
-
 function readPackage(root) {
   try {
     const value = JSON.parse(readText(root, 'package.json') ?? 'null')
     return value !== null && typeof value === 'object' ? value : null
   } catch {
-    // Unreadable or not JSON: say nothing rather than guess the Hardhat version.
+    // Unreadable or not JSON: no toolbox is named, only the core skill.
     return null
   }
 }
 
+const CORE_SKILL = 'node_modules/hardhat/skills/hardhat/SKILL.md'
+
+// Read only inside the project: a path that leaves it, through a symlink or otherwise,
+// counts as absent.
+function isInstalled(root, file) {
+  try {
+    return fs.statSync(resolveInside(root, file)).isFile()
+  } catch {
+    return false
+  }
+}
+
 function skillsNote(root, clients) {
-  const pkg = readPackage(root)
-  if (pkg === null) return []
+  if (!isInstalled(root, CORE_SKILL)) return []
+  const pkg = readPackage(root) ?? {}
   const dependencies = { ...pkg.devDependencies, ...pkg.dependencies }
-  const major = majorOf(dependencies.hardhat)
-  if (major === null || major < 3) return []
   const skills = [
     'hardhat',
     ...Object.entries(TOOLBOX_SKILLS)
       .filter(([dependency]) => Object.hasOwn(dependencies, dependency))
-      .map(([, skill]) => skill),
+      .map(([, skill]) => skill)
+      .filter((skill) => isInstalled(root, `node_modules/hardhat/skills/${skill}/SKILL.md`)),
   ]
   const sources = skills.map((skill) => `node_modules/hardhat/skills/${skill}`).join(' ')
   const dirs = [...new Set(clients.map((client) => SKILL_DIRS[client]))].sort()
   return [
     [
       'Hardhat 3 ships agent skills for its testing workflow (MIT). The kit does not copy them; ' +
-        'to use them, run (and re-copy after upgrading Hardhat):',
+        'to use them, run in a POSIX shell (and re-copy after upgrading Hardhat):',
       ...dirs.map((dir) => `  mkdir -p ${dir} && cp -R ${sources} ${dir}/`),
     ].join('\n'),
   ]

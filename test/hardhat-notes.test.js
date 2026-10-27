@@ -4,119 +4,136 @@ import os from 'node:os'
 import path from 'node:path'
 import { after, describe, it } from 'node:test'
 import { main } from '../src/cli.js'
-import { majorOf } from '../src/hardhat-notes.js'
 
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-hardhat-notes-'))
+const tempRoot = fs.realpathSync(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-hardhat-notes-'))
+)
 after(() => fs.rmSync(tempRoot, { recursive: true, force: true }))
 
-function initIn(files, ...args) {
+// The skills Hardhat ships from 3.6.0 on, as they sit in node_modules.
+const SHIPPED = ['hardhat', 'hardhat-toolbox-viem', 'hardhat-toolbox-mocha-ethers']
+const skillFiles = (skills = SHIPPED) =>
+  Object.fromEntries(
+    skills.map((skill) => [`node_modules/hardhat/skills/${skill}/SKILL.md`, `name: ${skill}\n`])
+  )
+
+function project(files) {
   const dir = fs.mkdtempSync(path.join(tempRoot, 'p'))
   fs.mkdirSync(path.join(dir, '.git'))
   for (const [file, content] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true })
     fs.writeFileSync(path.join(dir, file), content)
   }
-  const before = fs.readdirSync(dir).sort()
+  return dir
+}
+
+function listing(dir) {
+  return fs.readdirSync(dir, { recursive: true }).sort().join('\n')
+}
+
+function initIn(dir, ...args) {
+  const before = listing(dir)
   const out = { stdout: '', stderr: '' }
   const code = main(['init', ...args], {
     cwd: dir,
     stdout: { write: (text) => (out.stdout += text) },
     stderr: { write: (text) => (out.stderr += text) },
   })
-  return { code, ...out, unchanged: fs.readdirSync(dir).sort().join() === before.join() }
+  return { code, ...out, unchanged: listing(dir) === before }
 }
 
 const packageJson = (devDependencies, dependencies = {}) =>
   JSON.stringify({ name: 'p', devDependencies, dependencies })
 
-const hardhat3 = (extra = {}) => ({
+// A Hardhat-only project with Hardhat's skills installed.
+const hardhat = (extra = {}) => ({
   'hardhat.config.ts': '',
   'package.json': packageJson({ hardhat: '^3.21.1', ...extra }),
+  ...skillFiles(),
 })
 
 const skillsNote = /^Note: Hardhat 3 ships agent skills for its testing workflow \(MIT\)/m
 const copyLines = (stdout) => stdout.split('\n').filter((line) => line.startsWith('  mkdir -p '))
+const from = (...skills) => skills.map((skill) => `node_modules/hardhat/skills/${skill}`).join(' ')
 
-describe('the Hardhat 3 agent-skills note (D56)', () => {
+describe('the Hardhat agent-skills note (D56)', () => {
   it('copies the core and viem toolbox skills into each client directory', () => {
-    const result = initIn(hardhat3({ '@nomicfoundation/hardhat-toolbox-viem': '^5.0.7' }))
+    const result = initIn(project(hardhat({ '@nomicfoundation/hardhat-toolbox-viem': '^5.0.7' })))
     assert.equal(result.code, 0)
     assert.match(result.stdout, skillsNote)
-    assert.match(result.stdout, /re-copy after upgrading Hardhat/)
-    const from =
-      'node_modules/hardhat/skills/hardhat node_modules/hardhat/skills/hardhat-toolbox-viem'
+    assert.match(result.stdout, /run in a POSIX shell \(and re-copy after upgrading Hardhat\)/)
+    const sources = from('hardhat', 'hardhat-toolbox-viem')
     assert.deepEqual(copyLines(result.stdout), [
-      `  mkdir -p .agents/skills && cp -R ${from} .agents/skills/`,
-      `  mkdir -p .claude/skills && cp -R ${from} .claude/skills/`,
+      `  mkdir -p .agents/skills && cp -R ${sources} .agents/skills/`,
+      `  mkdir -p .claude/skills && cp -R ${sources} .claude/skills/`,
     ])
     assert.ok(result.unchanged, 'the preview writes nothing')
   })
 
   it('names the mocha-ethers toolbox skill, or only the core skill without a toolbox', () => {
-    const mocha = initIn(
-      hardhat3({ '@nomicfoundation/hardhat-toolbox-mocha-ethers': '^3.0.0' }),
-      '--client',
-      'codex'
-    )
+    const mochaDependency = { '@nomicfoundation/hardhat-toolbox-mocha-ethers': '^3.0.0' }
+    const mocha = initIn(project(hardhat(mochaDependency)), '--client', 'codex')
     assert.deepEqual(copyLines(mocha.stdout), [
-      '  mkdir -p .agents/skills && cp -R node_modules/hardhat/skills/hardhat node_modules/hardhat/skills/hardhat-toolbox-mocha-ethers .agents/skills/',
+      `  mkdir -p .agents/skills && cp -R ${from('hardhat', 'hardhat-toolbox-mocha-ethers')} .agents/skills/`,
     ])
-    const bare = initIn(hardhat3(), '--client', 'claude-code')
+    const bare = initIn(project(hardhat()), '--client', 'claude-code')
     assert.deepEqual(copyLines(bare.stdout), [
-      '  mkdir -p .claude/skills && cp -R node_modules/hardhat/skills/hardhat .claude/skills/',
+      `  mkdir -p .claude/skills && cp -R ${from('hardhat')} .claude/skills/`,
     ])
   })
 
-  it('reads hardhat from dependencies as well as devDependencies', () => {
+  it('reads the toolbox from dependencies as well as devDependencies', () => {
     const files = {
-      'hardhat.config.ts': '',
-      'package.json': packageJson({}, { hardhat: '3.0.0' }),
+      ...hardhat(),
+      'package.json': packageJson({}, { '@nomicfoundation/hardhat-toolbox-viem': '^5.0.7' }),
     }
-    assert.match(initIn(files).stdout, skillsNote)
+    assert.match(copyLines(initIn(project(files)).stdout)[0], /hardhat-toolbox-viem/)
   })
 
-  it('is not printed for Hardhat 2, an unclear version, or no package.json', () => {
-    for (const range of ['^2.22.0', '>=3', 'workspace:*', 'latest', '*', '2 || 3']) {
-      const files = { 'hardhat.config.ts': '', 'package.json': packageJson({ hardhat: range }) }
-      assert.doesNotMatch(initIn(files).stdout, skillsNote, range)
+  it('is not printed when the installed Hardhat has no skills to copy', () => {
+    const cases = {
+      'not installed yet': {
+        'hardhat.config.ts': '',
+        'package.json': packageJson({ hardhat: '^3.0.0' }),
+      },
+      'Hardhat before 3.6 (no skills directory)': {
+        'hardhat.config.ts': '',
+        'package.json': packageJson({ hardhat: '~3.5.1' }),
+        'node_modules/hardhat/package.json': '{"version":"3.5.1"}',
+      },
     }
-    assert.doesNotMatch(initIn({ 'hardhat.config.ts': '' }).stdout, skillsNote)
-    const broken = { 'hardhat.config.ts': '', 'package.json': '{ not json' }
-    assert.doesNotMatch(initIn(broken).stdout, skillsNote)
+    for (const [name, files] of Object.entries(cases)) {
+      assert.doesNotMatch(initIn(project(files)).stdout, skillsNote, name)
+    }
+  })
+
+  it('does not follow node_modules out of the project', () => {
+    const outside = project(skillFiles())
+    const dir = project({
+      'hardhat.config.ts': '',
+      'package.json': packageJson({ hardhat: '^3.21.1' }),
+    })
+    // A junction on Windows needs no privilege; elsewhere the type is ignored.
+    fs.symlinkSync(path.join(outside, 'node_modules'), path.join(dir, 'node_modules'), 'junction')
+    assert.doesNotMatch(initIn(dir).stdout, skillsNote)
   })
 
   it('is not printed for mixed, Foundry or unknown projects', () => {
-    const pkg = { 'package.json': packageJson({ hardhat: '^3.21.1' }) }
     for (const markers of [
       { 'foundry.toml': '', 'hardhat.config.ts': '' },
       { 'foundry.toml': '' },
       {},
     ]) {
-      const result = initIn({ ...markers, ...pkg })
-      assert.doesNotMatch(result.stdout, skillsNote, Object.keys(markers).join() || 'none')
+      const files = {
+        ...markers,
+        'package.json': packageJson({ hardhat: '^3.21.1' }),
+        ...skillFiles(),
+      }
+      assert.doesNotMatch(
+        initIn(project(files)).stdout,
+        skillsNote,
+        Object.keys(markers).join() || 'none'
+      )
     }
-  })
-})
-
-describe('majorOf', () => {
-  it('reads the major version only from ranges that pin one', () => {
-    const cases = {
-      3: 3,
-      '3.21.1': 3,
-      '^3.21.1': 3,
-      '~3': 3,
-      '=3.0.0': 3,
-      '3.x': 3,
-      '3.0.0-next.1': 3,
-      '^2.22.0': 2,
-      '>=3': null,
-      '3 - 4': null,
-      'workspace:^3.0.0': null,
-      'npm:hardhat@3': null,
-      'github:NomicFoundation/hardhat': null,
-    }
-    for (const [range, major] of Object.entries(cases)) {
-      assert.equal(majorOf(range), major, range)
-    }
-    assert.equal(majorOf(undefined), null)
   })
 })

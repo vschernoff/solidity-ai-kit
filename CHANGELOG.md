@@ -9,10 +9,10 @@ versioning; until 1.0, a minor version may change behaviour.
 
 - In a Hardhat-only project, `init` prints two suggestions and changes nothing for them:
   forge-test-mcp was not set up because it needs Foundry, with the hardhat-foundry plugin's
-  `npx hardhat init-foundry` (documented for Hardhat 2); and, when `package.json` pins
-  Hardhat 3, a command that copies the agent skills Hardhat ships (`hardhat` plus the
-  project's toolbox skill) into `.claude/skills` for Claude Code or `.agents/skills` for
-  Codex and Cursor.
+  `npx hardhat init-foundry` (documented for Hardhat 2); and, when the installed Hardhat
+  ships agent skills (3.6.0 and later), a POSIX shell command that copies them (`hardhat`
+  plus the project's toolbox skill) into `.claude/skills` for Claude Code or
+  `.agents/skills` for Codex and Cursor.
 
 ### Documentation
 

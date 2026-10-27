@@ -52,10 +52,10 @@ npx solidity-ai-kit remove --write  # undo init
   project config, merging into existing files rather than replacing them, and writes a
   short workflow-rules block into `AGENTS.md` and `CLAUDE.md`. `--client` limits it to
   `claude-code`, `codex` or `cursor`. In a Hardhat-only project it also prints suggestions
-  and changes nothing for them: how to add Foundry for forge-test-mcp, and, for Hardhat 3,
-  the command that copies the agent skills Hardhat ships in `node_modules/hardhat/skills/`
-  into `.claude/skills` or `.agents/skills` (the Claude Code pickup was checked by running
-  it; Codex and Cursor from their docs only).
+  and changes nothing for them: how to add Foundry for forge-test-mcp, and, when the
+  installed Hardhat ships agent skills (3.6.0 and later, in `node_modules/hardhat/skills/`),
+  a POSIX shell command that copies them into `.claude/skills` or `.agents/skills` (the
+  Claude Code pickup was checked by running it; Codex and Cursor from their docs only).
 - **`doctor`** checks Node, `forge`, `anvil` and `cast`, then starts each configured
   component and completes a real MCP handshake. A server that crashes, hangs or prints
   anything but protocol messages is reported as failed, never as healthy. It also measures
