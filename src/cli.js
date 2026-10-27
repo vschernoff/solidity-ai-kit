@@ -75,10 +75,33 @@ function remove(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
   })
 }
 
+// D56: a Hardhat-only project does not get the default components that need forge. Say so
+// once, with Hardhat's own way to add Foundry (the hardhat-foundry plugin's init-foundry
+// task, documented for Hardhat 2). A suggestion only: init never changes the project.
+const HARDHAT_FOUNDRY_DOCS =
+  'https://v2.hardhat.org/hardhat-runner/docs/advanced/hardhat-and-foundry'
+
+function foundryNotes(manifest, components, project) {
+  if (project.kind !== 'hardhat') return []
+  const leftOut = manifest.components.filter(
+    (component) =>
+      component.enabledByDefault &&
+      component.requiresBinaries.includes('forge') &&
+      !components.includes(component)
+  )
+  if (leftOut.length === 0) return []
+  const names = leftOut.map((component) => component.package ?? component.id).join(', ')
+  return [
+    `${names} was not set up: it needs Foundry. To add Foundry to a Hardhat project, Hardhat's ` +
+      `hardhat-foundry plugin provides \`npx hardhat init-foundry\` (Hardhat 2: ${HARDHAT_FOUNDRY_DOCS}).`,
+  ]
+}
+
 function init(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
   const clients = selectedClients(values)
 
-  const components = selectComponents(manifest, listOption(values.with), detectProject(cwd))
+  const project = detectProject(cwd)
+  const components = selectComponents(manifest, listOption(values.with), project)
   if (components.length === 0) {
     const optIn = manifest.components.map(label).join(', ')
     stderr.write(
@@ -87,6 +110,7 @@ function init(values, { cwd, stdout, stderr, manifest = loadManifest() }) {
   } else {
     stdout.write(`Components: ${components.map(label).join(', ')}\n`)
   }
+  for (const note of foundryNotes(manifest, components, project)) stdout.write(`Note: ${note}\n`)
   return runInit({
     root: cwd,
     write: values.write === true,

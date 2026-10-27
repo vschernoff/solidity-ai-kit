@@ -122,3 +122,49 @@ describe('init chooses defaults for the project it runs in', () => {
     assert.match(asked.stdout, /^Components: foundry-only$/m)
   })
 })
+
+describe('init in a Hardhat-only project says why forge-based defaults are left out (D56)', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-hardhat-note-'))
+  after(() => fs.rmSync(tempRoot, { recursive: true, force: true }))
+  const real = loadManifest()
+  const needsForge = real.components.filter(
+    (c) => c.enabledByDefault && c.requiresBinaries.includes('forge')
+  )
+
+  function initIn(markers, ...args) {
+    const dir = fs.mkdtempSync(path.join(tempRoot, 'p'))
+    fs.mkdirSync(path.join(dir, '.git'))
+    for (const marker of markers) fs.writeFileSync(path.join(dir, marker), '')
+    const out = { stdout: '', stderr: '' }
+    const code = main(['init', ...args], {
+      cwd: dir,
+      stdout: { write: (text) => (out.stdout += text) },
+      stderr: { write: (text) => (out.stderr += text) },
+    })
+    return { code, ...out, files: fs.readdirSync(dir).sort() }
+  }
+
+  const note = /^Note: .* was not set up: it needs Foundry\..*`npx hardhat init-foundry`/m
+
+  it('prints one line naming each left-out component and the hardhat-foundry plugin', () => {
+    assert.ok(needsForge.length > 0, 'the manifest has a default component that needs forge')
+    const result = initIn(['hardhat.config.ts'])
+    assert.equal(result.code, 0)
+    const lines = result.stdout.split('\n').filter((line) => note.test(line))
+    assert.equal(lines.length, 1)
+    for (const { package: name } of needsForge) assert.ok(lines[0].includes(name), name)
+  })
+
+  it('only suggests: the preview changes nothing in the project', () => {
+    const result = initIn(['hardhat.config.ts'])
+    assert.deepEqual(result.files, ['.git', 'hardhat.config.ts'])
+  })
+
+  it('is not printed for Foundry, mixed or unknown projects, or when the component is asked for', () => {
+    for (const markers of [['foundry.toml'], ['foundry.toml', 'hardhat.config.ts'], []]) {
+      assert.doesNotMatch(initIn(markers).stdout, note, markers.join() || 'none')
+    }
+    const asked = needsForge.flatMap(({ id }) => ['--with', id])
+    assert.doesNotMatch(initIn(['hardhat.config.ts'], ...asked).stdout, note)
+  })
+})
