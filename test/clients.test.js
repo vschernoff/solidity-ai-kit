@@ -187,7 +187,7 @@ describe('the note init prints for Claude Code', () => {
     const result = await cli(project(), 'init', '--client', 'claude-code')
     assert.equal(result.code, 0, result.stderr)
     assert.match(result.stdout, /^Note: Claude Code may ask you to approve the project servers/m)
-    assert.match(result.stdout, /Run \/mcp in Claude Code/)
+    assert.match(result.stdout, /Run \/mcp \(or claude mcp list\) to see each server's status/)
     assert.doesNotMatch(result.stdout, /asks you to approve[^\n]*the first time/)
   })
 })

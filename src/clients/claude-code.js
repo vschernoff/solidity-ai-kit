@@ -52,12 +52,13 @@ export function claudeCode(project, { components, notes }) {
   }
 
   // Claude Code's MCP docs (checked 2026-10-27): interactive sessions prompt before using
-  // .mcp.json servers, `claude -p` loads them without asking, and /mcp shows each server's
-  // status. The desktop app did not ask in the kit's end-to-end run, so this says "may".
+  // .mcp.json servers, `claude -p` loads them without asking, `/mcp` checks server status and
+  // `claude mcp list` shows one awaiting approval as pending. The desktop app did not ask in
+  // the kit's end-to-end run, so this says "may".
   notes.push(
     'Claude Code may ask you to approve the project servers in .mcp.json before using them ' +
-      '(claude -p loads them without asking). Run /mcp in Claude Code to see whether each one ' +
-      'is connected or waiting for approval.'
+      '(claude -p loads them without asking). Run /mcp (or claude mcp list) to see each ' +
+      "server's status."
   )
   return edits
 }

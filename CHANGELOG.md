@@ -21,7 +21,8 @@ versioning; until 1.0, a minor version may change behaviour.
   that a tool error means the tests did not run, whatever the counts say.
 - `doctor` checks each binary once (it listed `forge` twice when a component needed it).
 - `init`'s note for Claude Code no longer promises an approval prompt for the servers in
-  `.mcp.json`: it says Claude Code may ask, and that `/mcp` shows each server's status.
+  `.mcp.json`: it says Claude Code may ask, and to run `/mcp` (or `claude mcp list`) to see
+  each server's status.
 
 ## 0.1.0 — preview (2026-10-27)
 
