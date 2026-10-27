@@ -129,6 +129,15 @@
         "enabledByDefault": {
           "type": "boolean"
         },
+        "defaultFor": {
+          "description": "Project kinds (as src/detect.js reports them) where an enabledByDefault component is on by default; absent means every kind. --with still selects it anywhere.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["foundry", "hardhat", "both", "none"]
+          }
+        },
         "experimental": {
           "description": "Experimental components are opt-in only and labelled in all output (FR-17).",
           "type": "boolean"
