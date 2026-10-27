@@ -64,6 +64,17 @@ function isInstalled(root, file) {
   }
 }
 
+// One Node command, so it runs the same in bash, zsh, PowerShell and cmd: double quotes
+// outside, single quotes inside, and none of $, !, %, ` or \ that a shell would expand.
+// cpSync creates the destination directories.
+export function copyCommand(skills, dir) {
+  const names = skills.map((skill) => `'${skill}'`).join(',')
+  return (
+    `node -e "for (const s of [${names}]) require('fs').cpSync(` +
+    `'node_modules/hardhat/skills/'+s, '${dir}/'+s, {recursive:true})"`
+  )
+}
+
 function skillsNote(root, clients) {
   if (!isInstalled(root, CORE_SKILL)) return []
   const pkg = readPackage(root) ?? {}
@@ -75,13 +86,12 @@ function skillsNote(root, clients) {
       .map(([, skill]) => skill)
       .filter((skill) => isInstalled(root, `node_modules/hardhat/skills/${skill}/SKILL.md`)),
   ]
-  const sources = skills.map((skill) => `node_modules/hardhat/skills/${skill}`).join(' ')
   const dirs = [...new Set(clients.map((client) => SKILL_DIRS[client]))].sort()
   return [
     [
       'Hardhat 3 ships agent skills for its testing workflow (MIT). The kit does not copy them; ' +
-        'to use them, run in a POSIX shell (and re-copy after upgrading Hardhat):',
-      ...dirs.map((dir) => `  mkdir -p ${dir} && cp -R ${sources} ${dir}/`),
+        'to use them, run (and re-copy after upgrading Hardhat):',
+      ...dirs.map((dir) => `  ${copyCommand(skills, dir)}`),
     ].join('\n'),
   ]
 }

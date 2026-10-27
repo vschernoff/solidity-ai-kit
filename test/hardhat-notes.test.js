@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
+import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { after, describe, it } from 'node:test'
 import { main } from '../src/cli.js'
+import { copyCommand } from '../src/hardhat-notes.js'
 
 const tempRoot = fs.realpathSync(
   fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-hardhat-notes-'))
@@ -53,19 +55,22 @@ const hardhat = (extra = {}) => ({
 })
 
 const skillsNote = /^Note: Hardhat 3 ships agent skills for its testing workflow \(MIT\)/m
-const copyLines = (stdout) => stdout.split('\n').filter((line) => line.startsWith('  mkdir -p '))
-const from = (...skills) => skills.map((skill) => `node_modules/hardhat/skills/${skill}`).join(' ')
+const copyLines = (stdout) =>
+  stdout
+    .split('\n')
+    .filter((line) => line.startsWith('  node -e '))
+    .map((line) => line.trim())
 
 describe('the Hardhat agent-skills note (D56)', () => {
   it('copies the core and viem toolbox skills into each client directory', () => {
     const result = initIn(project(hardhat({ '@nomicfoundation/hardhat-toolbox-viem': '^5.0.7' })))
     assert.equal(result.code, 0)
     assert.match(result.stdout, skillsNote)
-    assert.match(result.stdout, /run in a POSIX shell \(and re-copy after upgrading Hardhat\)/)
-    const sources = from('hardhat', 'hardhat-toolbox-viem')
+    assert.match(result.stdout, /to use them, run \(and re-copy after upgrading Hardhat\)/)
+    const skills = ['hardhat', 'hardhat-toolbox-viem']
     assert.deepEqual(copyLines(result.stdout), [
-      `  mkdir -p .agents/skills && cp -R ${sources} .agents/skills/`,
-      `  mkdir -p .claude/skills && cp -R ${sources} .claude/skills/`,
+      copyCommand(skills, '.agents/skills'),
+      copyCommand(skills, '.claude/skills'),
     ])
     assert.ok(result.unchanged, 'the preview writes nothing')
   })
@@ -74,12 +79,40 @@ describe('the Hardhat agent-skills note (D56)', () => {
     const mochaDependency = { '@nomicfoundation/hardhat-toolbox-mocha-ethers': '^3.0.0' }
     const mocha = initIn(project(hardhat(mochaDependency)), '--client', 'codex')
     assert.deepEqual(copyLines(mocha.stdout), [
-      `  mkdir -p .agents/skills && cp -R ${from('hardhat', 'hardhat-toolbox-mocha-ethers')} .agents/skills/`,
+      copyCommand(['hardhat', 'hardhat-toolbox-mocha-ethers'], '.agents/skills'),
     ])
     const bare = initIn(project(hardhat()), '--client', 'claude-code')
-    assert.deepEqual(copyLines(bare.stdout), [
-      `  mkdir -p .claude/skills && cp -R ${from('hardhat')} .claude/skills/`,
-    ])
+    assert.deepEqual(copyLines(bare.stdout), [copyCommand(['hardhat'], '.claude/skills')])
+  })
+
+  it("prints commands that copy the skills when run by this platform's shell", () => {
+    const dir = project(hardhat({ '@nomicfoundation/hardhat-toolbox-viem': '^5.0.7' }))
+    fs.writeFileSync(path.join(dir, 'node_modules/hardhat/skills/hardhat/extra.md'), 'x\n')
+    const lines = copyLines(initIn(dir).stdout)
+    assert.equal(lines.length, 2)
+    // execSync runs each line the way a user would paste it: /bin/sh, or cmd.exe on Windows.
+    for (const line of lines) execSync(line, { cwd: dir, stdio: 'pipe' })
+    for (const target of ['.agents/skills', '.claude/skills']) {
+      for (const file of [
+        'hardhat/SKILL.md',
+        'hardhat/extra.md',
+        'hardhat-toolbox-viem/SKILL.md',
+      ]) {
+        assert.ok(fs.existsSync(path.join(dir, target, file)), `${target}/${file}`)
+      }
+      assert.ok(!fs.existsSync(path.join(dir, target, 'hardhat-toolbox-mocha-ethers')))
+    }
+    // Running it again after an upgrade overwrites the copies.
+    fs.writeFileSync(path.join(dir, 'node_modules/hardhat/skills/hardhat/SKILL.md'), 'v2\n')
+    execSync(lines[0], { cwd: dir, stdio: 'pipe' })
+    assert.equal(fs.readFileSync(path.join(dir, '.agents/skills/hardhat/SKILL.md'), 'utf8'), 'v2\n')
+  })
+
+  it('uses no character bash, zsh, PowerShell or cmd would expand inside double quotes', () => {
+    const command = copyCommand(['hardhat', 'hardhat-toolbox-mocha-ethers'], '.agents/skills')
+    const quoted = command.slice('node -e "'.length, -1)
+    assert.ok(command.startsWith('node -e "') && command.endsWith('"'))
+    assert.doesNotMatch(quoted, /["$!%`\\]/)
   })
 
   it('reads the toolbox from dependencies as well as devDependencies', () => {
