@@ -89,9 +89,11 @@ describe('the README feedback section', () => {
   })
 })
 
-describe('no feedback text where an agent reads instructions (Directory Policy 2.D)', () => {
+// Agents read the rules and CLI output as instructions: a request to report or discuss there
+// would be a hidden instruction and costs tokens on every session.
+describe('no feedback text where an agent reads instructions', () => {
   const feedback =
-    /\/issues\b|report (a )?problems?|suggest (an )?improvements?|open an issue|feedback/i
+    /\/issues\b|\/discussions\b|report (a )?problems?|suggest (an )?improvements?|open an issue|feedback/i
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-policy-'))
   after(() => fs.rmSync(tempRoot, { recursive: true, force: true }))
 
