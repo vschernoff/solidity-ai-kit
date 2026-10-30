@@ -13,7 +13,7 @@ body:
     id: version
     attributes:
       label: solidity-ai-kit version
-      description: The version you ran, e.g. 0.1.2 (`npx solidity-ai-kit --version`).
+      description: The version you ran, e.g. 0.1.2. `npx solidity-ai-kit --version` prints it; if you ran `npx solidity-ai-kit@<version>`, give that version. The servers' versions are in the doctor output below.
     validations:
       required: true
   - type: textarea
