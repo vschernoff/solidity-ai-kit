@@ -90,7 +90,8 @@ describe('the README feedback section', () => {
 })
 
 describe('no feedback text where an agent reads instructions (Directory Policy 2.D)', () => {
-  const feedback = /issues\/new|report a problem|suggest an improvement|open an issue|feedback/i
+  const feedback =
+    /\/issues\b|report (a )?problems?|suggest (an )?improvements?|open an issue|feedback/i
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'solidity-ai-kit-policy-'))
   after(() => fs.rmSync(tempRoot, { recursive: true, force: true }))
 
