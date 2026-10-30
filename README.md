@@ -120,6 +120,15 @@ Risk notes, including what a component cannot protect against, are in `kit.manif
   would.
 - It does not collect telemetry.
 
+## Report a problem or suggest an improvement
+
+- Problem or wrong result: [open an issue](https://github.com/vschernoff/solidity-ai-kit/issues/new/choose).
+  Include the version, your client, what was run and the output. Don't include keys, `.env`
+  contents, RPC URLs with API keys, or code you can't share.
+- Security problem: report it privately, see [SECURITY.md](SECURITY.md).
+- You can ask your coding agent to draft the report from your session. Read it before you post
+  it: nothing is sent unless you send it. This project collects no telemetry.
+
 ## Known limits
 
 - Merging into a JSON config keeps its content and key order, but rewrites its layout in

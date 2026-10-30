@@ -1,0 +1,92 @@
+name: Report a problem
+description: Something didn't work, or the result was wrong or misleading.
+labels: ['bug', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please don't paste private keys, mnemonics, `.env` contents,
+        RPC URLs that contain an API key, or code you can't share publicly. Shorten local paths
+        if they contain your name. Security problems: use a private advisory instead
+        (see SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: solidity-ai-kit version
+      description: The version you ran, e.g. 0.1.2. `npx solidity-ai-kit --version` prints it; if you ran `npx solidity-ai-kit@<version>`, give that version. The servers' versions are in the doctor output below.
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `npx solidity-ai-kit doctor`
+      description: Run it in the project. It lists each component's pinned version and health, and changes nothing.
+      render: text
+  - type: input
+    id: client
+    attributes:
+      label: Client and version
+      description: e.g. Codex CLI, Cursor 2.x, Claude Code 2.1.x.
+    validations:
+      required: true
+  - type: dropdown
+    id: project
+    attributes:
+      label: Project type
+      options:
+        - Foundry
+        - Hardhat
+        - Foundry and Hardhat
+        - Neither
+    validations:
+      required: true
+  - type: dropdown
+    id: configs
+    attributes:
+      label: Client configs `init` wrote
+      multiple: true
+      options:
+        - .codex/config.toml (Codex)
+        - .cursor/mcp.json (Cursor)
+        - .mcp.json and .claude/settings.json (Claude Code)
+        - init has not been run
+  - type: input
+    id: environment
+    attributes:
+      label: OS, Node version, and `forge --version` if the project uses Foundry
+      placeholder: macOS 15, Node 22.11, forge 1.8.5
+  - type: textarea
+    id: call
+    attributes:
+      label: What was run
+      description: The command (e.g. `npx solidity-ai-kit init --write`), the tool and its arguments, or what you asked the agent.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: The command output, tool result or error, trimmed to the relevant part.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Smallest example (optional)
+      description: A short project layout or config that shows it, if you can share it.
+  - type: dropdown
+    id: drafted_by
+    attributes:
+      label: Who wrote this report?
+      options:
+        - I wrote it
+        - An AI agent drafted it at my request, and I reviewed it before posting
+    validations:
+      required: true
