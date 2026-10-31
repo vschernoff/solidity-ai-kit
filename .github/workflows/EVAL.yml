@@ -36,7 +36,7 @@ jobs:
       - name: Fixture and comparison tests (no toolchain needed)
         run: node --test 'eval/test/*.test.js'
       # Version and action commit must match eval/deps.json (eval/test/workflow.test.js).
-      - uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1
+      - uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
         with:
           version: v1.8.5
           cache: false
@@ -86,7 +86,7 @@ jobs:
       # Toolchain for candidates that run forge, fetched on the runner (network) and mounted
       # read-only into the no-network container: forge, solc for FOUNDRY_SOLC, forge-std.
       - if: matrix.forge
-        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1
+        uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
         with:
           version: ${{ matrix.forge }}
           cache: false
