@@ -147,7 +147,10 @@ install integrity matches the pin; no install scripts.
 source, touches only the annotations, the version and the README. `fix_file`, which overwrites the
 file when called with `write: true`, is marked `destructiveHint: true`; the other six tools are
 `readOnlyHint: true`; all seven are `openWorldHint: false`. The probe on 0.1.8 lists the same
-seven tools with these annotations.
+seven tools with these annotations. Read-only means a tool changes no file. It does not mean it
+runs no code: every tool except `explain_rule` loads the project's Solhint config, and with it the
+project's plugins and any JS config (`lint_solidity` and `fix_solidity` only when no `config`
+argument is given). That is the trust noted in the manifest's risk notes.
 
 ### 2.5 forge-test-mcp
 
