@@ -24,7 +24,7 @@
           "resolved": true
         },
         {
-          "note": "Linting, or reading the config with get_config, runs that repository's own Solhint plugins and JS config, the same trust as running `npx solhint` there. Not safe for untrusted repositories.",
+          "note": "Every tool except explain_rule loads that repository's Solhint config, and with it its plugins and any JS config (lint_solidity and fix_solidity only when no config argument is given); if the repository has its own Solhint 6.x installed, the server loads that copy at start. This is the same trust as running `npx solhint` there. Not safe for untrusted repositories.",
           "security": false,
           "resolved": false
         },

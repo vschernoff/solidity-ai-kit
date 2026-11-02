@@ -150,7 +150,8 @@ file when called with `write: true`, is marked `destructiveHint: true`; the othe
 seven tools with these annotations. Read-only means a tool changes no file. It does not mean it
 runs no code: every tool except `explain_rule` loads the project's Solhint config, and with it the
 project's plugins and any JS config (`lint_solidity` and `fix_solidity` only when no `config`
-argument is given). That is the trust noted in the manifest's risk notes.
+argument is given). If the project has its own Solhint 6.x installed, the server loads that copy
+at start, so even `explain_rule` runs it. That is the trust noted in the manifest's risk notes.
 
 ### 2.5 forge-test-mcp
 
