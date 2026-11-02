@@ -10,8 +10,8 @@
     },
     "toolchainAction": {
       "repo": "foundry-rs/foundry-toolchain",
-      "tag": "v1.9.1",
-      "commit": "908c540300062bd5a7e473851cdb4282204cee09"
+      "tag": "v1.9.2",
+      "commit": "dba66c27052e63476d886f22216e119ba7e615bf"
     }
   },
   "solc": "0.8.37",
