@@ -6,7 +6,7 @@
       "id": "solhint",
       "stage": "lint",
       "package": "solhint-mcp",
-      "version": "0.1.7",
+      "version": "0.1.8",
       "transport": "stdio",
       "license": "MIT",
       "source": "https://github.com/vschernoff/solhint-mcp",
