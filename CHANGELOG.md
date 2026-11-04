@@ -3,6 +3,18 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
+## 0.1.3 — 2026-11-02
+
+### Components
+
+- `solhint-mcp` 0.1.8 (was 0.1.7). It adds MCP tool annotations to its tools; it still
+  bundles Solhint 6.2.5.
+
+### Documentation
+
+- The npm description now starts with what the kit helps with: getting a contract ready for
+  an audit (build, test, lint).
+
 ## 0.1.2 — 2026-10-29
 
 ### Commands
