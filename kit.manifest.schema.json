@@ -150,6 +150,30 @@
             "minLength": 1
           }
         },
+        "binaryVersions": {
+          "description": "Versions of a required binary the component supports, keyed by the binary's name (one of requiresBinaries). doctor reports a version below the range as a problem and one above it as a warning; it never installs anything.",
+          "type": "object",
+          "propertyNames": {
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["range", "fix"],
+            "properties": {
+              "range": {
+                "description": "Lowest supported version, inclusive, and the first unsupported one: \">=1.8.5 <1.9.0\".",
+                "type": "string",
+                "pattern": "^>=[0-9]+\\.[0-9]+\\.[0-9]+ <[0-9]+\\.[0-9]+\\.[0-9]+$"
+              },
+              "fix": {
+                "description": "What doctor tells the user when the installed version is below the range.",
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
         "deniedTools": {
           "description": "Tools that send transactions or sign; denied in every client that supports it (FR-7).",
           "type": "array",

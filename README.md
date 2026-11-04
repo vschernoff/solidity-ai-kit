@@ -29,7 +29,9 @@ under Status below.
       each problem, and the findings from the rules that did run still follow. The result
       is not marked as an error, so the agent has to read the banner.
   - [`forge-test-mcp`](https://github.com/vschernoff/forge-test-mcp), Foundry builds and
-    tests, in Foundry projects (including ones that also use Hardhat). It needs `forge`.
+    tests, in Foundry projects (including ones that also use Hardhat). It needs `forge` 1.8.5
+    or a later 1.8.x; `doctor` checks the version (a newer forge gets a warning), and the kit
+    installs nothing.
     - **It runs the project's own code.** Running tests executes the project's Solidity and
       cheatcodes with your privileges, the same as running `forge test` there. Do not use it
       on a repository you do not trust.

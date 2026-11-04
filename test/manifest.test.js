@@ -255,6 +255,40 @@ describe('schema: who may be enabled by default (FR-16, FR-17)', () => {
   }
 })
 
+describe('schema: binaryVersions', () => {
+  const forge = (version) =>
+    evaluatedComponent({ requiresBinaries: ['forge'], binaryVersions: { forge: version } })
+  const fix = 'Install a supported version.'
+
+  it('accepts a range and a fix per binary', () => {
+    assert.deepEqual(errorsOf(manifestWith(forge({ range: '>=1.8.5 <1.9.0', fix }))), [])
+  })
+
+  it('rejects another range form, a missing fix, or an unknown key', () => {
+    for (const version of [
+      { range: '^1.8.5', fix },
+      { range: '>=1.8.5', fix },
+      { range: '>=1.8.5 <1.9.0' },
+      { range: '>=1.8.5 <1.9.0', fix, recommended: '1.8.6' },
+    ]) {
+      assert.notDeepEqual(errorsOf(manifestWith(forge(version))), [], JSON.stringify(version))
+    }
+  })
+
+  it('names only binaries the component requires, with a range that is not empty', () => {
+    for (const component of manifest.components) {
+      for (const [binary, { range }] of Object.entries(component.binaryVersions ?? {})) {
+        assert.ok(component.requiresBinaries.includes(binary), `${component.id}: ${binary}`)
+        const [min, max] = range.match(/\d+\.\d+\.\d+/g)
+        assert.ok(
+          min.localeCompare(max, undefined, { numeric: true }) < 0,
+          `${component.id}: ${range}`
+        )
+      }
+    }
+  })
+})
+
 describe('schema: defaultFor', () => {
   it('accepts a non-empty list of project kinds', () => {
     for (const defaultFor of [

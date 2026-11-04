@@ -92,6 +92,63 @@ async function checkNode({ engines }) {
   }
 }
 
+// A component's supported range for a binary, from the manifest's binaryVersions:
+// ">=1.8.5 <1.9.0". Read the way forge-test-mcp 0.1.0 reads `forge --version`
+// ("forge Version: 1.8.6" or "forge 1.8.6-nightly (…)").
+export function parseVersion(output) {
+  const match =
+    output.match(/Version:\s*v?(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?/) ??
+    output.match(/forge\s+v?(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?/)
+  if (!match) return null
+  const [, major, minor, patch, prerelease] = match
+  return { numbers: [major, minor, patch].map(Number), prerelease: prerelease ?? null }
+}
+
+// The schema allows only ">=x.y.z <x.y.z".
+function parseRange(range) {
+  const [min, max] = range.match(/\d+\.\d+\.\d+/g).map((v) => v.split('.').map(Number))
+  return { min, maxExclusive: max }
+}
+
+function compare(a, b) {
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1
+  return 0
+}
+
+// Matches forge-test-mcp 0.1.0: below the range it refuses to run (a problem here); above it,
+// or a pre-release build, it runs and flags the result as untested (a warning here).
+export function assessVersion(output, range) {
+  const version = parseVersion(output)
+  if (version === null) return { status: 'unreadable' }
+  const { min, maxExclusive } = parseRange(range)
+  if (compare(version.numbers, min) < 0) return { status: 'too-old' }
+  if (compare(version.numbers, maxExclusive) >= 0) return { status: 'newer' }
+  if (version.prerelease) return { status: 'prerelease' }
+  return { status: 'supported' }
+}
+
+function checkVersions(toolchain, components) {
+  for (const component of components) {
+    for (const [binary, { range, fix }] of Object.entries(component.binaryVersions ?? {})) {
+      const check = toolchain.find(({ name }) => name === binary)
+      if (check?.status !== STATUS.healthy) continue
+      const needs = `${label(component)} supports ${range}`
+      const { status } = assessVersion(check.detail, range)
+      if (status === 'too-old' || status === 'unreadable') {
+        check.status = STATUS.wrongVersion
+        check.detail = `${check.detail} (${status === 'too-old' ? 'too old' : 'version not readable'}; ${needs})`
+        check.fix = fix
+      } else if (status === 'newer' || status === 'prerelease') {
+        const what = status === 'newer' ? 'newer than' : 'a pre-release build within'
+        check.warnings = [
+          ...(check.warnings ?? []),
+          `${what} the range ${label(component)} is tested with (${range}); it runs but marks results as untested`,
+        ]
+      }
+    }
+  }
+}
+
 async function checkBinary(name, { required, fix, timeoutMs, runner }) {
   const result = await runner(name, { timeoutMs })
   if (!result.found) {
@@ -230,6 +287,7 @@ export async function runDoctor({
   for (const [binary, { required, fix }] of binaries) {
     toolchain.push(await checkBinary(binary, { required, fix, timeoutMs, runner }))
   }
+  checkVersions(toolchain, components)
 
   const leftovers = []
   const deepDir = fs.mkdtempSync(path.join(tempRoot, 'solidity-ai-kit-doctor-'))
@@ -269,6 +327,8 @@ export function formatReport(report) {
   for (const check of report.toolchain) {
     lines.push(row(check))
     if (check.fix) lines.push(`                  → ${check.fix}`)
+    for (const warning of check.warnings ?? [])
+      lines.push(`  warning         ${check.name}: ${warning}`)
   }
   lines.push('', 'Components')
   if (report.components.length === 0) {
