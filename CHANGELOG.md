@@ -3,6 +3,17 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
+## 0.1.4 — 2026-11-04
+
+### Commands
+
+- `doctor` checks the installed `forge` against the range forge-test-mcp supports
+  (`>=1.8.5 <1.9.0`) when forge-test-mcp is configured. Below the range it reports a problem and
+  exits 1, with forge-test-mcp's own hint (`foundryup -i 1.8.6`); above it, a warning, since
+  forge-test-mcp still runs but marks the results as untested. It installs nothing. Before, a
+  forge older than the range passed every check while forge-test-mcp's tools refused to run.
+- The manifest gives a component's supported binary versions in a new `binaryVersions` field.
+
 ## 0.1.3 — 2026-11-02
 
 ### Components

@@ -12,6 +12,7 @@ import {
   formatReport,
   runDoctor,
   serverEnvironment,
+  assessVersion,
 } from '../src/doctor.js'
 import { isDefaultFor } from '../src/components.js'
 import { PACKAGE_ROOT, loadManifest, readPackageJson } from '../src/manifest.js'
@@ -477,6 +478,91 @@ describe('doctor through the CLI', () => {
       const result = await cli(project({}, { foundry: false }), 'doctor', ...args)
       assert.equal(result.code, 1, args.join(' '))
     }
+  })
+})
+
+describe("forge version against the component's supported range", () => {
+  const RANGE = '>=1.8.5 <1.9.0'
+  const FIX = 'Install a supported version, e.g. `foundryup -i 1.8.6`.'
+
+  it('reads `forge --version` the way forge-test-mcp does', () => {
+    const cases = {
+      'forge Version: 1.7.1-v1.7.1': 'too-old',
+      'forge Version: 1.8.5': 'supported',
+      'forge Version: 1.8.6': 'supported',
+      'forge 1.8.6-nightly (abc 2026-10-01)': 'prerelease',
+      'forge Version: 1.9.0': 'newer',
+      'forge Version: 2.0.0': 'newer',
+      'forge, but no version': 'unreadable',
+    }
+    for (const [output, status] of Object.entries(cases)) {
+      assert.equal(assessVersion(output, RANGE).status, status, output)
+    }
+  })
+
+  // A component that needs forge in this range, run against a fake forge.
+  const needsForge = {
+    ...stubComponent('tests', 'fixed', 1),
+    requiresBinaries: ['forge'],
+    binaryVersions: { forge: { range: RANGE, fix: FIX } },
+  }
+  const fakeForge = (version) => async (name) => {
+    if (name === 'forge') return version === null ? { found: false } : { found: true, version }
+    return { found: true, version: `${name} 1.8.6` }
+  }
+  const run = (version, components = [needsForge]) =>
+    doctor(project({ '.mcp.json': mcpJson('tests') }), components, { runner: fakeForge(version) })
+  const forgeRow = (report) => report.toolchain.find(({ name }) => name === 'forge')
+
+  it('reports a forge below the range as a problem, with the fix, and fails', async () => {
+    const report = await run('forge Version: 1.7.1')
+    assert.equal(forgeRow(report).status, STATUS.wrongVersion)
+    assert.match(forgeRow(report).detail, /1\.7\.1 \(too old; tests supports >=1\.8\.5 <1\.9\.0\)/)
+    assert.equal(forgeRow(report).fix, FIX)
+    const { text, ok } = formatReport(report)
+    assert.equal(ok, false)
+    assert.match(text, /foundryup -i 1\.8\.6/)
+  })
+
+  it('passes a forge inside the range without a warning', async () => {
+    const report = await run('forge Version: 1.8.6')
+    assert.equal(forgeRow(report).status, STATUS.healthy)
+    assert.equal(forgeRow(report).warnings, undefined)
+    assert.equal(formatReport(report).ok, true)
+  })
+
+  it('warns, but does not fail, for a forge above the range', async () => {
+    const report = await run('forge Version: 1.9.0')
+    assert.equal(forgeRow(report).status, STATUS.healthy)
+    const { text, ok } = formatReport(report)
+    assert.equal(ok, true)
+    assert.match(
+      text,
+      /warning +forge: newer than the range tests is tested with \(>=1\.8\.5 <1\.9\.0\)/
+    )
+  })
+
+  it('warns for a pre-release build, saying only what is known', async () => {
+    const report = await run('forge Version: 1.8.6-dev')
+    assert.equal(forgeRow(report).status, STATUS.healthy)
+    const { text, ok } = formatReport(report)
+    assert.equal(ok, true)
+    assert.match(
+      text,
+      /warning +forge: a pre-release build; tests supports release builds >=1\.8\.5 <1\.9\.0 and may treat this one as untested$/m
+    )
+  })
+
+  it('still reports a missing forge as missing', async () => {
+    const report = await run(null)
+    assert.equal(forgeRow(report).status, STATUS.missing)
+    assert.equal(formatReport(report).ok, false)
+  })
+
+  it('checks no version when no checked component gives a range', async () => {
+    const plain = { ...needsForge, binaryVersions: undefined }
+    const report = await run('forge Version: 1.7.1', [plain])
+    assert.equal(forgeRow(report).status, STATUS.healthy)
   })
 })
 

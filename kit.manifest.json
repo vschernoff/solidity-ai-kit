@@ -50,6 +50,12 @@
       "defaultFor": ["foundry", "both"],
       "experimental": false,
       "requiresBinaries": ["forge"],
+      "binaryVersions": {
+        "forge": {
+          "range": ">=1.8.5 <1.9.0",
+          "fix": "Install a supported version, e.g. `foundryup -i 1.8.6`."
+        }
+      },
       "deniedTools": [],
       "riskNotes": [
         {
