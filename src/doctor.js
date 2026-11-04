@@ -116,7 +116,8 @@ function compare(a, b) {
 }
 
 // Matches forge-test-mcp 0.1.0: below the range it refuses to run (a problem here); above it,
-// or a pre-release build, it runs and flags the result as untested (a warning here).
+// or a pre-release build that is not a tested release's commit, it runs and flags the results
+// as untested (a warning here).
 export function assessVersion(output, range) {
   const version = parseVersion(output)
   if (version === null) return { status: 'unreadable' }
@@ -138,11 +139,17 @@ function checkVersions(toolchain, components) {
         check.status = STATUS.wrongVersion
         check.detail = `${check.detail} (${status === 'too-old' ? 'too old' : 'version not readable'}; ${needs})`
         check.fix = fix
-      } else if (status === 'newer' || status === 'prerelease') {
-        const what = status === 'newer' ? 'newer than' : 'a pre-release build within'
+      } else if (status === 'newer') {
         check.warnings = [
           ...(check.warnings ?? []),
-          `${what} the range ${label(component)} is tested with (${range}); it runs but marks results as untested`,
+          `newer than the range ${label(component)} is tested with (${range}); it runs but marks results as untested`,
+        ]
+      } else if (status === 'prerelease') {
+        // forge-test-mcp accepts a pre-release built from a tested release's own commit (forge
+        // 1.8.6's Alpine build says 1.8.6-dev); doctor sees only the first line, not the commit.
+        check.warnings = [
+          ...(check.warnings ?? []),
+          `a pre-release build; ${label(component)} runs it and marks results as untested unless it was built from a tested release's commit (${range})`,
         ]
       }
     }
