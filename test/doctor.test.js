@@ -542,14 +542,14 @@ describe("forge version against the component's supported range", () => {
     )
   })
 
-  it('warns for a pre-release build without claiming its results are untested', async () => {
+  it('warns for a pre-release build, saying only what is known', async () => {
     const report = await run('forge Version: 1.8.6-dev')
     assert.equal(forgeRow(report).status, STATUS.healthy)
     const { text, ok } = formatReport(report)
     assert.equal(ok, true)
     assert.match(
       text,
-      /warning +forge: a pre-release build; tests runs it and marks results as untested unless it was built from a tested release's commit/
+      /warning +forge: a pre-release build; tests supports release builds >=1\.8\.5 <1\.9\.0 and may treat this one as untested$/m
     )
   })
 
