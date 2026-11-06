@@ -38,6 +38,15 @@ under Status below.
     - **FFI is off; the network is not.** FFI stays off unless the server is started with
       `--allow-ffi`, even when `foundry.toml` enables it. Tests can still reach the network
       through fork cheatcodes or RPC endpoints the project configures.
+- **The results don't depend on the kit.** The servers run the project's own tools and config:
+  forge-test-mcp runs the `forge` on your PATH (`forge build`, `forge test`) with the project's
+  `foundry.toml`, and solhint-mcp lints with the project's Solhint config and the project's own
+  Solhint 6.x when the project has one installed. Anyone, an auditor for example, can re-run `forge test`
+  and `npx solhint` in the project to check them. Where they can differ: forge-test-mcp passes
+  `--offline`, turns FFI off when `foundry.toml` enables it (unless started with `--allow-ffi`),
+  and takes a fuzz-run count from the agent if it asks for one; without a project Solhint,
+  solhint-mcp uses the Solhint it bundles (6.2.5) while `npx solhint` fetches the latest, so use
+  `npx solhint@6.2.5` to match; and with no Solhint config it lints with `solhint:recommended`.
 - **Interfaces may still change** before 1.0.
 
 ```sh
