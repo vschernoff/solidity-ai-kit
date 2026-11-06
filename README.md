@@ -40,8 +40,8 @@ under Status below.
       through fork cheatcodes or RPC endpoints the project configures.
 - **The results don't depend on the kit.** The servers run the project's own tools and config:
   forge-test-mcp runs the `forge` on your PATH (`forge build`, `forge test`) with the project's
-  `foundry.toml`, and solhint-mcp lints with the project's Solhint config and its own Solhint 6.x
-  when the project has one installed. Anyone, an auditor for example, can re-run `forge test`
+  `foundry.toml`, and solhint-mcp lints with the project's Solhint config and the project's own
+  Solhint 6.x when the project has one installed. Anyone, an auditor for example, can re-run `forge test`
   and `npx solhint` in the project to check them. Where they can differ: forge-test-mcp passes
   `--offline`, turns FFI off when `foundry.toml` enables it (unless started with `--allow-ffi`),
   and takes a fuzz-run count from the agent if it asks for one; without a project Solhint,
