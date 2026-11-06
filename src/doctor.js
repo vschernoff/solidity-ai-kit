@@ -10,6 +10,7 @@ import { readText } from './clients/json.js'
 import { isDefaultFor, label, launchSpec } from './components.js'
 import { detectProject } from './detect.js'
 import { launchCommand, probe } from './mcp-probe.js'
+import { NODE_INSTALL, meetsFloor } from './node-check.js'
 
 // FR-10…FR-13. doctor only reads and runs; it never writes into the project, installs or
 // upgrades anything (FR-13). The one directory it creates is a temporary one outside the
@@ -33,7 +34,6 @@ const LIMIT_SOURCES = { codex: "Codex's guidance recommends" }
 const CLIENT_NAMES = { 'claude-code': 'Claude Code', codex: 'Codex', cursor: 'Cursor' }
 
 const FOUNDRY_INSTALL = 'https://getfoundry.sh/introduction/installation'
-const NODE_INSTALL = 'https://nodejs.org/en/download'
 
 function runVersion(command, { timeoutMs }) {
   return new Promise((resolve) => {
@@ -82,13 +82,12 @@ export function configuredInProject(root, manifest) {
 }
 
 async function checkNode({ engines }) {
-  const floor = Number(engines.match(/^>=(\d+)/)?.[1] ?? 0)
-  const major = Number(process.versions.node.split('.')[0])
+  const ok = meetsFloor(process.version, engines)
   return {
     name: 'Node',
-    status: major >= floor ? STATUS.healthy : STATUS.wrongVersion,
+    status: ok ? STATUS.healthy : STATUS.wrongVersion,
     detail: `${process.version} (needs ${engines})`,
-    fix: major >= floor ? null : `Install Node 22 or 24: ${NODE_INSTALL}`,
+    fix: ok ? null : `Install Node 22 or 24: ${NODE_INSTALL}`,
   }
 }
 
