@@ -105,7 +105,7 @@ running `npx solhint` in that repository.
 From 0.1.5 the `instructions` field is a fixed 502-character string. Before that it embedded the
 project path and measured 693–816 characters, depending on the path (CI probe and the
 maintainer's measurements). By execution in the
-probe on 0.1.5, 0.1.6 and 0.1.7 (CI, 2026-10-24) on 0.1.8 (CI, 2026-11-02) and on 0.1.9 (CI, 2026-11-10): `[502, 502]` from a shallow and a deep working directory, not
+probe on 0.1.5, 0.1.6 and 0.1.7 (CI, 2026-10-24), on 0.1.8 (CI, 2026-11-02) and on 0.1.9 (CI, 2026-11-10): `[502, 502]` from a shallow and a deep working directory, not
 variable.
 
 #### 2.4c Run health (C4)
