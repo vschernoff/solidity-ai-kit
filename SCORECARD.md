@@ -6,7 +6,7 @@ enabled for payment or partnership.
 
 |              |                                                                                                                                                                      |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Last updated | 2026-11-02                                                                                                                                                           |
+| Last updated | 2026-11-10                                                                                                                                                           |
 | Evidence     | `eval/` in this repository: fixtures with forge-confirmed ground truth, the handshake probe and the stage cases, all run in CI in a pinned container with no network |
 | Decisions    | Proposed by the evaluator, approved by the maintainer                                                                                                                |
 
@@ -51,7 +51,7 @@ this page names only the gate. Details are reported privately to the maintainers
 
 | Stage                           | Component                    | Default                     | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------- | ---------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lint**                        | `solhint-mcp` 0.1.8 (MIT)    | **on**                      | Passes G1–G8. Lint-stage cases 21/21 and a clean probe by execution (§2.4d). Risk notes are in the manifest: linting runs the repository's own Solhint plugins and JS config, so it is not safe for untrusted repositories; and a degraded run is a banner in the result text, not `isError`.                                                                                                                                                                                                                                                      |
+| **Lint**                        | `solhint-mcp` 0.1.9 (MIT)    | **on**                      | Passes G1–G8. Lint-stage cases 21/21 and a clean probe by execution (§2.4d). Risk notes are in the manifest: linting runs the repository's own Solhint plugins and JS config, so it is not safe for untrusted repositories; and a degraded run is a banner in the result text, not `isError`.                                                                                                                                                                                                                                                      |
 | **Build / test**                | `forge-test-mcp` 0.1.0 (MIT) | **on** for Foundry projects | Passes G1–G8. Build/test-stage cases 22/22 by execution on forge 1.8.5 and 1.8.6 (§2.5). Results match the forge-confirmed ground truth. Whenever forge produced no report, the tool returns an error with a code. FFI stays off even when foundry.toml enables it, secret values are redacted, and output stays within its size budget. Risk notes are in the manifest: running tests runs the project's code, so it is not safe for untrusted repositories. Made by the kit's maintainer, and held to the same gates and cases as any candidate. |
 | Foundry utilities (anvil, cast) | none                         | —                           | Every candidate fails G1, G2, G4 or G7 (§2.1).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Static analysis                 | none in v0.1                 | —                           | `trailofbits/slither-mcp` passes every gate except G6, which a flag mitigates. It is out of v0.1 by decision (D39): telemetry is on unless disabled by a flag, and an analyser failure can come back as an empty, successful result (C4) (§2.2).                                                                                                                                                                                                                                                                                                   |
@@ -105,7 +105,7 @@ running `npx solhint` in that repository.
 From 0.1.5 the `instructions` field is a fixed 502-character string. Before that it embedded the
 project path and measured 693–816 characters, depending on the path (CI probe and the
 maintainer's measurements). By execution in the
-probe on 0.1.5, 0.1.6 and 0.1.7 (CI, 2026-10-24) and on 0.1.8 (CI, 2026-11-02): `[502, 502]` from a shallow and a deep working directory, not
+probe on 0.1.5, 0.1.6 and 0.1.7 (CI, 2026-10-24) on 0.1.8 (CI, 2026-11-02) and on 0.1.9 (CI, 2026-11-10): `[502, 502]` from a shallow and a deep working directory, not
 variable.
 
 #### 2.4c Run health (C4)
@@ -115,7 +115,7 @@ less than configured without saying so, and `get_config` reported "✅" over suc
 added a degraded-run banner. 0.1.7 also catches it when `FORCE_COLOR` is set, which made
 Solhint's warnings carry colour codes the 0.1.6 matcher missed. A degraded run is a banner, not
 `isError`: that is the maintainer's design, so findings from the rules that did load stay
-usable. 0.1.8 leaves this unchanged.
+usable. 0.1.8 and 0.1.9 leave this unchanged.
 
 #### 2.4d Lint-stage cases, by execution
 
@@ -123,21 +123,21 @@ The cases are in `eval/cases/lint.json`. Each runs one tool call on a fresh copy
 its own server process, inside the pinned container with `--network none --read-only` as a
 non-root user. They are requirements on any lint server, not on one implementation.
 
-| Group                                                                                                                                                 | Cases  | 0.1.5 (CI, 2026-10-24)  | 0.1.7 (CI, 2026-10-24) | 0.1.8 (CI, 2026-11-02) |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------- | ---------------------- | ---------------------- |
-| F01 clean project                                                                                                                                     | 1      | pass                    | pass                   | pass                   |
-| F10 invalid `.solhint.json` must be an error (`lint_project`, `get_config`)                                                                           | 2      | pass                    | pass                   | pass                   |
-| F14 plugin not installed: must name it, ± `FORCE_COLOR`, `get_config` must not say "✅"                                                               | 4      | **fail** (4)            | pass                   | pass                   |
-| F15 unknown rule id: same                                                                                                                             | 4      | **fail** (4)            | pass                   | pass                   |
-| F16 a plugin that prints chatter: not reported as a problem, nothing on the MCP stdout                                                                | 3      | pass                    | pass                   | pass                   |
-| Agent-supplied config must not load code: `extends` absolute / array / `solhint:../` / relative, `plugins`, `plugins` + `pluginPaths`, `fix_solidity` | 7      | pass                    | pass                   | pass                   |
-| **Total**                                                                                                                                             | **21** | **13 passed, 8 failed** | **21 passed**          | **21 passed**          |
+| Group                                                                                                                                                 | Cases  | 0.1.5 (CI, 2026-10-24)  | 0.1.7 (CI, 2026-10-24) | 0.1.8 (CI, 2026-11-02) | 0.1.9 (CI, 2026-11-10) |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------- | ---------------------- | ---------------------- | ---------------------- |
+| F01 clean project                                                                                                                                     | 1      | pass                    | pass                   | pass                   | pass                   |
+| F10 invalid `.solhint.json` must be an error (`lint_project`, `get_config`)                                                                           | 2      | pass                    | pass                   | pass                   | pass                   |
+| F14 plugin not installed: must name it, ± `FORCE_COLOR`, `get_config` must not say "✅"                                                               | 4      | **fail** (4)            | pass                   | pass                   | pass                   |
+| F15 unknown rule id: same                                                                                                                             | 4      | **fail** (4)            | pass                   | pass                   | pass                   |
+| F16 a plugin that prints chatter: not reported as a problem, nothing on the MCP stdout                                                                | 3      | pass                    | pass                   | pass                   | pass                   |
+| Agent-supplied config must not load code: `extends` absolute / array / `solhint:../` / relative, `plugins`, `plugins` + `pluginPaths`, `fix_solidity` | 7      | pass                    | pass                   | pass                   | pass                   |
+| **Total**                                                                                                                                             | **21** | **13 passed, 8 failed** | **21 passed**          | **21 passed**          | **21 passed**          |
 
 The F14/F15 cases require the item's name and a failure phrase on the same line, so
 `get_config`'s echo of the project config cannot satisfy them. Four of the seven code-loading
 cases are regression guards: Solhint itself already refused those forms in 0.1.3.
 
-Probe on 0.1.7 (same run), and on 0.1.8 (its own run, CI 2026-11-02): 7 tools, healthy; 0
+Probe on 0.1.7 (same run), and on 0.1.8 and 0.1.9 (each in its own run, CI 2026-11-02 and 2026-11-10): 7 tools, healthy; 0
 non-protocol bytes on stdout; canary keys in the environment not leaked; nothing written to HOME;
 install integrity matches the pin; no install scripts.
 
@@ -152,6 +152,18 @@ runs no code: every tool except `explain_rule` loads the project's Solhint confi
 project's plugins and any JS config (`lint_solidity` and `fix_solidity` only when no `config`
 argument is given). If the project has its own Solhint 6.x installed, the server loads that copy
 at start, so even `explain_rule` runs it. That is the trust noted in the manifest's risk notes.
+
+#### 2.4f 0.1.9: dependencies only
+
+0.1.9 changes dependencies and nothing else: the 0.1.8 → 0.1.9 package diff, read from both npm
+tarballs, touches only `package.json` (`@modelcontextprotocol/server` 2.3.1 → 2.4.0, `glob`
+^13.0.6 → ^14.0.4, which resolves to 14.0.4). The source is byte-identical. The probe on 0.1.9
+returns the same `instructions` text and the same tools/list, byte for byte, as 0.1.8, with the
+same protocol version and annotations; only the reported server version differs. The `glob` bump
+is hygiene, not a fix to an exposure: solhint-mcp calls only `globSync`, never with an abort
+signal, so GHSA-3g3m-2fjr-6pw4 does not reach it. Solhint 6.2.5 still brings its own `glob` 13.0.7,
+inside that advisory's range and used the same way, so dependency scanners will keep reporting it
+until Solhint updates.
 
 ### 2.5 forge-test-mcp
 
