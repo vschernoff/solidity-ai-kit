@@ -3,6 +3,29 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
+## 0.1.5 — 2026-11-10
+
+### Commands
+
+- On Node older than 22, every command now prints one line, "solidity-ai-kit needs Node >=22
+  (found vX). Install Node 22 or 24: https://nodejs.org/en/download", and exits 1. Before, Node
+  18 crashed with a raw `TypeError` and Node 20 let `init` write files that only `doctor` then
+  called unsupported.
+
+### Components
+
+- `solhint-mcp` 0.1.9 (was 0.1.8), a dependency-only update. solhint-mcp's own direct glob
+  dependency moves to 14.0.4. Solhint 6.2.5, which it bundles, still brings glob 13.0.7 and
+  minimatch 10.2.6, which are in the ranges of advisories (GHSA-3g3m-2fjr-6pw4,
+  GHSA-g3hv-75wg-m249) but not reachable through solhint-mcp, until Solhint updates; dependency
+  scanners will keep reporting them. See SCORECARD.md §2.4f.
+
+### Documentation
+
+- The README says that forge-test-mcp and solhint-mcp run the project's own tools and config, so
+  `forge test` and `npx solhint` reproduce their results without the kit, and where the two can
+  differ.
+
 ## 0.1.4 — 2026-11-04
 
 ### Commands
