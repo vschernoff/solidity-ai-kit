@@ -160,10 +160,9 @@ tarballs, touches only `package.json` (`@modelcontextprotocol/server` 2.3.1 → 
 ^13.0.6 → ^14.0.4, which resolves to 14.0.4). The source is byte-identical. The probe on 0.1.9
 returns the same `instructions` text and the same tools/list, byte for byte, as 0.1.8, with the
 same protocol version and annotations; only the reported server version differs. The `glob` bump
-is hygiene, not a fix to an exposure: solhint-mcp calls only `globSync`, never with an abort
-signal, so GHSA-3g3m-2fjr-6pw4 does not reach it. Solhint 6.2.5 still brings its own `glob` 13.0.7,
-inside that advisory's range and used the same way, so dependency scanners will keep reporting it
-until Solhint updates.
+is hygiene, not a fix to an exposure: solhint-mcp's own direct glob dependency moves to 14.0.4.
+Solhint 6.2.5 still brings glob 13.0.7 (in the range of GHSA-3g3m-2fjr-6pw4, not reachable:
+`globSync` only, no `signal`) until Solhint updates.
 
 ### 2.5 forge-test-mcp
 
