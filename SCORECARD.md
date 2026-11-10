@@ -163,6 +163,9 @@ same protocol version and annotations; only the reported server version differs.
 is hygiene, not a fix to an exposure: solhint-mcp's own direct glob dependency moves to 14.0.4.
 Solhint 6.2.5 still brings glob 13.0.7 (in the range of GHSA-3g3m-2fjr-6pw4, not reachable:
 `globSync` only, no `signal`) until Solhint updates.
+Scanners also report minimatch 10.2.6 (GHSA-g3hv-75wg-m249) through the same Solhint dependency,
+and so list solhint-mcp itself as affected; neither is reachable: the server rejects `..` in
+patterns and never calls Solhint's own file globbing.
 
 ### 2.5 forge-test-mcp
 
