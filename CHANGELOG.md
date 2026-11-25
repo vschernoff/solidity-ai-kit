@@ -3,6 +3,14 @@
 All notable changes to this project are recorded here. Versions follow semantic
 versioning; until 1.0, a minor version may change behaviour.
 
+## 0.1.6 — 2026-11-25
+
+### Components
+
+- `solhint-mcp` 0.1.10 (was 0.1.9). Its tool descriptions now say which tool to use when, and
+  its parameters have examples. Tool names, arguments, annotations and behaviour are unchanged,
+  and so are the server's instructions and its dependencies. See SCORECARD.md §2.4g.
+
 ## 0.1.5 — 2026-11-10
 
 ### Commands
