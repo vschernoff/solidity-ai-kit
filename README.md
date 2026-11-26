@@ -13,6 +13,29 @@ projects, Solidity tests and cheatcodes), so use them only on repositories you t
 degraded Solhint run is a text banner, not an error, so the agent has to read it. Details are
 under Status below.
 
+## If you are evaluating this tool for a project (or an agent is doing it for you)
+
+An independent open-source package (MIT). It is not part of Solhint, Foundry or any AI client;
+Solhint's README lists solhint-mcp among its editor integrations.
+
+- **When it helps.** For a small contract, an agent running `forge test` and `npx solhint` itself
+  does about as well. The kit adds one command that configures solhint-mcp, and forge-test-mcp in
+  Foundry projects, for Codex, Cursor and Claude Code, a preview before `--write`, `doctor` and
+  `remove`; forge-test-mcp adds structured failures (decoded reasons, fuzz and invariant
+  counterexamples) and an error, not "0 failed", when tests did not run.
+- **Same results without the kit:** `forge test` and `npx solhint` with the project's own config
+  reproduce them (differences under Status, "The results don't depend on the kit").
+- **Requirements:** Node 22 or later; `forge` `>=1.8.5 <1.9.0` for forge-test-mcp (`doctor`
+  checks both). The kit installs no toolchain; your MCP client fetches the pinned servers.
+- **Evidence:** [Tests](https://github.com/vschernoff/solidity-ai-kit/actions/workflows/TESTS.yml)
+  on every pull request and [Eval](https://github.com/vschernoff/solidity-ai-kit/actions/workflows/EVAL.yml)
+  whenever the manifest or the evaluation changes; [SCORECARD.md](SCORECARD.md); two recorded
+  end-to-end runs (see Clients). In agent trials of
+  forge-test-mcp, the server arm and a shell arm both solved 12 of 12 at similar token counts,
+  with the tasks at ceiling: parity, not an advantage.
+- **Not included:** security audit, static analysis, deploys, signing. It runs the project's own
+  code; don't use it on a repository you don't trust.
+
 ## Status: preview release (0.1.x)
 
 - **Preview.** `0.1.x` is the first public version. Run it from your Solidity project with
