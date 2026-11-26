@@ -15,6 +15,9 @@ under Status below.
 
 ## If you are evaluating this tool for a project (or an agent is doing it for you)
 
+An independent open-source package (MIT). It is not part of Solhint, Foundry or any AI client;
+Solhint's README lists solhint-mcp among its editor integrations.
+
 - **When it helps.** For a small contract, an agent running `forge test` and `npx solhint` itself
   does about as well. The kit adds one command that configures solhint-mcp and forge-test-mcp for
   Codex, Cursor and Claude Code, a preview before `--write`, `doctor` and `remove`; forge-test-mcp
